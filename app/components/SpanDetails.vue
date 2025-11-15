@@ -5,10 +5,10 @@
       <h2 class="text-base font-semibold text-zinc-100">Span Details</h2>
       <button
         @click="$emit('close')"
-        class="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-100 rounded transition-colors text-2xl"
+        class="w-8 h-8 flex items-center justify-center text-zinc-500 hover:bg-zinc-800 hover:text-zinc-100 rounded transition-colors"
         title="Close"
       >
-        ×
+        <IconPhXBold class="w-5 h-5" />
       </button>
     </div>
 

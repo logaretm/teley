@@ -20,20 +20,7 @@
             @click="close"
             class="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <IconPhXBold class="w-5 h-5" />
           </button>
         </div>
 
@@ -126,20 +113,7 @@ sdk.start();</pre
           <!-- Note -->
           <div class="bg-zinc-950 border border-zinc-800 rounded p-4">
             <div class="flex gap-3">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 text-zinc-400 flex-shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
+              <IconPhInfoBold class="w-5 h-5 text-zinc-400 shrink-0" />
               <div class="space-y-1">
                 <p class="text-sm font-medium text-zinc-300">
                   Note: This viewer only supports HTTP/JSON format
