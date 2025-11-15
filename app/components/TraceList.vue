@@ -1,14 +1,14 @@
 <template>
   <div class="h-full flex flex-col bg-zinc-950">
     <!-- Header -->
-    <div class="p-4 border-b border-zinc-800">
-      <div class="flex items-center justify-between">
+    <div class="border-b border-zinc-800">
+      <div class="p-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <h2 class="text-lg font-semibold text-zinc-100">Traces</h2>
           <span
             class="text-xs font-medium text-zinc-400 bg-zinc-900 px-2.5 py-1 rounded-full"
           >
-            {{ traces.length }}
+            {{ filteredTraces.length }}
           </span>
         </div>
         <button
@@ -18,6 +18,21 @@
         >
           <IconPhTrashBold class="w-4 h-4" />
         </button>
+      </div>
+
+      <!-- Search -->
+      <div class="px-4 pb-3">
+        <div class="relative">
+          <IconPhMagnifyingGlassBold
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"
+          />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search traces..."
+            class="w-full bg-zinc-900 border border-zinc-800 rounded pl-9 pr-3 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600 focus:border-transparent"
+          />
+        </div>
       </div>
     </div>
 
@@ -51,11 +66,20 @@
 
       <!-- Trace Cards -->
       <template v-else>
+        <div
+          v-if="searchQuery && filteredTraces.length === 0"
+          class="p-8 text-center"
+        >
+          <p class="text-sm text-zinc-500">
+            No traces found for "{{ searchQuery }}"
+          </p>
+        </div>
         <TraceCard
-          v-for="trace in traces"
+          v-for="trace in filteredTraces"
           :key="trace.trace_id"
           :trace="trace"
           :is-selected="selectedTraceId === trace.trace_id"
+          :search-query="debouncedSearch"
           @select="selectedTraceId = $event"
         />
       </template>
@@ -65,13 +89,14 @@
 
 <script setup lang="ts">
 import type { Trace } from '@types';
+import { refDebounced } from '@vueuse/core';
 
 interface Props {
   traces: Trace[];
   selectedTraceId: string | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const selectedTraceId = defineModel<string | null>({ required: true });
 
@@ -79,4 +104,33 @@ defineEmits<{
   clear: [];
   help: [];
 }>();
+
+const searchQuery = ref('');
+const debouncedSearch = refDebounced(searchQuery, 200);
+
+const filteredTraces = computed(() => {
+  const query = debouncedSearch.value.toLowerCase().trim();
+  if (!query) {
+    return props.traces;
+  }
+
+  return props.traces.filter((trace) => {
+    // Match by trace ID
+    if (trace.trace_id.toLowerCase().includes(query)) {
+      return true;
+    }
+
+    // Match by service name
+    if (trace.service_name.toLowerCase().includes(query)) {
+      return true;
+    }
+
+    // Match by operation name
+    if (trace.operation_name.toLowerCase().includes(query)) {
+      return true;
+    }
+
+    return false;
+  });
+});
 </script>

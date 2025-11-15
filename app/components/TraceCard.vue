@@ -10,13 +10,18 @@
     <div class="p-4">
       <!-- Header Row -->
       <div class="flex items-start justify-between gap-3 mb-3">
-        <h3
-          class="font-semibold text-zinc-100 text-sm leading-tight flex-1 min-w-0"
-        >
-          {{ trace.operation_name }}
-        </h3>
+        <div class="flex-1 min-w-0 space-y-1">
+          <h3
+            class="font-semibold text-zinc-100 text-sm leading-tight"
+            v-html="highlightText(trace.operation_name)"
+          />
+          <p
+            class="font-mono text-xs text-zinc-600 tracking-wide"
+            v-html="highlightText(shortTraceId)"
+          />
+        </div>
         <span
-          class="text-xs font-bold px-2 py-1 rounded uppercase tracking-wide flex-shrink-0"
+          class="text-xs font-bold px-2 py-1 rounded uppercase tracking-wide shrink-0"
           :class="{
             'bg-green-500/20 text-green-400':
               getStatusColor(trace.status_code) === 'success',
@@ -31,9 +36,10 @@
       <!-- Meta Info -->
       <div class="space-y-2">
         <div class="flex items-center justify-between text-xs">
-          <span class="text-zinc-400 font-medium truncate">
-            {{ trace.service_name }}
-          </span>
+          <span
+            class="text-zinc-400 font-medium truncate"
+            v-html="highlightText(trace.service_name)"
+          />
           <span class="text-zinc-300 font-mono font-semibold text-xs ml-3">
             {{ formatDuration(trace.duration) }}
           </span>
@@ -70,6 +76,7 @@ import { computed } from 'vue';
 interface Props {
   trace: Trace;
   isSelected: boolean;
+  searchQuery?: string;
 }
 
 const props = defineProps<Props>();
@@ -79,6 +86,28 @@ defineEmits<{
 }>();
 
 const isError = computed(() => props.trace.status_code === 2);
+const shortTraceId = computed(() => props.trace.trace_id.slice(0, 8));
+
+// Highlight matching text
+function highlightText(text: string): string {
+  if (!props.searchQuery?.trim()) {
+    return text;
+  }
+
+  const query = props.searchQuery.toLowerCase();
+  const lowerText = text.toLowerCase();
+  const index = lowerText.indexOf(query);
+
+  if (index === -1) {
+    return text;
+  }
+
+  const before = text.slice(0, index);
+  const match = text.slice(index, index + query.length);
+  const after = text.slice(index + query.length);
+
+  return `${before}<mark class="bg-yellow-500/30 text-yellow-200">${match}</mark>${after}`;
+}
 
 function getStatusLabel(code: SpanStatusCode): string {
   switch (code) {

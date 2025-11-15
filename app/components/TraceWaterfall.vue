@@ -74,7 +74,7 @@
               └─
             </span>
             <span
-              class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase flex-shrink-0"
+              class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0"
               :class="`kind-${getSpanKindClass(spanRow.span.kind)}`"
             >
               {{ getSpanKindLabel(spanRow.span.kind)[0] }}
@@ -82,7 +82,7 @@
             <span class="text-sm text-zinc-300 truncate">
               {{ spanRow.span.name }}
             </span>
-            <span class="text-xs text-zinc-500 font-mono flex-shrink-0 ml-auto">
+            <span class="text-xs text-zinc-500 font-mono shrink-0 ml-auto">
               {{ formatDuration(spanRow.span.duration) }}
             </span>
           </div>
