@@ -43,23 +43,26 @@
         v-if="traces.length === 0"
         class="flex flex-col items-center justify-center h-full text-center p-8"
       >
-        <div class="space-y-4 max-w-xs">
+        <div class="space-y-6 max-w-xs">
           <div
-            class="w-16 h-16 mx-auto bg-zinc-800 rounded-full flex items-center justify-center"
+            class="w-24 h-24 mx-auto bg-zinc-900 rounded-3xl flex items-center justify-center relative overflow-hidden"
           >
-            <IconPhLightning class="w-8 h-8 text-zinc-500" />
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-zinc-800/50 via-zinc-900 to-zinc-950"
+            />
+            <IconPhLightning class="w-12 h-12 text-zinc-700 relative z-10" />
           </div>
           <div class="space-y-2">
-            <p class="text-base font-medium text-zinc-300">No traces yet</p>
-            <p class="text-sm text-zinc-500">
+            <h3 class="text-lg font-semibold text-zinc-300">No traces yet</h3>
+            <p class="text-sm text-zinc-500 leading-relaxed">
               Waiting for traces from instrumented applications
             </p>
           </div>
           <button
             @click="$emit('help')"
-            class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-sm font-medium rounded transition-colors"
+            class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium rounded-lg transition-colors"
           >
-            How to get started
+            Setup Guide
           </button>
         </div>
       </div>

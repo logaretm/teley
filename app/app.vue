@@ -47,11 +47,28 @@
       <!-- Main Content -->
       <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
 
-      <div
-        v-else
-        class="flex-1 flex items-center justify-center bg-zinc-950 text-zinc-500 text-base"
-      >
-        <p>Select a trace to view details</p>
+      <div v-else class="flex-1 flex items-center justify-center bg-zinc-950">
+        <div class="text-center space-y-6 max-w-md px-8">
+          <div
+            class="w-32 h-32 mx-auto bg-zinc-900 rounded-3xl flex items-center justify-center relative overflow-hidden"
+          >
+            <div
+              class="absolute inset-0 bg-gradient-to-br from-zinc-800/50 via-zinc-900 to-zinc-950"
+            />
+            <IconPhChartBarHorizontalBold
+              class="w-16 h-16 text-zinc-700 relative z-10"
+            />
+          </div>
+          <div class="space-y-3">
+            <h3 class="text-xl font-semibold text-zinc-300">
+              No trace selected
+            </h3>
+            <p class="text-sm text-zinc-500 leading-relaxed">
+              Select a trace from the list to view its waterfall timeline and
+              span details
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
