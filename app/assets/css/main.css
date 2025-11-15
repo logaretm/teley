@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+
+@theme {
+  /* Span kind colors */
+  --color-span-server: #3b82f6;
+  --color-span-client: #a855f7;
+  --color-span-internal: #a1a1aa;
+  --color-span-producer: #22c55e;
+  --color-span-consumer: #fb923c;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-zinc-900;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-700 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-zinc-600;
+}

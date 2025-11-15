@@ -1,20 +1,40 @@
 <template>
-  <div class="app">
-    <header class="app-header">
-      <h1>OpenTelemetry Viewer</h1>
-      <div class="header-actions">
-        <div class="connection-status" :class="{ connected: wsConnected }">
-          <span class="status-dot"></span>
+  <div class="h-screen flex flex-col">
+    <!-- Header -->
+    <header
+      class="bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center"
+    >
+      <h1 class="text-xl font-semibold text-zinc-100">OpenTelemetry Viewer</h1>
+      <div class="flex items-center gap-4">
+        <div
+          class="flex items-center gap-2 text-sm"
+          :class="wsConnected ? 'text-green-400' : 'text-zinc-500'"
+        >
+          <span
+            class="w-2 h-2 rounded-full"
+            :class="
+              wsConnected
+                ? 'bg-green-400 shadow-[0_0_8px_rgba(34,197,94,0.5)]'
+                : 'bg-zinc-500'
+            "
+          ></span>
           {{ wsConnected ? 'Connected' : 'Disconnected' }}
         </div>
-        <button @click="handleClearData" class="btn btn-danger">
+        <button
+          @click="handleClearData"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors"
+        >
           Clear All Data
         </button>
       </div>
     </header>
 
-    <div class="app-body">
-      <aside class="traces-sidebar">
+    <!-- Body -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Traces Sidebar -->
+      <aside
+        class="w-[350px] bg-zinc-900 border-r border-zinc-800 overflow-y-auto"
+      >
         <TraceList
           :traces="traces"
           :selected-trace-id="selectedTraceId"
@@ -22,19 +42,27 @@
         />
       </aside>
 
-      <main class="trace-detail">
+      <!-- Main Content -->
+      <main class="flex-1 overflow-y-auto relative bg-zinc-950">
         <TraceWaterfall
           v-if="selectedTrace"
           :trace="selectedTrace"
           :spans="selectedSpans"
           @select-span="handleSelectSpan"
         />
-        <div v-else class="empty-state">
+        <div
+          v-else
+          class="flex items-center justify-center h-full text-zinc-500 text-base"
+        >
           <p>Select a trace to view details</p>
         </div>
       </main>
 
-      <aside v-if="selectedSpan" class="span-sidebar">
+      <!-- Span Details Sidebar -->
+      <aside
+        v-if="selectedSpan"
+        class="w-[400px] bg-zinc-900 border-l border-zinc-800 overflow-y-auto"
+      >
         <SpanDetails :span="selectedSpan" @close="selectedSpan = null" />
       </aside>
     </div>
@@ -84,139 +112,3 @@ const handleClearData = async () => {
   }
 };
 </script>
-
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
-  color: #e4e4e7;
-  background: #09090b;
-}
-
-.app {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.app-header {
-  background: #18181b;
-  border-bottom: 1px solid #27272a;
-  padding: 1rem 1.5rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.app-header h1 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #fafafa;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.connection-status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #71717a;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #71717a;
-}
-
-.connection-status.connected .status-dot {
-  background: #22c55e;
-  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
-}
-
-.btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
-}
-
-.app-body {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-.traces-sidebar {
-  width: 350px;
-  background: #18181b;
-  border-right: 1px solid #27272a;
-  overflow-y: auto;
-}
-
-.trace-detail {
-  flex: 1;
-  overflow-y: auto;
-  position: relative;
-}
-
-.span-sidebar {
-  width: 400px;
-  background: #18181b;
-  border-left: 1px solid #27272a;
-  overflow-y: auto;
-}
-
-.empty-state {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #71717a;
-  font-size: 1rem;
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #18181b;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
-}
-</style>
