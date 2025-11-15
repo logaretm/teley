@@ -26,3 +26,7 @@
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-zinc-600;
 }
+
+button {
+  @apply cursor-pointer;
+}

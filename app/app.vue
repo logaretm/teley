@@ -20,12 +20,10 @@
           ></span>
           {{ wsConnected ? 'Connected' : 'Disconnected' }}
         </div>
-        <button
-          @click="handleClearData"
-          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded transition-colors"
-        >
-          Clear All Data
-        </button>
+        <div class="flex items-center gap-2 text-sm text-zinc-400">
+          <span>Live</span>
+          <ToggleSwitch v-model="liveMode" />
+        </div>
       </div>
     </header>
 
@@ -36,79 +34,55 @@
         class="w-[350px] bg-zinc-900 border-r border-zinc-800 overflow-y-auto"
       >
         <TraceList
+          v-model="selectedTraceId"
           :traces="traces"
           :selected-trace-id="selectedTraceId"
-          @select="handleSelectTrace"
+          @clear="handleClearData"
+          @help="helpDialog?.open()"
         />
       </aside>
+
+      <HelpDialog ref="helpDialog" />
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto relative bg-zinc-950">
-        <TraceWaterfall
-          v-if="selectedTrace"
-          :trace="selectedTrace"
-          :spans="selectedSpans"
-          @select-span="handleSelectSpan"
-        />
-        <div
-          v-else
-          class="flex items-center justify-center h-full text-zinc-500 text-base"
-        >
-          <p>Select a trace to view details</p>
-        </div>
-      </main>
+      <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
 
-      <!-- Span Details Sidebar -->
-      <aside
-        v-if="selectedSpan"
-        class="w-[400px] bg-zinc-900 border-l border-zinc-800 overflow-y-auto"
+      <div
+        v-else
+        class="flex-1 flex items-center justify-center bg-zinc-950 text-zinc-500 text-base"
       >
-        <SpanDetails :span="selectedSpan" @close="selectedSpan = null" />
-      </aside>
+        <p>Select a trace to view details</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { Trace, Span } from '@types';
-
 const { connected: wsConnected } = useWebSocket();
-const { traces, fetchTraces, fetchTraceDetails, clearAllTraces } = useTraces();
+const { traces, clearAllTraces } = useTraces();
 
 const selectedTraceId = ref<string | null>(null);
-const selectedTrace = ref<Trace | null>(null);
-const selectedSpans = ref<Span[]>([]);
-const selectedSpan = ref<Span | null>(null);
+const liveMode = ref(false);
+const helpDialog = ref<{ open: () => void; close: () => void } | null>(null);
 
-// Initialize - fetch initial traces
-onMounted(async () => {
-  await fetchTraces();
-});
-
-const handleSelectTrace = async (traceId: string) => {
-  selectedTraceId.value = traceId;
-  selectedSpan.value = null;
-
-  const data = await fetchTraceDetails(traceId);
-  if (data) {
-    selectedTrace.value = data.trace;
-    selectedSpans.value = data.spans;
-  }
-};
-
-const handleSelectSpan = (span: Span) => {
-  selectedSpan.value = span;
-};
-
-const handleClearData = async () => {
+async function handleClearData() {
   if (confirm('Are you sure you want to clear all trace data?')) {
     const success = await clearAllTraces();
     if (success) {
       selectedTraceId.value = null;
-      selectedTrace.value = null;
-      selectedSpans.value = [];
-      selectedSpan.value = null;
     }
   }
-};
+}
+
+// Watch for new traces in live mode
+watch(
+  () => traces.value[0],
+  (newTrace, oldTrace) => {
+    if (!liveMode.value) return;
+
+    if (newTrace && oldTrace?.trace_id !== newTrace.trace_id) {
+      selectedTraceId.value = newTrace.trace_id;
+    }
+  },
+);
 </script>

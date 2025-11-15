@@ -5,17 +5,14 @@ import type {
   WebSocketMessage,
   TraceUpdateData,
   TracesResponse,
-  TraceDetailsResponse,
 } from '@types';
 
 interface UseTracesReturn {
   traces: Ref<Trace[]>;
-  fetchTraces: () => Promise<Trace[]>;
-  fetchTraceDetails: (traceId: string) => Promise<TraceDetailsResponse | null>;
   clearAllTraces: () => Promise<boolean>;
 }
 
-export const useTraces = (): UseTracesReturn => {
+export function useTraces(): UseTracesReturn {
   const traces = ref<Trace[]>([]);
   const { data: wsData } = useWebSocket();
 
@@ -83,18 +80,6 @@ export const useTraces = (): UseTracesReturn => {
     }
   };
 
-  const fetchTraceDetails = async (
-    traceId: string,
-  ): Promise<TraceDetailsResponse | null> => {
-    try {
-      const data = await $fetch<TraceDetailsResponse>(`/api/traces/${traceId}`);
-      return data;
-    } catch (error) {
-      console.error('[Traces] Error fetching trace details:', error);
-      return null;
-    }
-  };
-
   const clearAllTraces = async (): Promise<boolean> => {
     try {
       await $fetch('/api/traces/clear', { method: 'POST' });
@@ -107,10 +92,13 @@ export const useTraces = (): UseTracesReturn => {
     }
   };
 
+  // Initialize - fetch initial traces
+  onMounted(async () => {
+    await fetchTraces();
+  });
+
   return {
     traces,
-    fetchTraces,
-    fetchTraceDetails,
     clearAllTraces,
   };
-};
+}

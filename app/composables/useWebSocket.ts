@@ -12,7 +12,7 @@ interface WebSocketInstance {
 
 let wsInstance: WebSocketInstance | null = null;
 
-export const useWebSocket = (): WebSocketInstance => {
+export function useWebSocket(): WebSocketInstance {
   // Return existing instance if already created
   if (wsInstance) {
     return wsInstance;
@@ -66,4 +66,4 @@ export const useWebSocket = (): WebSocketInstance => {
   };
 
   return wsInstance;
-};
+}
