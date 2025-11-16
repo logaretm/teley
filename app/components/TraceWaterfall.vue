@@ -91,10 +91,9 @@
           <div class="relative h-6 flex items-center">
             <div
               class="absolute h-4 rounded transition-all"
-              :class="{
-                'bg-blue-500': spanRow.span.status_code !== 2,
-                'bg-red-500': spanRow.span.status_code === 2,
-              }"
+              :class="
+                getDepthColorClass(spanRow.depth, spanRow.span.status_code)
+              "
               :style="{
                 left: `${spanRow.offsetPercent}%`,
                 width: `${spanRow.widthPercent}%`,
@@ -225,6 +224,28 @@ function getSpanKindClass(kind: SpanKind): string {
     [SpanKind.CONSUMER]: 'consumer',
   };
   return classes[kind] || 'internal';
+}
+
+function getDepthColorClass(depth: number, statusCode: SpanStatusCode): string {
+  // If error, always show red
+  if (statusCode === 2) {
+    return 'bg-red-500';
+  }
+
+  // Color palette for different depth levels
+  const depthColors = [
+    'bg-blue-500', // Level 0 (root)
+    'bg-purple-500', // Level 1
+    'bg-emerald-500', // Level 2
+    'bg-amber-500', // Level 3
+    'bg-cyan-500', // Level 4
+    'bg-pink-500', // Level 5
+    'bg-lime-500', // Level 6
+    'bg-indigo-500', // Level 7
+  ];
+
+  // Cycle through colors for deeper levels
+  return depthColors[depth % depthColors.length] || 'bg-blue-500';
 }
 </script>
 
