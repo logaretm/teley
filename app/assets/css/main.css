@@ -30,3 +30,9 @@
 button {
   @apply cursor-pointer;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0s !important;
+  }
+}

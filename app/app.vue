@@ -48,6 +48,15 @@
       </aside>
 
       <HelpDialog ref="helpDialog" />
+      <ConfirmDialog
+        ref="confirmDialog"
+        title="Clear All Traces"
+        description="Are you sure you want to clear all trace data? This action cannot be undone."
+        confirm-text="Clear All"
+        cancel-text="Cancel"
+        variant="danger"
+        @confirm="confirmClearData"
+      />
 
       <!-- Main Content -->
       <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
@@ -80,19 +89,24 @@
 </template>
 
 <script setup lang="ts">
+import ConfirmDialog from './components/ConfirmDialog.vue';
+
 const { connected: wsConnected } = useWebSocket();
 const { traces, clearAllTraces } = useTraces();
 
 const selectedTraceId = ref<string | null>(null);
 const liveMode = ref(false);
 const helpDialog = ref<{ open: () => void; close: () => void } | null>(null);
+const confirmDialog = ref<{ open: () => void; close: () => void } | null>(null);
 
-async function handleClearData() {
-  if (confirm('Are you sure you want to clear all trace data?')) {
-    const success = await clearAllTraces();
-    if (success) {
-      selectedTraceId.value = null;
-    }
+function handleClearData() {
+  confirmDialog.value?.open();
+}
+
+async function confirmClearData() {
+  const success = await clearAllTraces();
+  if (success) {
+    selectedTraceId.value = null;
   }
 }
 
