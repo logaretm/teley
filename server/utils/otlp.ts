@@ -85,14 +85,14 @@ interface IExportTraceServiceRequest {
 // Convert hex string to readable hex
 function hexToString(hex: string | Uint8Array): string {
   if (!hex) return '';
-  
+
   // Handle Uint8Array (binary data)
   if (hex instanceof Uint8Array) {
     return Array.from(hex)
-      .map(b => b.toString(16).padStart(2, '0'))
+      .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
   }
-  
+
   // Handle string
   if (typeof hex === 'string') {
     // If already hex string, return as is
@@ -103,13 +103,13 @@ function hexToString(hex: string | Uint8Array): string {
     try {
       const binary = atob(hex);
       return Array.from(binary)
-        .map(char => char.charCodeAt(0).toString(16).padStart(2, '0'))
+        .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
         .join('');
     } catch {
       return hex;
     }
   }
-  
+
   return String(hex);
 }
 
@@ -125,7 +125,7 @@ function getAttributeValue(value: IKeyValue['value']): any {
   if (value.doubleValue !== undefined) return value.doubleValue;
   if (value.boolValue !== undefined) return value.boolValue;
   if (value.arrayValue !== undefined) {
-    return value.arrayValue.values.map(v => getAttributeValue(v));
+    return value.arrayValue.values.map((v) => getAttributeValue(v));
   }
   if (value.kvlistValue !== undefined) {
     return parseAttributes(value.kvlistValue.values);
@@ -137,7 +137,7 @@ function getAttributeValue(value: IKeyValue['value']): any {
 // Convert attributes array to object
 function parseAttributes(attributes?: IKeyValue[]): Record<string, any> {
   if (!attributes) return {};
-  
+
   const result: Record<string, any> = {};
   for (const attr of attributes) {
     result[attr.key] = getAttributeValue(attr.value);
@@ -157,8 +157,10 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
       for (const otlpSpan of scopeSpan.spans) {
         const traceId = hexToString(otlpSpan.traceId);
         const spanId = hexToString(otlpSpan.spanId);
-        const parentSpanId = otlpSpan.parentSpanId ? hexToString(otlpSpan.parentSpanId) : null;
-        
+        const parentSpanId = otlpSpan.parentSpanId
+          ? hexToString(otlpSpan.parentSpanId)
+          : null;
+
         const startTime = nanoToMs(otlpSpan.startTimeUnixNano);
         const endTime = nanoToMs(otlpSpan.endTimeUnixNano);
         const duration = endTime - startTime;
@@ -168,18 +170,18 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
         const statusMessage = otlpSpan.status?.message || null;
 
         // Parse events
-        const events = (otlpSpan.events || []).map(event => ({
+        const events = (otlpSpan.events || []).map((event) => ({
           time: nanoToMs(event.timeUnixNano),
           name: event.name,
-          attributes: parseAttributes(event.attributes)
+          attributes: parseAttributes(event.attributes),
         }));
 
         // Parse links
-        const links = (otlpSpan.links || []).map(link => ({
+        const links = (otlpSpan.links || []).map((link) => ({
           traceId: hexToString(link.traceId),
           spanId: hexToString(link.spanId),
           traceState: link.traceState,
-          attributes: parseAttributes(link.attributes)
+          attributes: parseAttributes(link.attributes),
         }));
 
         // Track trace metadata
@@ -192,7 +194,7 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
             end_time: endTime,
             duration: duration,
             status_code: statusCode,
-            status_message: statusMessage
+            status_message: statusMessage,
           });
         } else {
           // Update trace timing if this span extends it
@@ -223,9 +225,24 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
           status_message: statusMessage,
           attributes: JSON.stringify(attributes),
           events: JSON.stringify(events),
-          links: JSON.stringify(links)
+          links: JSON.stringify(links),
         });
       }
+    }
+  }
+
+  // Update trace operation names to use root span names
+  for (const trace of traces.values()) {
+    const traceSpans = spans.filter((s) => s.trace_id === trace.trace_id);
+    const spanMap = new Map(traceSpans.map((s) => [s.span_id, s]));
+
+    // Find root span (no parent or parent not in this trace)
+    const rootSpan = traceSpans.find(
+      (s) => !s.parent_span_id || !spanMap.has(s.parent_span_id),
+    );
+
+    if (rootSpan) {
+      trace.operation_name = rootSpan.name;
     }
   }
 
