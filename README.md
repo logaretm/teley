@@ -1,6 +1,12 @@
-# OpenTelemetry Viewer
+<p align="center">
+  <img src="public/logo.svg" alt="OTel Viewer Logo" width="120" height="120">
+</p>
 
-A real-time OpenTelemetry trace visualizer built with Nuxt 3 and Vue 3. View and debug traces from your instrumented applications with an intuitive waterfall visualization.
+<h1 align="center">OpenTelemetry Viewer</h1>
+
+<p align="center">
+  A real-time OpenTelemetry trace visualizer built with Nuxt 3 and Vue 3. View and debug traces from your instrumented applications with an intuitive waterfall visualization.
+</p>
 
 ## Features
 
@@ -47,8 +53,12 @@ Configure your OpenTelemetry HTTP exporter to send traces to the viewer:
 
 ```javascript
 const { NodeSDK } = require('@opentelemetry/sdk-node');
-const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-http');
-const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+const {
+  OTLPTraceExporter,
+} = require('@opentelemetry/exporter-trace-otlp-http');
+const {
+  getNodeAutoInstrumentations,
+} = require('@opentelemetry/auto-instrumentations-node');
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
@@ -65,8 +75,12 @@ sdk.start();
 
 ```javascript
 const { NodeSDK } = require('@opentelemetry/sdk-node');
-const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-proto');
-const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+const {
+  OTLPTraceExporter,
+} = require('@opentelemetry/exporter-trace-otlp-proto');
+const {
+  getNodeAutoInstrumentations,
+} = require('@opentelemetry/auto-instrumentations-node');
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
@@ -110,12 +124,14 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 ## Features Overview
 
 ### Trace List
+
 - Shows all received traces
 - Displays service name, operation, duration, and status
 - Real-time updates as new traces arrive
 - Error highlighting for failed traces
 
 ### Waterfall View
+
 - Hierarchical span visualization
 - Time-proportional span bars
 - Span kind badges (Server, Client, Internal, Producer, Consumer)
@@ -123,6 +139,7 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 - Duration labels
 
 ### Span Details Panel
+
 - Span metadata (ID, parent, kind, status)
 - Attributes/tags
 - Events with timestamps
@@ -130,6 +147,7 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 - Error messages
 
 ### Clear Data
+
 - Clear all stored traces with one click
 - Resets both database and UI
 
@@ -152,6 +170,7 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 ## Data Storage
 
 Traces are stored in SQLite at `.data/otel.db`. The database includes:
+
 - Traces table: High-level trace information
 - Spans table: Individual span data with attributes, events, and links
 
@@ -167,6 +186,10 @@ pnpm build
 # Preview production build
 pnpm preview
 ```
+
+## Credits
+
+I vibe coded this whole thing, thanks Cursor.
 
 ## License
 
