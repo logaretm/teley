@@ -75,7 +75,12 @@
             </span>
             <span
               class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0"
-              :class="`kind-${getSpanKindClass(spanRow.span.kind)}`"
+              :class="
+                getDepthColorClassForLabel(
+                  spanRow.depth,
+                  spanRow.span.status_code,
+                )
+              "
             >
               {{ getSpanKindLabel(spanRow.span.kind)[0] }}
             </span>
@@ -246,6 +251,33 @@ function getDepthColorClass(depth: number, statusCode: SpanStatusCode): string {
 
   // Cycle through colors for deeper levels
   return depthColors[depth % depthColors.length] || 'bg-blue-500';
+}
+
+function getDepthColorClassForLabel(
+  depth: number,
+  statusCode: SpanStatusCode,
+): string {
+  // If error, always show red
+  if (statusCode === 2) {
+    return 'bg-red-500/20 text-red-400';
+  }
+
+  // Color palette for different depth levels (with opacity for backgrounds and corresponding text colors)
+  const depthColors = [
+    'bg-blue-500/20 text-blue-400', // Level 0 (root)
+    'bg-purple-500/20 text-purple-400', // Level 1
+    'bg-emerald-500/20 text-emerald-400', // Level 2
+    'bg-amber-500/20 text-amber-400', // Level 3
+    'bg-cyan-500/20 text-cyan-400', // Level 4
+    'bg-pink-500/20 text-pink-400', // Level 5
+    'bg-lime-500/20 text-lime-400', // Level 6
+    'bg-indigo-500/20 text-indigo-400', // Level 7
+  ];
+
+  // Cycle through colors for deeper levels
+  return (
+    depthColors[depth % depthColors.length] || 'bg-blue-500/20 text-blue-400'
+  );
 }
 </script>
 
