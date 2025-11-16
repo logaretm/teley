@@ -20,9 +20,6 @@ importers:
       '@vueuse/nuxt':
         specifier: ^11.2.0
         version: 11.3.0(magicast@0.5.1)(nuxt@4.2.1(@parcel/watcher@2.5.1)(@types/node@24.10.1)(@vue/compiler-sfc@3.5.24)(db0@0.3.4)(ioredis@5.8.2)(lightningcss@1.30.2)(magicast@0.5.1)(rollup@4.53.2)(terser@5.44.1)(vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(yaml@2.8.1))(yaml@2.8.1))(vue@3.5.24)
-      crossws:
-        specifier: ^0.4.1
-        version: 0.4.1(srvx@0.9.6)
       nuxt:
         specifier: ^4.2.1
         version: 4.2.1(@parcel/watcher@2.5.1)(@types/node@24.10.1)(@vue/compiler-sfc@3.5.24)(db0@0.3.4)(ioredis@5.8.2)(lightningcss@1.30.2)(magicast@0.5.1)(rollup@4.53.2)(terser@5.44.1)(vite@7.2.2(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(yaml@2.8.1))(yaml@2.8.1)
@@ -36,9 +33,6 @@ importers:
       '@iconify/json':
         specifier: ^2.2.407
         version: 2.2.407
-      '@opentelemetry/api-logs':
-        specifier: ^0.53.0
-        version: 0.53.0
       prettier:
         specifier: ^3.6.2
         version: 3.6.2
@@ -477,10 +471,6 @@ packages:
     peerDependenciesMeta:
       rolldown:
         optional: true
-
-  '@opentelemetry/api-logs@0.53.0':
-    resolution: {integrity: sha512-8HArjKx+RaAI8uEIgcORbZIPklyh1YLjPSBus8hjRmvLi6DeFzgOcdZ7KwPabKj8mXF8dX0hyfAyGfycz0DbFw==}
-    engines: {node: '>=14'}
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -1588,14 +1578,6 @@ packages:
 
   crossws@0.3.5:
     resolution: {integrity: sha512-ojKiDvcmByhwa8YYqbQI/hg7MEU0NC03+pSdEq4ZUnZR9xXpwk7E43SMNGkn+JxJGPFtNvQ48+vV2p+P1ml5PA==}
-
-  crossws@0.4.1:
-    resolution: {integrity: sha512-E7WKBcHVhAVrY6JYD5kteNqVq1GSZxqGrdSiwXR9at+XHi43HJoCQKXcCczR5LBnBquFZPsB3o7HklulKoBU5w==}
-    peerDependencies:
-      srvx: '>=0.7.1'
-    peerDependenciesMeta:
-      srvx:
-        optional: true
 
   css-declaration-sorter@7.3.0:
     resolution: {integrity: sha512-LQF6N/3vkAMYF4xoHLJfG718HRJh34Z8BnNhd6bosOMIVjMlhuZK5++oZa3uYAgrI5+7x2o27gUqTR2U/KjUOQ==}
@@ -4210,10 +4192,6 @@ snapshots:
       - vue-tsc
       - yaml
 
-  '@opentelemetry/api-logs@0.53.0':
-    dependencies:
-      '@opentelemetry/api': 1.9.0
-
   '@opentelemetry/api@1.9.0': {}
 
   '@oxc-minify/binding-android-arm64@0.96.0':
@@ -5176,10 +5154,6 @@ snapshots:
   crossws@0.3.5:
     dependencies:
       uncrypto: 0.1.3
-
-  crossws@0.4.1(srvx@0.9.6):
-    optionalDependencies:
-      srvx: 0.9.6
 
   css-declaration-sorter@7.3.0(postcss@8.5.6):
     dependencies:
