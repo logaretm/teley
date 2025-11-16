@@ -8,6 +8,16 @@
   A real-time OpenTelemetry trace visualizer built with Nuxt 3 and Vue 3. View and debug traces from your instrumented applications with an intuitive waterfall visualization.
 </p>
 
+<p align="center">
+  <img src="docs/screenshots/otel-viewer-complex-waterfall.png" alt="OpenTelemetry Viewer - Multi-Span Trace Visualization" width="100%">
+</p>
+
+<p align="center">
+  <a href="docs/screenshots/otel-viewer-hero-shot.png">Full Interface</a> • 
+  <a href="docs/screenshots/otel-viewer-error-trace-waterfall.png">Errors</a> • 
+  <a href="docs/screenshots/otel-viewer-span-details-panel.png">Span Details Panel</a>
+</p>
+
 ## Features
 
 - 🔄 Real-time trace updates via WebSocket
