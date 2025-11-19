@@ -2,11 +2,12 @@ import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import IconsResolver from 'unplugin-icons/resolver';
 import ViteComponents from 'unplugin-vue-components/vite';
+import MotionResolver from 'motion-v/resolver';
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ['@vueuse/nuxt', 'unplugin-icons/nuxt'],
+  modules: ['@vueuse/nuxt', 'unplugin-icons/nuxt', 'motion-v/nuxt'],
   experimental: {
     componentIslands: true,
   },
@@ -64,6 +65,7 @@ export default defineNuxtConfig({
           IconsResolver({
             prefix: 'icon',
           }),
+          MotionResolver(),
         ],
       }),
     ],

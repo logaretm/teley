@@ -68,8 +68,14 @@ export function useLogs() {
   }
 
   // Clear all logs
-  function clearLogs() {
-    logs.value = [];
+  async function clearLogs() {
+    try {
+      await $fetch('/api/logs/clear', { method: 'POST' });
+      logs.value = [];
+      console.log('[Logs] All logs cleared');
+    } catch (err: any) {
+      console.error('[Logs] Error clearing logs:', err);
+    }
   }
 
   return {

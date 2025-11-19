@@ -1,10 +1,10 @@
 <template>
   <!-- Main Row -->
   <tr
-    class="border-b border-zinc-800 hover:bg-zinc-900/50 cursor-pointer transition-colors group"
+    class="border-b border-zinc-800 hover:bg-zinc-900/50 cursor-pointer transition-colors group bg-zinc-900/30"
     @click="toggleExpanded"
   >
-    <td class="px-4 py-3">
+    <td class="px-4 py-2">
       <div class="flex items-center gap-3">
         <!-- Severity Indicator Dot -->
         <div
@@ -38,66 +38,77 @@
   </tr>
 
   <!-- Expanded Details Row -->
-  <tr v-if="isExpanded" class="border-b border-zinc-800 bg-zinc-900/30">
-    <td class="px-4 py-4">
-      <div class="space-y-4">
-        <!-- Full Message -->
-        <div>
-          <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-            Full Message
-          </h4>
-          <div
-            class="bg-zinc-900 rounded px-4 py-3 text-sm text-zinc-300 font-mono whitespace-pre-wrap wrap-break-words"
-          >
-            {{ log.body }}
-          </div>
-        </div>
+  <AnimatePresence>
+    <tr v-if="isExpanded" class="border-b border-zinc-800 bg-zinc-950">
+      <td class="px-4 overflow-hidden">
+        <motion.div
+          :initial="{ opacity: 0, height: 0 }"
+          :animate="{ opacity: 1, height: 'auto' }"
+          :exit="{ opacity: 0, height: 0 }"
+          :transition="{ duration: 0.2, easing: [0.4, 0, 0.2, 1] }"
+        >
+          <div class="space-y-4 py-4">
+            <!-- Full Message -->
+            <div>
+              <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
+                Full Message
+              </h4>
+              <div
+                class="bg-zinc-900 rounded px-4 py-3 text-sm text-zinc-300 font-mono whitespace-pre-wrap wrap-break-words"
+              >
+                {{ log.body }}
+              </div>
+            </div>
 
-        <!-- Trace Correlation -->
-        <div v-if="log.trace_id || log.span_id" class="flex gap-6">
-          <div v-if="log.trace_id">
-            <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-              Trace ID
-            </h4>
-            <div class="text-sm text-zinc-300 font-mono">
-              {{ log.trace_id }}
+            <!-- Trace Correlation -->
+            <div v-if="log.trace_id || log.span_id" class="flex gap-6">
+              <div v-if="log.trace_id">
+                <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
+                  Trace ID
+                </h4>
+                <div class="text-sm text-zinc-300 font-mono">
+                  {{ log.trace_id }}
+                </div>
+              </div>
+              <div v-if="log.span_id">
+                <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
+                  Span ID
+                </h4>
+                <div class="text-sm text-zinc-300 font-mono">
+                  {{ log.span_id }}
+                </div>
+              </div>
             </div>
-          </div>
-          <div v-if="log.span_id">
-            <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-              Span ID
-            </h4>
-            <div class="text-sm text-zinc-300 font-mono">
-              {{ log.span_id }}
-            </div>
-          </div>
-        </div>
 
-        <!-- Attributes -->
-        <div v-if="parsedAttributes.length > 0">
-          <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-            Attributes
-          </h4>
-          <div class="bg-zinc-900 rounded px-4 py-3 space-y-1">
-            <div
-              v-for="[key, value] in parsedAttributes"
-              :key="key"
-              class="flex gap-2 text-sm"
-            >
-              <span class="text-zinc-500 font-mono">{{ key }}:</span>
-              <span class="text-zinc-300 font-mono break-all">{{
-                formatAttributeValue(value)
-              }}</span>
+            <!-- Attributes -->
+            <div v-if="parsedAttributes.length > 0">
+              <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
+                Attributes
+              </h4>
+              <div class="bg-zinc-900 rounded px-4 py-3 space-y-1">
+                <div
+                  v-for="[key, value] in parsedAttributes"
+                  :key="key"
+                  class="flex gap-2 text-sm"
+                >
+                  <span class="text-zinc-500 font-mono">{{ key }}:</span>
+                  <span class="text-zinc-300 font-mono break-all">{{
+                    formatAttributeValue(value)
+                  }}</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </td>
-  </tr>
+        </motion.div>
+      </td>
+    </tr>
+  </AnimatePresence>
 </template>
 
 <script setup lang="ts">
+import { motion } from 'motion-v';
 import type { Log } from '@types';
+import { AnimatePresence } from 'motion-v';
 import { formatTimestamp, getSeverityLabel } from '~/utils/formatters';
 
 interface Props {

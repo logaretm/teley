@@ -6,12 +6,14 @@
   >
     <div class="flex items-center justify-center h-full w-full">
       <div
-        class="p-6 bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl w-max shrink-0"
+        class="bg-zinc-900 border border-zinc-800 rounded-lg shadow-2xl w-max shrink-0 max-h-[90vh] overflow-y-auto relative"
       >
         <!-- Header -->
-        <div class="flex items-start justify-between mb-4">
+        <div
+          class="flex items-start justify-between mb-4 sticky top-0 bg-zinc-900 z-10 p-4 border-b border-zinc-800"
+        >
           <div class="flex-1">
-            <h2 class="text-xl font-semibold text-zinc-100 mb-1">
+            <h2 class="text-lg font-semibold text-zinc-100 mb-1">
               <slot name="title">{{ title }}</slot>
             </h2>
             <p
@@ -31,7 +33,7 @@
         </div>
 
         <!-- Content -->
-        <div class="text-zinc-300">
+        <div class="text-zinc-300 px-6 pb-6">
           <slot />
         </div>
 

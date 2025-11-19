@@ -13,12 +13,28 @@
           <span class="text-sm text-zinc-400">
             {{ logs.length }} {{ logs.length === 1 ? 'log' : 'logs' }}
           </span>
+          <button
+            @click="setupGuideDialog?.open()"
+            class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors flex items-center gap-2"
+            title="Setup guide"
+          >
+            <IconPhQuestion class="w-4 h-4" />
+          </button>
+          <button
+            v-if="logs.length > 0"
+            @click="handleClearLogs"
+            class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors flex items-center gap-2"
+            title="Clear all logs"
+          >
+            <IconPhTrash class="w-4 h-4" />
+            Clear
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Logs Table -->
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto" style="scrollbar-gutter: stable">
       <div v-if="loading" class="flex items-center justify-center h-full">
         <div class="text-center space-y-3">
           <div
@@ -55,6 +71,13 @@
               Logs will appear here as they are received via OTLP
             </p>
           </div>
+          <button
+            @click="setupGuideDialog?.open()"
+            class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg transition-colors inline-flex items-center gap-2"
+          >
+            <IconPhBookOpenText class="w-4 h-4" />
+            Setup Guide
+          </button>
         </div>
       </div>
 
@@ -70,13 +93,21 @@
         </tbody>
       </table>
     </div>
+
+    <!-- Setup Guide Modal -->
+    <ModalDialog ref="setupGuideDialog" title="Logs Setup Guide" size="large">
+      <LogsSetupGuide />
+    </ModalDialog>
   </div>
 </template>
 
 <script setup lang="ts">
-const { logs, loading, error, fetchLogs } = useLogs();
+const { logs, loading, error, fetchLogs, clearLogs } = useLogs();
 
 const expandedLogs = ref<Set<string>>(new Set());
+const setupGuideDialog = ref<{ open: () => void; close: () => void } | null>(
+  null,
+);
 
 function toggleLogExpansion(logId: string) {
   if (expandedLogs.value.has(logId)) {
@@ -84,6 +115,11 @@ function toggleLogExpansion(logId: string) {
   } else {
     expandedLogs.value.add(logId);
   }
+}
+
+function handleClearLogs() {
+  clearLogs();
+  expandedLogs.value.clear();
 }
 
 // Fetch logs on mount
