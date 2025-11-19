@@ -1,4 +1,9 @@
-import type { Log, LogsResponse, WebSocketMessage, LogUpdateData } from '@types';
+import type {
+  Log,
+  LogsResponse,
+  WebSocketMessage,
+  LogUpdateData,
+} from '@types';
 
 export function useLogs() {
   const logs = useState<Log[]>('logs', () => []);
@@ -6,10 +11,11 @@ export function useLogs() {
   const error = useState<string | null>('logs-error', () => null);
 
   const { data: wsData } = useWebSocket();
+  const { liveMode } = useLiveMode();
 
   // Watch for WebSocket messages
   watch(wsData, (newData) => {
-    if (!newData) return;
+    if (!newData || !liveMode.value) return;
 
     // Ignore pong messages from heartbeat
     if (newData === 'pong') return;
@@ -87,4 +93,3 @@ export function useLogs() {
     clearLogs,
   };
 }
-

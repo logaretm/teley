@@ -15,10 +15,11 @@ interface UseTracesReturn {
 export function useTraces(): UseTracesReturn {
   const traces = ref<Trace[]>([]);
   const { data: wsData } = useWebSocket();
+  const { liveMode } = useLiveMode();
 
   // Watch for WebSocket messages
   watch(wsData, (newData) => {
-    if (!newData) return;
+    if (!newData || !liveMode.value) return;
 
     // Ignore pong messages from heartbeat
     if (newData === 'pong') return;

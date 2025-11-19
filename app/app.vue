@@ -59,8 +59,7 @@ import ConfirmDialog from './components/ConfirmDialog.vue';
 
 const { connected: wsConnected } = useWebSocket();
 const { clearAllTraces } = useTraces();
-
-const liveMode = ref(false);
+const { liveMode } = useLiveMode();
 const helpDialog = ref<{ open: () => void; close: () => void } | null>(null);
 const confirmDialog = ref<{ open: () => void; close: () => void } | null>(null);
 

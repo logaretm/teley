@@ -61,12 +61,30 @@ export interface ParsedLog extends Omit<Log, 'attributes'> {
   attributes: Record<string, unknown>;
 }
 
-// WebSocket message types
-export interface WebSocketMessage {
-  type: 'connected' | 'trace_update' | 'log_update' | 'clear_data';
-  data?: TraceUpdateData | LogUpdateData;
-  message?: string;
+export interface WebSocketTraceUpdateMessage {
+  type: 'trace_update';
+  data: TraceUpdateData;
 }
+
+export interface WebSocketLogUpdateMessage {
+  type: 'log_update';
+  data: LogUpdateData;
+}
+
+export interface WebSocketClearDataMessage {
+  type: 'clear_data';
+}
+
+export interface WebSocketInfoMessage {
+  type: 'connected' | 'cleared_data';
+  message: string;
+}
+
+export type WebSocketMessage =
+  | WebSocketTraceUpdateMessage
+  | WebSocketLogUpdateMessage
+  | WebSocketClearDataMessage
+  | WebSocketInfoMessage;
 
 export interface TraceUpdateData {
   trace: Trace;
