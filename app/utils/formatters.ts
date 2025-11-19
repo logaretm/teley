@@ -33,7 +33,26 @@ export function getSpanKindLabel(kind: SpanKind): string {
     [SpanKind.SERVER]: 'Server',
     [SpanKind.CLIENT]: 'Client',
     [SpanKind.PRODUCER]: 'Producer',
-    [SpanKind.CONSUMER]: 'Consumer'
+    [SpanKind.CONSUMER]: 'Consumer',
   };
   return kinds[kind] || 'Internal';
+}
+
+// Log severity mapping (OTLP spec: severity numbers 1-24)
+export function getSeverityLabel(
+  severityNumber: number,
+  severityText?: string | null,
+): string {
+  if (severityText) {
+    return severityText.toUpperCase();
+  }
+
+  // Map severity numbers to standard levels
+  if (severityNumber >= 21) return 'FATAL';
+  if (severityNumber >= 17) return 'ERROR';
+  if (severityNumber >= 13) return 'WARN';
+  if (severityNumber >= 9) return 'INFO';
+  if (severityNumber >= 5) return 'DEBUG';
+  if (severityNumber >= 1) return 'TRACE';
+  return 'UNSET';
 }

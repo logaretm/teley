@@ -23,9 +23,10 @@
 - 🔄 Real-time trace updates via WebSocket
 - 📊 Waterfall visualization of spans
 - 🔍 Detailed span information panel
+- 📋 Live log monitoring with OTLP support
 - 🎨 Clean, modern UI inspired by Sentry
 - 💾 SQLite storage with Node.js 24 native support
-- 🚀 OTLP-compatible HTTP endpoint
+- 🚀 OTLP-compatible HTTP endpoints
 - ⚡ Fast and lightweight
 
 ## Requirements
@@ -45,12 +46,18 @@ pnpm dev
 
 The application will be available at http://localhost:3000
 
-## Sending Traces
+## Sending Traces and Logs
 
-The viewer accepts OTLP (OpenTelemetry Protocol) traces via HTTP/JSON at:
+The viewer accepts OTLP (OpenTelemetry Protocol) data via HTTP/JSON at:
 
+**Traces:**
 ```
 POST http://localhost:3000/api/v1/traces
+```
+
+**Logs:**
+```
+POST http://localhost:3000/api/v1/logs
 ```
 
 **Note:** Use the HTTP/JSON exporter (not protobuf) from your application.
@@ -125,13 +132,22 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 ## Usage
 
 1. **Start the viewer**: Run `pnpm dev`
-2. **Configure your app**: Point your OTLP exporter to `http://localhost:3000/api/v1/traces`
-3. **Generate traces**: Run your instrumented application
-4. **View traces**: Traces will appear in real-time in the left sidebar
+2. **Configure your app**: Point your OTLP exporters to:
+   - Traces: `http://localhost:3000/api/v1/traces`
+   - Logs: `http://localhost:3000/api/v1/logs`
+3. **Generate data**: Run your instrumented application
+4. **View traces**: Navigate to the Traces tab to see traces in real-time
 5. **Inspect spans**: Click on a trace to see the waterfall view
-6. **View details**: Click on any span to see its attributes, events, and links
+6. **View logs**: Navigate to the Logs tab to see real-time log entries
+7. **Expand logs**: Click on any log row to see the full message and attributes
 
 ## Features Overview
+
+### Navigation
+
+- Side navigation bar for switching between Traces and Logs views
+- Real-time connection status indicator
+- Live mode toggle for auto-selecting newest traces
 
 ### Trace List
 
@@ -144,6 +160,7 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 
 - Hierarchical span visualization
 - Time-proportional span bars
+- Depth-based color coding for easy hierarchy tracking
 - Span kind badges (Server, Client, Internal, Producer, Consumer)
 - Color-coded error spans
 - Duration labels
@@ -155,6 +172,15 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 - Events with timestamps
 - Linked spans
 - Error messages
+
+### Logs View
+
+- Real-time log monitoring (last 500 logs)
+- Expandable table rows for full message viewing
+- Severity-based color coding (TRACE, DEBUG, INFO, WARN, ERROR, FATAL)
+- Service name and timestamp display
+- Trace/span correlation (stored for future use)
+- Attributes viewing in expanded rows
 
 ### Clear Data
 
@@ -171,18 +197,26 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 
 ## API Endpoints
 
+### OTLP Endpoints
 - `POST /api/v1/traces` - Receive OTLP traces
+- `POST /api/v1/logs` - Receive OTLP logs
+
+### Data Endpoints
 - `GET /api/traces` - Fetch all traces
 - `GET /api/traces/:traceId` - Fetch specific trace with spans
+- `GET /api/logs` - Fetch all logs (last 500)
 - `POST /api/traces/clear` - Clear all data
+
+### Real-time
 - `WS /_ws` - WebSocket for real-time updates
 
 ## Data Storage
 
-Traces are stored in SQLite at `.data/otel.db`. The database includes:
+All data is stored in SQLite at `.data/otel.db`. The database includes:
 
-- Traces table: High-level trace information
-- Spans table: Individual span data with attributes, events, and links
+- **Traces table**: High-level trace information
+- **Spans table**: Individual span data with attributes, events, and links
+- **Logs table**: Log records with severity, service name, and optional trace/span correlation
 
 ## Development
 

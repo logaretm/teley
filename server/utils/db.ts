@@ -26,6 +26,19 @@ export interface Span {
   links: string; // JSON string
 }
 
+export interface Log {
+  log_id: string;
+  timestamp: number;
+  trace_id: string | null;
+  span_id: string | null;
+  severity_number: number;
+  severity_text: string | null;
+  body: string;
+  service_name: string;
+  attributes: string; // JSON string
+  created_at: number;
+}
+
 // Initialize database schema
 export async function initDatabase() {
   const db = useDatabase();
@@ -68,6 +81,26 @@ export async function initDatabase() {
 
   await db.sql`CREATE INDEX IF NOT EXISTS idx_spans_trace_id ON spans(trace_id)`;
   await db.sql`CREATE INDEX IF NOT EXISTS idx_spans_parent ON spans(parent_span_id)`;
+
+  await db.sql`
+    CREATE TABLE IF NOT EXISTS logs (
+      log_id TEXT PRIMARY KEY,
+      timestamp INTEGER NOT NULL,
+      trace_id TEXT,
+      span_id TEXT,
+      severity_number INTEGER NOT NULL,
+      severity_text TEXT,
+      body TEXT NOT NULL,
+      service_name TEXT,
+      attributes TEXT,
+      created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
+    )
+  `;
+
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_timestamp ON logs(timestamp DESC)`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_trace_id ON logs(trace_id)`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_service ON logs(service_name)`;
+  await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_severity ON logs(severity_number)`;
 }
 
 export async function insertTrace(trace: Omit<Trace, 'created_at'>) {
@@ -172,4 +205,43 @@ export async function clearAllData() {
 
   await db.sql`DELETE FROM spans`;
   await db.sql`DELETE FROM traces`;
+  await db.sql`DELETE FROM logs`;
+}
+
+export async function insertLog(log: Omit<Log, 'created_at'>) {
+  try {
+    const db = useDatabase();
+
+    await db.sql`
+      INSERT OR REPLACE INTO logs (
+        log_id, timestamp, trace_id, span_id, severity_number, 
+        severity_text, body, service_name, attributes
+      ) VALUES (
+        ${log.log_id}, 
+        ${log.timestamp}, 
+        ${log.trace_id}, 
+        ${log.span_id}, 
+        ${log.severity_number}, 
+        ${log.severity_text}, 
+        ${log.body}, 
+        ${log.service_name}, 
+        ${log.attributes}
+      )
+    `;
+  } catch (error: any) {
+    console.error('[DB] Error inserting log:', error.message);
+    throw error;
+  }
+}
+
+export async function getLogs(limit = 500): Promise<Log[]> {
+  const db = useDatabase();
+
+  const { rows } = await db.sql`
+    SELECT * FROM logs 
+    ORDER BY timestamp DESC 
+    LIMIT ${limit}
+  `;
+
+  return rows as unknown as Log[];
 }

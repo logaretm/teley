@@ -82,6 +82,43 @@ interface IExportTraceServiceRequest {
   resourceSpans: IResourceSpans[];
 }
 
+// OTLP Logs interfaces
+interface ILogRecord {
+  timeUnixNano: string;
+  observedTimeUnixNano?: string;
+  severityNumber?: number;
+  severityText?: string;
+  body?: {
+    stringValue?: string;
+    intValue?: string | number;
+    doubleValue?: number;
+    boolValue?: boolean;
+    arrayValue?: { values: any[] };
+    kvlistValue?: { values: IKeyValue[] };
+    bytesValue?: string;
+  };
+  attributes?: IKeyValue[];
+  droppedAttributesCount?: number;
+  traceId?: string;
+  spanId?: string;
+}
+
+interface IScopeLogs {
+  scope?: IInstrumentationScope;
+  logRecords: ILogRecord[];
+  schemaUrl?: string;
+}
+
+interface IResourceLogs {
+  resource?: IResource;
+  scopeLogs?: IScopeLogs[];
+  schemaUrl?: string;
+}
+
+interface IExportLogsServiceRequest {
+  resourceLogs: IResourceLogs[];
+}
+
 // Convert hex string to readable hex
 function hexToString(hex: string | Uint8Array): string {
   if (!hex) return '';
@@ -257,4 +294,68 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
 
   // Return trace IDs that were updated
   return Array.from(traces.keys());
+}
+
+// Extract log body value
+function getLogBodyValue(body?: ILogRecord['body']): string {
+  if (!body) return '';
+  
+  if (body.stringValue !== undefined) return body.stringValue;
+  if (body.intValue !== undefined) return String(body.intValue);
+  if (body.doubleValue !== undefined) return String(body.doubleValue);
+  if (body.boolValue !== undefined) return String(body.boolValue);
+  if (body.arrayValue !== undefined) {
+    return JSON.stringify(body.arrayValue.values.map((v) => getAttributeValue(v)));
+  }
+  if (body.kvlistValue !== undefined) {
+    return JSON.stringify(parseAttributes(body.kvlistValue.values));
+  }
+  if (body.bytesValue !== undefined) return body.bytesValue;
+  
+  return '';
+}
+
+export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
+  const logs: any[] = [];
+
+  for (const resourceLog of otlpData.resourceLogs) {
+    const resourceAttrs = parseAttributes(resourceLog.resource?.attributes);
+    const serviceName = resourceAttrs['service.name'] || 'unknown';
+
+    for (const scopeLog of resourceLog.scopeLogs || []) {
+      for (const logRecord of scopeLog.logRecords) {
+        const timestamp = nanoToMs(logRecord.timeUnixNano);
+        const traceId = logRecord.traceId ? hexToString(logRecord.traceId) : null;
+        const spanId = logRecord.spanId ? hexToString(logRecord.spanId) : null;
+        
+        const severityNumber = logRecord.severityNumber || 0;
+        const severityText = logRecord.severityText || null;
+        const body = getLogBodyValue(logRecord.body);
+        const attributes = parseAttributes(logRecord.attributes);
+
+        // Generate a unique log ID (timestamp + random component)
+        const logId = `${timestamp}-${Math.random().toString(36).substring(2, 11)}`;
+
+        logs.push({
+          log_id: logId,
+          timestamp,
+          trace_id: traceId,
+          span_id: spanId,
+          severity_number: severityNumber,
+          severity_text: severityText,
+          body,
+          service_name: serviceName,
+          attributes: JSON.stringify(attributes),
+        });
+      }
+    }
+  }
+
+  // Insert into database
+  for (const log of logs) {
+    await insertLog(log);
+  }
+
+  // Return log IDs that were inserted
+  return logs.map(log => log.log_id);
 }

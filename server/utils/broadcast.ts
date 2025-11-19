@@ -56,6 +56,48 @@ export function broadcastTraceUpdate(data: any) {
   }
 }
 
+export function broadcastLogUpdate(data: any) {
+  console.log('[broadcast] Broadcasting log update, peers:', peers.size);
+
+  if (peers.size === 0) {
+    console.log('[broadcast] No peers connected, skipping broadcast');
+    return;
+  }
+
+  const message = JSON.stringify({
+    type: 'log_update',
+    data,
+  });
+
+  const disconnectedPeers: any[] = [];
+  let sentCount = 0;
+
+  for (const peer of peers) {
+    try {
+      peer.send(message);
+      sentCount++;
+    } catch (error) {
+      console.error('[broadcast] Failed to send to peer:', error);
+      disconnectedPeers.push(peer);
+    }
+  }
+
+  console.log('[broadcast] Successfully sent log to', sentCount, 'peers');
+
+  // Clean up disconnected peers
+  for (const peer of disconnectedPeers) {
+    peers.delete(peer);
+  }
+
+  if (disconnectedPeers.length > 0) {
+    console.log(
+      '[broadcast] Cleaned up',
+      disconnectedPeers.length,
+      'disconnected peers',
+    );
+  }
+}
+
 export function broadcastClearData() {
   if (peers.size === 0) {
     return;
