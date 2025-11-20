@@ -1,14 +1,13 @@
 // API endpoint to clear all trace data
 
 export default defineEventHandler(async () => {
-  await clearAllData();
-  
+  await clearAllTraces();
+
   // Notify all connected clients
   broadcastClearData();
-  
+
   return {
     status: 'success',
-    message: 'All trace data cleared'
+    message: 'All trace data cleared',
   };
 });
-

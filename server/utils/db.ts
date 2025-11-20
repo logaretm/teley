@@ -109,16 +109,16 @@ export async function insertTrace(trace: Omit<Trace, 'created_at'>) {
 
     await db.sql`
       INSERT OR REPLACE INTO traces (
-        trace_id, service_name, operation_name, start_time, end_time, 
+        trace_id, service_name, operation_name, start_time, end_time,
         duration, status_code, status_message
       ) VALUES (
-        ${trace.trace_id}, 
-        ${trace.service_name}, 
-        ${trace.operation_name}, 
-        ${trace.start_time}, 
-        ${trace.end_time}, 
-        ${trace.duration}, 
-        ${trace.status_code}, 
+        ${trace.trace_id},
+        ${trace.service_name},
+        ${trace.operation_name},
+        ${trace.start_time},
+        ${trace.end_time},
+        ${trace.duration},
+        ${trace.status_code},
         ${trace.status_message}
       )
     `;
@@ -162,8 +162,8 @@ export async function getTraces(limit = 100): Promise<Trace[]> {
   const db = useDatabase();
 
   const { rows } = await db.sql`
-    SELECT * FROM traces 
-    ORDER BY start_time DESC 
+    SELECT * FROM traces
+    ORDER BY start_time DESC
     LIMIT ${limit}
   `;
 
@@ -188,7 +188,7 @@ export async function getSpansByTraceId(traceId: string): Promise<Span[]> {
   const db = useDatabase();
 
   const { rows } = await db.sql`
-    SELECT * FROM spans 
+    SELECT * FROM spans
     WHERE trace_id = ${traceId}
     ORDER BY start_time ASC
   `;
@@ -200,6 +200,20 @@ export async function getSpansByTraceId(traceId: string): Promise<Span[]> {
   return rows as unknown as Span[];
 }
 
+export async function clearAllTraces() {
+  const db = useDatabase();
+
+  await db.sql`DELETE FROM spans`;
+  await db.sql`DELETE FROM traces`;
+}
+
+export async function clearAllLogs() {
+  const db = useDatabase();
+
+  await db.sql`DELETE FROM logs`;
+}
+
+// Legacy function that clears everything (if needed)
 export async function clearAllData() {
   const db = useDatabase();
 
@@ -214,17 +228,17 @@ export async function insertLog(log: Omit<Log, 'created_at'>) {
 
     await db.sql`
       INSERT OR REPLACE INTO logs (
-        log_id, timestamp, trace_id, span_id, severity_number, 
+        log_id, timestamp, trace_id, span_id, severity_number,
         severity_text, body, service_name, attributes
       ) VALUES (
-        ${log.log_id}, 
-        ${log.timestamp}, 
-        ${log.trace_id}, 
-        ${log.span_id}, 
-        ${log.severity_number}, 
-        ${log.severity_text}, 
-        ${log.body}, 
-        ${log.service_name}, 
+        ${log.log_id},
+        ${log.timestamp},
+        ${log.trace_id},
+        ${log.span_id},
+        ${log.severity_number},
+        ${log.severity_text},
+        ${log.body},
+        ${log.service_name},
         ${log.attributes}
       )
     `;
@@ -238,8 +252,8 @@ export async function getLogs(limit = 500): Promise<Log[]> {
   const db = useDatabase();
 
   const { rows } = await db.sql`
-    SELECT * FROM logs 
-    ORDER BY timestamp DESC 
+    SELECT * FROM logs
+    ORDER BY timestamp DESC
     LIMIT ${limit}
   `;
 

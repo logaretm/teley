@@ -59,6 +59,7 @@ const { traces, clearAllTraces } = useTraces();
 const { liveMode } = useLiveMode();
 const [ClearDataDialog, confirmClearData] = useConfirmation(async () => {
   await clearAllTraces();
+  selectedTraceId.value = null;
 });
 
 function handleClearData() {

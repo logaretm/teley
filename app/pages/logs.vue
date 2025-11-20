@@ -100,6 +100,12 @@
     <ModalDialog ref="setupGuideDialog" title="Logs Setup Guide" size="large">
       <LogsSetupGuide />
     </ModalDialog>
+
+    <ClearLogsDialog
+      confirm-text="Clear All"
+      cancel-text="Cancel"
+      variant="danger"
+    />
   </div>
 </template>
 
@@ -111,6 +117,11 @@ const setupGuideDialog = ref<{ open: () => void; close: () => void } | null>(
   null,
 );
 
+const [ClearLogsDialog, confirmClearLogs] = useConfirmation(async () => {
+  await clearLogs();
+  expandedLogs.value.clear();
+});
+
 function toggleLogExpansion(logId: string) {
   if (expandedLogs.value.has(logId)) {
     expandedLogs.value.delete(logId);
@@ -120,8 +131,10 @@ function toggleLogExpansion(logId: string) {
 }
 
 function handleClearLogs() {
-  clearLogs();
-  expandedLogs.value.clear();
+  confirmClearLogs(
+    'Clear All Logs',
+    'Are you sure you want to clear all log data? This action cannot be undone.',
+  );
 }
 
 // Fetch logs on mount
