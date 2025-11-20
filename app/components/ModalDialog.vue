@@ -24,7 +24,6 @@
             </p>
           </div>
           <button
-            v-if="showClose"
             @click="close"
             class="p-1 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded transition-colors ml-4"
           >
@@ -48,15 +47,12 @@
 
 <script setup lang="ts">
 interface Props {
-  title?: string;
+  title: string;
   description?: string;
-  showClose?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: '',
   description: '',
-  showClose: true,
 });
 
 const dialogRef = useTemplateRef('dialog');

@@ -1,6 +1,8 @@
 <template>
   <ModalDialog ref="dialog" :title="title" :show-close="showClose">
-    {{ description }}
+    <slot>
+      {{ description }}
+    </slot>
 
     <template #footer>
       <div class="flex justify-end gap-3">
@@ -23,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
+export interface Props {
   title?: string;
   description?: string;
   confirmText?: string;

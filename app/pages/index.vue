@@ -43,14 +43,10 @@
       <LogsSetupGuide />
     </ModalDialog>
 
-    <ConfirmDialog
-      ref="confirmDialog"
-      title="Clear All Traces"
-      description="Are you sure you want to clear all trace data? This action cannot be undone."
+    <ClearDataDialog
       confirm-text="Clear All"
       cancel-text="Cancel"
       variant="danger"
-      @confirm="confirmClearData"
     />
   </div>
 </template>
@@ -58,18 +54,18 @@
 <script setup lang="ts">
 const selectedTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
-const confirmDialog = useTemplateRef('confirmDialog');
 
 const { traces, clearAllTraces } = useTraces();
-
 const { liveMode } = useLiveMode();
+const [ClearDataDialog, confirmClearData] = useConfirmation(async () => {
+  await clearAllTraces();
+});
 
 function handleClearData() {
-  confirmDialog?.value?.open();
-}
-
-async function confirmClearData() {
-  await clearAllTraces();
+  confirmClearData(
+    'Clear All Traces',
+    'Are you sure you want to clear all trace data? This action cannot be undone.',
+  );
 }
 
 // Watch for new traces in live mode
