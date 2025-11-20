@@ -9,7 +9,7 @@
         :traces="traces"
         :selected-trace-id="selectedTraceId"
         @clear="handleClearData"
-        @help="helpDialog?.open()"
+        @help="setupDialog?.open()"
       />
     </aside>
 
@@ -29,29 +29,47 @@
           />
         </div>
         <div class="space-y-3">
-          <h3 class="text-xl font-semibold text-zinc-300">
-            No trace selected
-          </h3>
+          <h3 class="text-xl font-semibold text-zinc-300">No trace selected</h3>
           <p class="text-sm text-zinc-500 leading-relaxed">
-            Select a trace from the list to view its waterfall timeline and
-            span details
+            Select a trace from the list to view its waterfall timeline and span
+            details
           </p>
         </div>
       </div>
     </div>
+
+    <!-- Setup Guide Modal -->
+    <ModalDialog ref="setupGuideDialog" title="Logs Setup Guide" size="large">
+      <LogsSetupGuide />
+    </ModalDialog>
+
+    <ConfirmDialog
+      ref="confirmDialog"
+      title="Clear All Traces"
+      description="Are you sure you want to clear all trace data? This action cannot be undone."
+      confirm-text="Clear All"
+      cancel-text="Cancel"
+      variant="danger"
+      @confirm="confirmClearData"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-const { traces } = useTraces();
-
 const selectedTraceId = ref<string | null>(null);
-const liveMode = inject<Ref<boolean>>('liveMode');
-const helpDialog = inject<Ref<{ open: () => void; close: () => void } | null>>('helpDialog');
-const confirmDialog = inject<Ref<{ open: () => void; close: () => void } | null>>('confirmDialog');
+const setupDialog = useTemplateRef('setupGuideDialog');
+const confirmDialog = useTemplateRef('confirmDialog');
+
+const { traces, clearAllTraces } = useTraces();
+
+const { liveMode } = useLiveMode();
 
 function handleClearData() {
   confirmDialog?.value?.open();
+}
+
+async function confirmClearData() {
+  await clearAllTraces();
 }
 
 // Watch for new traces in live mode
@@ -66,4 +84,3 @@ watch(
   },
 );
 </script>
-

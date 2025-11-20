@@ -12,6 +12,7 @@
           </span>
         </div>
         <button
+          v-if="traces.length"
           @click="$emit('clear')"
           class="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded transition-colors"
           title="Clear all traces"

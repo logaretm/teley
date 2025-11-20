@@ -40,35 +40,10 @@
       <!-- Main Content Area -->
       <NuxtPage />
     </div>
-
-    <HelpDialog ref="helpDialog" />
-    <ConfirmDialog
-      ref="confirmDialog"
-      title="Clear All Traces"
-      description="Are you sure you want to clear all trace data? This action cannot be undone."
-      confirm-text="Clear All"
-      cancel-text="Cancel"
-      variant="danger"
-      @confirm="confirmClearData"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-import ConfirmDialog from './components/ConfirmDialog.vue';
-
-const { connected: wsConnected } = useWebSocket();
-const { clearAllTraces } = useTraces();
 const { liveMode } = useLiveMode();
-const helpDialog = ref<{ open: () => void; close: () => void } | null>(null);
-const confirmDialog = ref<{ open: () => void; close: () => void } | null>(null);
-
-// Provide live mode state to child components
-provide('liveMode', liveMode);
-provide('helpDialog', helpDialog);
-provide('confirmDialog', confirmDialog);
-
-async function confirmClearData() {
-  await clearAllTraces();
-}
+const { connected: wsConnected } = useWebSocket();
 </script>

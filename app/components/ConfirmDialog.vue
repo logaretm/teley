@@ -1,10 +1,7 @@
 <template>
-  <ModalDialog
-    ref="dialog"
-    :title="title"
-    :description="description"
-    :show-close="showClose"
-  >
+  <ModalDialog ref="dialog" :title="title" :show-close="showClose">
+    {{ description }}
+
     <template #footer>
       <div class="flex justify-end gap-3">
         <button

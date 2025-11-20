@@ -38,7 +38,7 @@
         </div>
 
         <!-- Footer -->
-        <div v-if="$slots.footer" class="mt-6">
+        <div v-if="$slots.footer" class="p-3">
           <slot name="footer" :close="close" />
         </div>
       </div>
