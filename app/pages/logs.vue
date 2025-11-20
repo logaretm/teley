@@ -4,30 +4,32 @@
     <div class="bg-zinc-900 border-b border-zinc-800 px-6 py-4">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-xl font-semibold text-zinc-100">Logs</h2>
+          <h2
+            class="text-xl font-semibold text-zinc-100 inline-flex items-baseline gap-1.5"
+          >
+            Logs
+
+            <button
+              @click="setupGuideDialog?.open()"
+              class="hover:text-zinc-300 text-zinc-500 transition-colors translate-y-0.5"
+              title="Setup guide"
+            >
+              <IconPhQuestion class="w-4 h-4" />
+            </button>
+          </h2>
           <p class="text-sm text-zinc-400 mt-1">
             Real-time log monitoring (showing last 500 logs)
           </p>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-zinc-400">
-            {{ logs.length }} {{ logs.length === 1 ? 'log' : 'logs' }}
-          </span>
-          <button
-            @click="setupGuideDialog?.open()"
-            class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors flex items-center gap-2"
-            title="Setup guide"
-          >
-            <IconPhQuestion class="w-4 h-4" />
-          </button>
+
+        <div class="flex items-center gap-2">
           <button
             v-if="logs.length > 0"
             @click="handleClearLogs"
-            class="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors flex items-center gap-2"
+            class="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors"
             title="Clear all logs"
           >
             <IconPhTrash class="w-4 h-4" />
-            Clear
           </button>
         </div>
       </div>
