@@ -9,6 +9,7 @@ export interface Trace {
   duration: number;
   status_code: SpanStatusCode;
   status_message: string | null;
+  source: 'OTLP' | 'SENTRY';
   created_at: number;
 }
 

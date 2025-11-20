@@ -182,7 +182,7 @@ function parseAttributes(attributes?: IKeyValue[]): Record<string, any> {
   return result;
 }
 
-export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
+export async function processOTLPTrace(otlpData: IExportTraceServiceRequest, source: 'OTLP' | 'SENTRY' = 'OTLP') {
   const traces = new Map<string, any>();
   const spans: any[] = [];
 
@@ -232,6 +232,7 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
             duration: duration,
             status_code: statusCode,
             status_message: statusMessage,
+            source: source,
           });
         } else {
           // Update trace timing if this span extends it
@@ -299,7 +300,7 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
 // Extract log body value
 function getLogBodyValue(body?: ILogRecord['body']): string {
   if (!body) return '';
-  
+
   if (body.stringValue !== undefined) return body.stringValue;
   if (body.intValue !== undefined) return String(body.intValue);
   if (body.doubleValue !== undefined) return String(body.doubleValue);
@@ -311,7 +312,7 @@ function getLogBodyValue(body?: ILogRecord['body']): string {
     return JSON.stringify(parseAttributes(body.kvlistValue.values));
   }
   if (body.bytesValue !== undefined) return body.bytesValue;
-  
+
   return '';
 }
 
@@ -327,7 +328,7 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
         const timestamp = nanoToMs(logRecord.timeUnixNano);
         const traceId = logRecord.traceId ? hexToString(logRecord.traceId) : null;
         const spanId = logRecord.spanId ? hexToString(logRecord.spanId) : null;
-        
+
         const severityNumber = logRecord.severityNumber || 0;
         const severityText = logRecord.severityText || null;
         const body = getLogBodyValue(logRecord.body);

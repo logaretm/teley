@@ -36,10 +36,22 @@
       <!-- Meta Info -->
       <div class="space-y-2">
         <div class="flex items-center justify-between text-xs">
-          <span
-            class="text-zinc-400 font-medium truncate"
-            v-html="highlightText(trace.service_name)"
-          />
+          <div class="flex items-center gap-2 min-w-0">
+            <span
+              class="text-zinc-400 font-medium truncate"
+              v-html="highlightText(trace.service_name)"
+            />
+            <span
+              class="text-[10px] font-mono px-1.5 py-0.5 rounded uppercase shrink-0"
+              :class="{
+                'bg-blue-500/20 text-blue-400': trace.source === 'OTLP',
+                'bg-purple-500/20 text-purple-400': trace.source === 'SENTRY',
+              }"
+              :title="`Source: ${trace.source}`"
+            >
+              {{ trace.source }}
+            </span>
+          </div>
           <span class="text-zinc-300 font-mono font-semibold text-xs ml-3">
             {{ formatDuration(trace.duration) }}
           </span>

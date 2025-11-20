@@ -47,7 +47,9 @@ The application will be available at http://localhost:3000
 
 ## Sending Traces and Logs
 
-The viewer accepts OTLP (OpenTelemetry Protocol) data via HTTP/JSON at:
+The viewer accepts data in two formats:
+
+### Option 1: OpenTelemetry Protocol (OTLP)
 
 **Traces:**
 
@@ -62,6 +64,40 @@ POST http://localhost:3000/api/v1/logs
 ```
 
 **Note:** Use the HTTP/JSON exporter (not protobuf) from your application.
+
+### Option 2: Sentry SDK (New!)
+
+You can now use Sentry SDKs directly with this viewer! Simply set your DSN to:
+
+```
+http://public_key@localhost:3000/1
+```
+
+The project ID (the `1` at the end) can be any value - it's just a placeholder that Sentry SDKs require in the DSN format.
+
+**Example with Sentry JavaScript SDK:**
+
+```javascript
+import * as Sentry from '@sentry/node';
+
+Sentry.init({
+  dsn: 'http://public_key@localhost:3000/1',
+  tracesSampleRate: 1.0,
+});
+```
+
+**Example with Sentry Python SDK:**
+
+```python
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn="http://public_key@localhost:3000/1",
+    traces_sample_rate=1.0,
+)
+```
+
+The viewer will automatically convert Sentry's transactions to traces and error events to logs in OTLP format for visualization. This means you can use familiar Sentry SDKs while viewing data in the OTLP viewer! All Sentry-originated traces will be marked with a "SENTRY" badge.
 
 ### Configuration in Your Application
 
@@ -177,12 +213,20 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 - `POST /api/v1/traces` - Receive OTLP traces
 - `POST /api/v1/logs` - Receive OTLP logs
 
+### Sentry Endpoints
+
+- `POST /api/:projectId/envelope` - Receive Sentry envelopes
+  - Compatible DSN format: `http://public_key@localhost:3000/1`
+  - The project ID can be any value (e.g., `1`, `my-project`, etc.)
+  - Automatically converts Sentry transactions to traces and errors to logs
+
 ### Data Endpoints
 
 - `GET /api/traces` - Fetch all traces
 - `GET /api/traces/:traceId` - Fetch specific trace with spans
 - `GET /api/logs` - Fetch all logs (last 500)
-- `POST /api/traces/clear` - Clear all data
+- `POST /api/traces/clear` - Clear all traces
+- `POST /api/logs/clear` - Clear all logs
 
 ### Real-time
 
