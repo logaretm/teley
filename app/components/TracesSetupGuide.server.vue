@@ -95,7 +95,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
-    url: 'http://localhost:3000/api/v1/traces',
+    url: 'http://localhost:3000/api/v1/otlp/traces',
   }),
   instrumentations: [getNodeAutoInstrumentations()],
 });

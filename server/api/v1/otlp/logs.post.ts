@@ -1,5 +1,5 @@
 // OTLP HTTP endpoint for receiving logs
-// Standard endpoint: /api/v1/logs (compatible with OTLP exporters)
+// Standard endpoint: /api/v1/otlp/logs (compatible with OTLP exporters)
 // Supports JSON format (use @opentelemetry/exporter-logs-otlp-http)
 
 export default defineEventHandler(async (event) => {

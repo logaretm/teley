@@ -69,7 +69,7 @@
           <p class="text-sm text-zinc-400">
             Send OTLP logs to
             <code class="px-1.5 py-0.5 bg-zinc-900 rounded text-zinc-300">
-              http://localhost:3000/api/v1/logs
+              http://localhost:3000/api/v1/otlp/logs
             </code>
             . Logs can include trace_id and span_id for correlation.
           </p>
@@ -92,7 +92,7 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { logs } from '@opentelemetry/api-logs';
 
 const logExporter = new OTLPLogExporter({
-  url: 'http://localhost:3000/api/v1/logs',
+  url: 'http://localhost:3000/api/v1/otlp/logs',
 });
 
 const loggerProvider = new LoggerProvider();

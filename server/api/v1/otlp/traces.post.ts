@@ -1,5 +1,5 @@
 // OTLP HTTP endpoint for receiving traces
-// Standard endpoint: /api/v1/traces (compatible with OTLP exporters)
+// Standard endpoint: /api/v1/otlp/traces (compatible with OTLP exporters)
 // Supports JSON format (use @opentelemetry/exporter-trace-otlp-http)
 
 export default defineEventHandler(async (event) => {
