@@ -2,6 +2,7 @@
 // Reference: https://opentelemetry.io/docs/specs/otlp/
 
 import type { SpanStatusCode } from '@opentelemetry/api';
+import type { TraceSource } from '@types';
 
 interface IKeyValue {
   key: string;
@@ -182,7 +183,10 @@ function parseAttributes(attributes?: IKeyValue[]): Record<string, any> {
   return result;
 }
 
-export async function processOTLPTrace(otlpData: IExportTraceServiceRequest, source: 'OTLP' | 'SENTRY' = 'OTLP') {
+export async function processOTLPTrace(
+  otlpData: IExportTraceServiceRequest,
+  source: TraceSource = 'OTLP',
+) {
   const traces = new Map<string, any>();
   const spans: any[] = [];
 
@@ -306,7 +310,9 @@ function getLogBodyValue(body?: ILogRecord['body']): string {
   if (body.doubleValue !== undefined) return String(body.doubleValue);
   if (body.boolValue !== undefined) return String(body.boolValue);
   if (body.arrayValue !== undefined) {
-    return JSON.stringify(body.arrayValue.values.map((v) => getAttributeValue(v)));
+    return JSON.stringify(
+      body.arrayValue.values.map((v) => getAttributeValue(v)),
+    );
   }
   if (body.kvlistValue !== undefined) {
     return JSON.stringify(parseAttributes(body.kvlistValue.values));
@@ -326,7 +332,9 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
     for (const scopeLog of resourceLog.scopeLogs || []) {
       for (const logRecord of scopeLog.logRecords) {
         const timestamp = nanoToMs(logRecord.timeUnixNano);
-        const traceId = logRecord.traceId ? hexToString(logRecord.traceId) : null;
+        const traceId = logRecord.traceId
+          ? hexToString(logRecord.traceId)
+          : null;
         const spanId = logRecord.spanId ? hexToString(logRecord.spanId) : null;
 
         const severityNumber = logRecord.severityNumber || 0;
@@ -358,5 +366,5 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
   }
 
   // Return log IDs that were inserted
-  return logs.map(log => log.log_id);
+  return logs.map((log) => log.log_id);
 }

@@ -8,6 +8,14 @@
         </h2>
         <div class="flex gap-6 flex-wrap items-center text-sm">
           <span class="text-zinc-400">
+            <strong class="text-zinc-200 mr-1">Provider:</strong>
+
+            <span class="inline-flex items-center gap-1">
+              {{ getSourceLabel(trace.source) }}
+              <SourceIcon :source="trace.source" class="size-4" />
+            </span>
+          </span>
+          <span class="text-zinc-400">
             <strong class="text-zinc-200 mr-1">Service:</strong>
             {{ trace.service_name }}
           </span>
@@ -121,6 +129,7 @@ import {
   getStatusColor,
   getSpanKindLabel,
 } from '~/utils/formatters';
+import SourceIcon from './SourceIcon.vue';
 
 interface Props {
   trace: Trace;

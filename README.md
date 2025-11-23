@@ -65,7 +65,7 @@ POST http://localhost:3000/api/v1/otlp/logs
 
 **Note:** Use the HTTP/JSON exporter (not protobuf) from your application.
 
-### Option 2: Sentry SDK (New!)
+### Option 2: Sentry SDK
 
 You can now use Sentry SDKs directly with this viewer! Simply set your DSN to:
 

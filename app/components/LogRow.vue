@@ -5,7 +5,7 @@
     @click="toggleExpanded"
   >
     <td class="px-4 py-2">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <!-- Severity Indicator Dot -->
         <div
           class="w-2 h-2 rounded-full shrink-0"
@@ -24,14 +24,14 @@
         </span>
 
         <!-- Message -->
-        <span class="text-sm text-zinc-400 truncate flex-1 min-w-0">
+        <span class="text-sm text-zinc-400 truncate min-w-0 break-all max-w-xl">
           {{ log.body }}
         </span>
 
         <!-- Expand Icon -->
         <IconPhCaretDown
           :class="isExpanded ? 'rotate-180' : ''"
-          class="w-4 h-4 text-zinc-500 group-hover:text-zinc-400 transition-colors shrink-0"
+          class="w-4 h-4 text-zinc-500 group-hover:text-zinc-400 transition-colors shrink-0 ml-auto"
         />
       </div>
     </td>

@@ -1,3 +1,5 @@
+import type { TraceSource } from '@types';
+
 export interface Trace {
   trace_id: string;
   service_name: string;
@@ -7,7 +9,7 @@ export interface Trace {
   duration: number;
   status_code: number;
   status_message: string | null;
-  source: 'OTLP' | 'SENTRY';
+  source: TraceSource;
   created_at: number;
 }
 

@@ -1,5 +1,6 @@
 // Utility functions for formatting trace data
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
+import type { TraceSource } from '@types';
 
 export function formatDuration(ms: number): string {
   if (ms < 1) {
@@ -55,4 +56,11 @@ export function getSeverityLabel(
   if (severityNumber >= 5) return 'DEBUG';
   if (severityNumber >= 1) return 'TRACE';
   return 'UNSET';
+}
+
+export function getSourceLabel(source: TraceSource): string {
+  if (source === 'SENTRY') return 'Sentry';
+  if (source === 'OTLP') return 'OTLP';
+
+  return source;
 }
