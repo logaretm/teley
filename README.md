@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <a href="docs/screenshots/otel-viewer-hero-shot.png">Full Interface</a> • 
-  <a href="docs/screenshots/otel-viewer-error-trace-waterfall.png">Errors</a> • 
+  <a href="docs/screenshots/otel-viewer-hero-shot.png">Full Interface</a> •
+  <a href="docs/screenshots/otel-viewer-error-trace-waterfall.png">Errors</a> •
   <a href="docs/screenshots/otel-viewer-span-details-panel.png">Span Details Panel</a>
 </p>
 
@@ -25,9 +25,8 @@
 - 🔍 Detailed span information panel
 - 📋 Live log monitoring with OTLP support
 - 🎨 Clean, modern UI inspired by Sentry
-- 💾 SQLite storage with Node.js 24 native support
+- 💾 Persistent storage with SQLite
 - 🚀 OTLP-compatible HTTP endpoints
-- ⚡ Fast and lightweight
 
 ## Requirements
 
@@ -51,11 +50,13 @@ The application will be available at http://localhost:3000
 The viewer accepts OTLP (OpenTelemetry Protocol) data via HTTP/JSON at:
 
 **Traces:**
+
 ```
 POST http://localhost:3000/api/v1/traces
 ```
 
 **Logs:**
+
 ```
 POST http://localhost:3000/api/v1/logs
 ```
@@ -69,35 +70,9 @@ Configure your OpenTelemetry HTTP exporter to send traces to the viewer:
 #### Node.js Example (JSON - easier to debug)
 
 ```javascript
-const { NodeSDK } = require('@opentelemetry/sdk-node');
-const {
-  OTLPTraceExporter,
-} = require('@opentelemetry/exporter-trace-otlp-http');
-const {
-  getNodeAutoInstrumentations,
-} = require('@opentelemetry/auto-instrumentations-node');
-
-const sdk = new NodeSDK({
-  traceExporter: new OTLPTraceExporter({
-    url: 'http://localhost:3000/api/v1/traces',
-    headers: {},
-  }),
-  instrumentations: [getNodeAutoInstrumentations()],
-});
-
-sdk.start();
-```
-
-#### Node.js Example (Protobuf - more efficient)
-
-```javascript
-const { NodeSDK } = require('@opentelemetry/sdk-node');
-const {
-  OTLPTraceExporter,
-} = require('@opentelemetry/exporter-trace-otlp-proto');
-const {
-  getNodeAutoInstrumentations,
-} = require('@opentelemetry/auto-instrumentations-node');
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 
 const sdk = new NodeSDK({
   traceExporter: new OTLPTraceExporter({
@@ -198,16 +173,19 @@ trace.get_tracer_provider().add_span_processor(span_processor)
 ## API Endpoints
 
 ### OTLP Endpoints
+
 - `POST /api/v1/traces` - Receive OTLP traces
 - `POST /api/v1/logs` - Receive OTLP logs
 
 ### Data Endpoints
+
 - `GET /api/traces` - Fetch all traces
 - `GET /api/traces/:traceId` - Fetch specific trace with spans
 - `GET /api/logs` - Fetch all logs (last 500)
 - `POST /api/traces/clear` - Clear all data
 
 ### Real-time
+
 - `WS /_ws` - WebSocket for real-time updates
 
 ## Data Storage
