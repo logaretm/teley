@@ -164,7 +164,7 @@ async function processSentryEvent(event: any) {
     info: 9,
     debug: 5,
   };
-  const severityNumber = severityMap[event.level] || 17; // Default to ERROR
+  const severityNumber = severityMap[event.level] || 9; // Default to INFO
 
   // Build log message from exception or message
   let body = event.message || '';

@@ -131,7 +131,7 @@ const parsedAttributes = computed(() => {
 });
 
 const severityDotColor = computed(() => {
-  const severity = props.log.severity_number;
+  let severity = props.log.severity_number;
 
   // Map severity numbers to full Tailwind bg classes
   if (severity >= 21) return 'bg-red-400'; // FATAL
