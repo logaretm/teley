@@ -36,10 +36,13 @@
       <!-- Meta Info -->
       <div class="space-y-2">
         <div class="flex items-center justify-between text-xs">
-          <span
-            class="text-zinc-400 font-medium truncate"
-            v-html="highlightText(trace.service_name)"
-          />
+          <div class="flex items-center gap-1.5 min-w-0">
+            <SourceIcon class="size-4" :source="trace.source" />
+            <span
+              class="text-zinc-400 font-medium truncate"
+              v-html="highlightText(trace.service_name)"
+            />
+          </div>
           <span class="text-zinc-300 font-mono font-semibold text-xs ml-3">
             {{ formatDuration(trace.duration) }}
           </span>

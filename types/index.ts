@@ -1,5 +1,7 @@
 import type { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 
+export type TraceSource = 'OTLP' | 'SENTRY';
+
 export interface Trace {
   trace_id: string;
   service_name: string;
@@ -9,6 +11,7 @@ export interface Trace {
   duration: number;
   status_code: SpanStatusCode;
   status_message: string | null;
+  source: TraceSource;
   created_at: number;
 }
 

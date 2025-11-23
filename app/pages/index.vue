@@ -39,8 +39,8 @@
     </div>
 
     <!-- Setup Guide Modal -->
-    <ModalDialog ref="setupGuideDialog" title="Logs Setup Guide" size="large">
-      <LogsSetupGuide />
+    <ModalDialog ref="setupGuideDialog" title="Traces Setup Guide">
+      <TracesSetupGuide />
     </ModalDialog>
 
     <ClearDataDialog

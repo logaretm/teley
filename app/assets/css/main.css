@@ -36,3 +36,39 @@ button {
     transition-duration: 0s !important;
   }
 }
+
+.tab-content {
+  display: none;
+}
+
+.tab-content:target {
+  display: block;
+}
+
+.tab-item {
+  @apply border-transparent text-zinc-500 hover:text-zinc-300 px-4 py-2 text-sm font-medium border-b-2 transition-colors inline-flex items-center gap-2;
+}
+
+.tab-item-active {
+  @apply border-zinc-400 text-zinc-200;
+}
+
+.tab-container {
+  &:not(:has(.tab-content:target)) {
+    .tabs {
+      .tab-item:first-child {
+        @apply border-zinc-400 text-zinc-200;
+      }
+    }
+
+    .tab-content-wrapper {
+      .tab-content:first-child {
+        display: block;
+      }
+    }
+  }
+}
+
+code.inline-code {
+  @apply px-1.5 py-0.5 bg-zinc-900 rounded text-zinc-300;
+}

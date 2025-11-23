@@ -1,78 +1,178 @@
 <template>
-  <div class="space-y-6">
-    <!-- Step 1 -->
-    <section>
-      <h3
-        class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
-      >
-        <span
-          class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
-        >
-          1
-        </span>
-        Install OpenTelemetry Logs SDK
-      </h3>
-      <div class="ml-8 space-y-3">
-        <p class="text-sm text-zinc-400">
-          Install the OpenTelemetry logs packages for your language:
-        </p>
-        <div v-html="installCode" class="rounded overflow-hidden" />
-      </div>
-    </section>
+  <div class="space-y-6 tab-container">
+    <!-- Tabs -->
+    <div class="flex gap-2 border-b border-zinc-800 tabs">
+      <a href="#otlp-guide-logs" class="tab-item">
+        <SourceIcon source="OTLP" class="size-4" />
+        OpenTelemetry
+      </a>
+      <a href="#sentry-guide-logs" class="tab-item">
+        <SourceIcon source="SENTRY" class="size-4" />
+        Sentry
+      </a>
+    </div>
 
-    <!-- Step 2 -->
-    <section>
-      <h3
-        class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
-      >
-        <span
-          class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
-        >
-          2
-        </span>
-        Configure the Log Exporter
-      </h3>
-      <div class="ml-8 space-y-3">
-        <p class="text-sm text-zinc-400">
-          Configure the OTLP log exporter to send logs to this viewer:
-        </p>
-        <div v-html="configCode" class="rounded overflow-hidden" />
-      </div>
-    </section>
+    <div class="tab-content-wrapper">
+      <!-- OTLP Instructions -->
+      <div id="otlp-guide-logs" class="space-y-6 tab-content">
+        <!-- Step 1 -->
+        <section>
+          <h3
+            class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
+            >
+              1
+            </span>
+            Install OpenTelemetry Logs SDK
+          </h3>
+          <div class="ml-8 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Install the OpenTelemetry logs packages for your language:
+            </p>
+            <div v-html="installCode" class="rounded overflow-hidden" />
+          </div>
+        </section>
 
-    <!-- Step 3 -->
-    <section>
-      <h3
-        class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
-      >
-        <span
-          class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
-        >
-          3
-        </span>
-        Emit Logs
-      </h3>
-      <div class="ml-8 space-y-3">
-        <p class="text-sm text-zinc-400">
-          Start logging and your logs will appear here automatically:
-        </p>
-        <div v-html="usageCode" class="rounded overflow-hidden" />
-      </div>
-    </section>
+        <!-- Step 2 -->
+        <section>
+          <h3
+            class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
+            >
+              2
+            </span>
+            Configure the Log Exporter
+          </h3>
+          <div class="ml-8 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Configure the OTLP log exporter to send logs to this viewer:
+            </p>
+            <div v-html="configCode" class="rounded overflow-hidden" />
+          </div>
+        </section>
 
-    <!-- Note -->
-    <div class="bg-zinc-950 border border-zinc-800 rounded p-4">
-      <div class="flex gap-3">
-        <IconPhInfoBold class="w-5 h-5 text-zinc-400 shrink-0" />
-        <div class="space-y-1">
-          <p class="text-sm font-medium text-zinc-300">Logs Endpoint</p>
-          <p class="text-sm text-zinc-400">
-            Send OTLP logs to
-            <code class="px-1.5 py-0.5 bg-zinc-900 rounded text-zinc-300">
-              http://localhost:3000/api/v1/logs
-            </code>
-            . Logs can include trace_id and span_id for correlation.
-          </p>
+        <!-- Step 3 -->
+        <section>
+          <h3
+            class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
+            >
+              3
+            </span>
+            Emit Logs
+          </h3>
+          <div class="ml-8 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Start logging and your logs will appear here automatically:
+            </p>
+            <div v-html="usageCode" class="rounded overflow-hidden" />
+          </div>
+        </section>
+
+        <!-- Note -->
+        <div class="bg-zinc-950 border border-zinc-800 rounded p-4">
+          <div class="flex gap-3">
+            <IconPhInfoBold class="w-5 h-5 text-zinc-400 shrink-0" />
+            <div class="space-y-1">
+              <p class="text-sm font-medium text-zinc-300">Logs Endpoint</p>
+              <p class="text-sm text-zinc-400">
+                Send OTLP logs to
+                <code class="inline-code">
+                  http://localhost:3000/api/v1/otlp/logs</code
+                >. Logs can include
+                <code class="inline-code">trace_id</code> and
+                <code class="inline-code">span_id</code> for correlation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sentry Instructions -->
+      <div id="sentry-guide-logs" class="space-y-6 tab-content">
+        <!-- Step 1 -->
+        <section>
+          <h3
+            class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
+            >
+              1
+            </span>
+            Install Sentry SDK
+          </h3>
+          <div class="ml-8 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Install the Sentry SDK for your language:
+            </p>
+            <div v-html="sentryInstallCode" class="rounded overflow-hidden" />
+          </div>
+        </section>
+
+        <!-- Step 2 -->
+        <section>
+          <h3
+            class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
+            >
+              2
+            </span>
+            Configure Sentry DSN
+          </h3>
+          <div class="ml-8 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Configure Sentry to capture breadcrumbs (logs):
+            </p>
+            <div v-html="sentryConfigCode" class="rounded overflow-hidden" />
+          </div>
+        </section>
+
+        <!-- Step 3 -->
+        <section>
+          <h3
+            class="text-sm font-semibold text-zinc-200 mb-3 flex items-center gap-2"
+          >
+            <span
+              class="flex items-center justify-center w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 text-xs"
+            >
+              3
+            </span>
+            Capture Events
+          </h3>
+          <div class="ml-8 space-y-3">
+            <p class="text-sm text-zinc-400">
+              Capture errors and breadcrumbs will appear as logs:
+            </p>
+            <div v-html="sentryUsageCode" class="rounded overflow-hidden" />
+          </div>
+        </section>
+
+        <!-- Note -->
+        <div class="bg-zinc-950 border border-zinc-800 rounded p-4">
+          <div class="flex gap-3">
+            <IconPhInfoBold class="w-5 h-5 text-zinc-400 shrink-0" />
+            <div class="space-y-1">
+              <p class="text-sm font-medium text-zinc-300">
+                Sentry Breadcrumbs
+              </p>
+              <p class="text-sm text-zinc-400">
+                Sentry breadcrumbs (console logs, HTTP requests, etc.) are
+                converted to logs. Use the DSN format
+                <code class="px-1.5 py-0.5 bg-zinc-900 rounded text-zinc-300">
+                  http://public@localhost:3000/[project-id]
+                </code>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -92,7 +192,7 @@ import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { logs } from '@opentelemetry/api-logs';
 
 const logExporter = new OTLPLogExporter({
-  url: 'http://localhost:3000/api/v1/logs',
+  url: 'http://localhost:3000/api/v1/otlp/logs',
 });
 
 const loggerProvider = new LoggerProvider();
@@ -115,6 +215,33 @@ logger.emit({
     'environment': 'development'
   }
 });`;
+
+const sentryInstallCommand = `npm install @sentry/node`;
+
+const sentryConfigCodeSnippet = `import * as Sentry from '@sentry/node';
+
+Sentry.init({
+  dsn: 'http://public@localhost:3000/my-project',
+  tracesSampleRate: 1.0,
+  environment: 'development',
+  // Capture console logs as breadcrumbs
+  integrations: [
+    Sentry.captureConsoleIntegration({
+      levels: ['log', 'info', 'warn', 'error', 'debug']
+    })
+  ]
+});`;
+
+const sentryUsageCodeSnippet = `// Console logs are automatically captured as breadcrumbs
+console.log('User logged in', { userId: '123' });
+console.warn('Low memory warning');
+
+// Capture an error (breadcrumbs will be included)
+try {
+  throw new Error('Something went wrong');
+} catch (error) {
+  Sentry.captureException(error);
+}`;
 
 // Custom muted theme based on vesper but tweaked for our zinc aesthetic
 const customTheme: ThemeRegistration = {
@@ -199,6 +326,21 @@ const configCode = await codeToHtml(configCodeSnippet, {
 });
 
 const usageCode = await codeToHtml(usageCodeSnippet, {
+  lang: 'typescript',
+  theme: customTheme,
+});
+
+const sentryInstallCode = await codeToHtml(sentryInstallCommand, {
+  lang: 'bash',
+  theme: customTheme,
+});
+
+const sentryConfigCode = await codeToHtml(sentryConfigCodeSnippet, {
+  lang: 'typescript',
+  theme: customTheme,
+});
+
+const sentryUsageCode = await codeToHtml(sentryUsageCodeSnippet, {
   lang: 'typescript',
   theme: customTheme,
 });

@@ -1,3 +1,5 @@
+import type { TraceSource } from '@types';
+
 export interface Trace {
   trace_id: string;
   service_name: string;
@@ -7,6 +9,7 @@ export interface Trace {
   duration: number;
   status_code: number;
   status_message: string | null;
+  source: TraceSource;
   created_at: number;
 }
 
@@ -53,6 +56,7 @@ export async function initDatabase() {
       duration INTEGER,
       status_code INTEGER,
       status_message TEXT,
+      source TEXT DEFAULT 'OTLP',
       created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
     )
   `;
@@ -101,6 +105,17 @@ export async function initDatabase() {
   await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_trace_id ON logs(trace_id)`;
   await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_service ON logs(service_name)`;
   await db.sql`CREATE INDEX IF NOT EXISTS idx_logs_severity ON logs(severity_number)`;
+
+  // Migration: Add source column to existing traces table if it doesn't exist
+  try {
+    await db.sql`ALTER TABLE traces ADD COLUMN source TEXT DEFAULT 'OTLP'`;
+    console.log('[DB] Added source column to traces table');
+  } catch (error: any) {
+    // Column already exists, ignore error
+    if (!error.message.includes('duplicate column name')) {
+      console.error('[DB] Error adding source column:', error.message);
+    }
+  }
 }
 
 export async function insertTrace(trace: Omit<Trace, 'created_at'>) {
@@ -110,7 +125,7 @@ export async function insertTrace(trace: Omit<Trace, 'created_at'>) {
     await db.sql`
       INSERT OR REPLACE INTO traces (
         trace_id, service_name, operation_name, start_time, end_time,
-        duration, status_code, status_message
+        duration, status_code, status_message, source
       ) VALUES (
         ${trace.trace_id},
         ${trace.service_name},
@@ -119,7 +134,8 @@ export async function insertTrace(trace: Omit<Trace, 'created_at'>) {
         ${trace.end_time},
         ${trace.duration},
         ${trace.status_code},
-        ${trace.status_message}
+        ${trace.status_message},
+        ${trace.source}
       )
     `;
   } catch (error: any) {

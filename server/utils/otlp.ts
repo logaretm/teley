@@ -2,6 +2,7 @@
 // Reference: https://opentelemetry.io/docs/specs/otlp/
 
 import type { SpanStatusCode } from '@opentelemetry/api';
+import type { TraceSource } from '@types';
 
 interface IKeyValue {
   key: string;
@@ -182,7 +183,10 @@ function parseAttributes(attributes?: IKeyValue[]): Record<string, any> {
   return result;
 }
 
-export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
+export async function processOTLPTrace(
+  otlpData: IExportTraceServiceRequest,
+  source: TraceSource = 'OTLP',
+) {
   const traces = new Map<string, any>();
   const spans: any[] = [];
 
@@ -232,6 +236,7 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
             duration: duration,
             status_code: statusCode,
             status_message: statusMessage,
+            source: source,
           });
         } else {
           // Update trace timing if this span extends it
@@ -299,19 +304,21 @@ export async function processOTLPTrace(otlpData: IExportTraceServiceRequest) {
 // Extract log body value
 function getLogBodyValue(body?: ILogRecord['body']): string {
   if (!body) return '';
-  
+
   if (body.stringValue !== undefined) return body.stringValue;
   if (body.intValue !== undefined) return String(body.intValue);
   if (body.doubleValue !== undefined) return String(body.doubleValue);
   if (body.boolValue !== undefined) return String(body.boolValue);
   if (body.arrayValue !== undefined) {
-    return JSON.stringify(body.arrayValue.values.map((v) => getAttributeValue(v)));
+    return JSON.stringify(
+      body.arrayValue.values.map((v) => getAttributeValue(v)),
+    );
   }
   if (body.kvlistValue !== undefined) {
     return JSON.stringify(parseAttributes(body.kvlistValue.values));
   }
   if (body.bytesValue !== undefined) return body.bytesValue;
-  
+
   return '';
 }
 
@@ -325,9 +332,11 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
     for (const scopeLog of resourceLog.scopeLogs || []) {
       for (const logRecord of scopeLog.logRecords) {
         const timestamp = nanoToMs(logRecord.timeUnixNano);
-        const traceId = logRecord.traceId ? hexToString(logRecord.traceId) : null;
+        const traceId = logRecord.traceId
+          ? hexToString(logRecord.traceId)
+          : null;
         const spanId = logRecord.spanId ? hexToString(logRecord.spanId) : null;
-        
+
         const severityNumber = logRecord.severityNumber || 0;
         const severityText = logRecord.severityText || null;
         const body = getLogBodyValue(logRecord.body);
@@ -357,5 +366,5 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
   }
 
   // Return log IDs that were inserted
-  return logs.map(log => log.log_id);
+  return logs.map((log) => log.log_id);
 }
