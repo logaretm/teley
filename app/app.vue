@@ -46,4 +46,7 @@
 <script setup lang="ts">
 const { liveMode } = useLiveMode();
 const { connected: wsConnected } = useWebSocket();
+
+// Initialize hash tabs
+useHashTabs();
 </script>
