@@ -50,7 +50,7 @@ export function parseSentryEnvelope(raw: string): SentryEnvelope {
   // First line: envelope headers
   let headers: SentryEnvelopeHeaders;
   try {
-    headers = JSON.parse(lines[0]);
+    headers = JSON.parse(lines[0]!);
   } catch (error) {
     throw new Error('Invalid envelope: failed to parse headers');
   }
@@ -59,12 +59,12 @@ export function parseSentryEnvelope(raw: string): SentryEnvelope {
   const items: SentryEnvelopeItem[] = [];
   for (let i = 1; i < lines.length; i += 2) {
     try {
-      const itemHeaders = JSON.parse(lines[i]) as SentryItemHeaders;
+      const itemHeaders = JSON.parse(lines[i]!) as SentryItemHeaders;
 
       // Next line is payload (might be JSON or binary)
       let itemPayload: any = null;
       if (i + 1 < lines.length) {
-        const payloadLine = lines[i + 1];
+        const payloadLine = lines[i + 1]!;
 
         // Try to parse as JSON, otherwise treat as raw data
         try {
@@ -106,4 +106,3 @@ export function parseSentryDSN(dsn: string) {
     throw new Error(`Invalid Sentry DSN: ${dsn}`);
   }
 }
-

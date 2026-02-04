@@ -1,0 +1,22 @@
+name = "otel-viewer"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[durable_objects]
+bindings = [
+  { name = "TELEMETRY_ROOM", class_name = "TelemetryRoom" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TelemetryRoom"]
+
+# Serve static assets (run `pnpm build` first to generate .output/public)
+[assets]
+binding = "ASSETS"
+directory = "../.output/public"
+
+# Development settings
+[dev]
+port = 8787

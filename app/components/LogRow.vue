@@ -122,12 +122,15 @@ const emit = defineEmits<{
 }>();
 
 const parsedAttributes = computed(() => {
-  try {
-    const attrs = JSON.parse(props.log.attributes);
-    return Object.entries(attrs);
-  } catch {
-    return [];
+  const attrs = props.log.attributes;
+  if (typeof attrs === 'string') {
+    try {
+      return Object.entries(JSON.parse(attrs));
+    } catch {
+      return [];
+    }
   }
+  return Object.entries(attrs || {});
 });
 
 const severityDotColor = computed(() => {

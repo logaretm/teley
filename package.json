@@ -3,11 +3,14 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt generate",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "dev:worker": "cd workers && wrangler dev",
+    "deploy:worker": "cd workers && wrangler deploy",
+    "deploy:static": "wrangler pages deploy dist"
   },
   "engines": {
     "node": ">=24.0.0"
@@ -17,16 +20,20 @@
     "@tailwindcss/vite": "^4.1.18",
     "@vueuse/core": "^11.2.0",
     "@vueuse/nuxt": "^11.2.0",
+    "dexie": "^4.0.0",
     "motion-v": "^1.10.2",
+    "nanoid": "^5.0.0",
     "nuxt": "^4.3.0",
     "shiki": "^3.22.0",
     "vue": "^3.5.27"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
     "@iconify/json": "^2.2.435",
     "prettier": "^3.8.1",
     "tailwindcss": "^4.1.18",
     "unplugin-icons": "^22.5.0",
-    "unplugin-vue-components": "^30.0.0"
+    "unplugin-vue-components": "^30.0.0",
+    "wrangler": "^3.0.0"
   }
 }

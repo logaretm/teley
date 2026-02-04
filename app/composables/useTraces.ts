@@ -1,11 +1,11 @@
-// Composable for managing trace data and real-time updates
-import type { Ref } from 'vue';
-import type {
-  Trace,
-  WebSocketMessage,
-  TraceUpdateData,
-  TracesResponse,
-} from '@types';
+// Composable for managing trace data with local-first storage
+
+import type { Trace, Span } from '../../shared/parsers/types';
+import {
+  getTraces as dbGetTraces,
+  clearTraces as dbClearTraces,
+} from '../database/operations';
+import { onTraceUpdate } from './useDataSync';
 
 interface UseTracesReturn {
   traces: Ref<Trace[]>;
@@ -14,56 +14,23 @@ interface UseTracesReturn {
 
 export function useTraces(): UseTracesReturn {
   const traces = ref<Trace[]>([]);
-  const { data: wsData } = useWebSocket();
   const { liveMode } = useLiveMode();
 
-  // Watch for WebSocket messages
-  watch(wsData, (newData) => {
-    if (!newData || !liveMode.value) return;
-
-    // Ignore pong messages from heartbeat
-    if (newData === 'pong') return;
-
-    try {
-      const message = JSON.parse(newData) as WebSocketMessage;
-
-      switch (message.type) {
-        case 'connected':
-          console.log('[Traces] WebSocket connected:', message.message);
-          break;
-
-        case 'trace_update':
-          if (message.data) {
-            handleTraceUpdate(message.data);
-          }
-          break;
-
-        case 'clear_data':
-          traces.value = [];
-          console.log('[Traces] All traces cleared');
-          break;
-      }
-    } catch (error) {
-      console.error('[Traces] Error parsing WebSocket message:', error);
-    }
-  });
-
-  const handleTraceUpdate = (data: TraceUpdateData) => {
-    const { trace } = data;
+  // Handle real-time trace updates
+  const handleTraceUpdate = (trace: Trace, spans: Span[]) => {
+    if (!liveMode.value) return;
 
     console.log('[Traces] Received trace update:', trace.trace_id);
 
-    // Check if trace already exists
+    // Update local state
     const existingIndex = traces.value.findIndex(
-      (t) => t.trace_id === trace.trace_id,
+      (t) => t.trace_id === trace.trace_id
     );
 
     if (existingIndex >= 0) {
-      // Update existing trace
       traces.value[existingIndex] = trace;
       console.log('[Traces] Updated existing trace');
     } else {
-      // Add new trace to the beginning
       traces.value.unshift(trace);
       console.log('[Traces] Added new trace, total:', traces.value.length);
     }
@@ -71,10 +38,10 @@ export function useTraces(): UseTracesReturn {
 
   const fetchTraces = async (): Promise<Trace[]> => {
     try {
-      const response = await $fetch<TracesResponse>('/api/traces');
-      traces.value = response.traces;
-      console.log('[Traces] Fetched', response.traces.length, 'traces');
-      return response.traces;
+      const result = await dbGetTraces(100);
+      traces.value = result;
+      console.log('[Traces] Loaded', result.length, 'traces from IndexedDB');
+      return result;
     } catch (error) {
       console.error('[Traces] Error fetching traces:', error);
       return [];
@@ -83,7 +50,7 @@ export function useTraces(): UseTracesReturn {
 
   const clearAllTraces = async (): Promise<boolean> => {
     try {
-      await $fetch('/api/traces/clear', { method: 'POST' });
+      await dbClearTraces();
       traces.value = [];
       console.log('[Traces] All traces cleared');
       return true;
@@ -93,9 +60,18 @@ export function useTraces(): UseTracesReturn {
     }
   };
 
-  // Initialize - fetch initial traces
-  onMounted(async () => {
-    await fetchTraces();
+  // Initialize
+  onMounted(() => {
+    // Subscribe to real-time trace updates
+    const unsubscribe = onTraceUpdate(handleTraceUpdate);
+
+    // Load existing traces from IndexedDB
+    fetchTraces();
+
+    // Cleanup on unmount
+    onUnmounted(() => {
+      unsubscribe();
+    });
   });
 
   return {

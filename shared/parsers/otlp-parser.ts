@@ -1,22 +1,18 @@
 // OTLP Parser for OpenTelemetry Protocol
 // Reference: https://opentelemetry.io/docs/specs/otlp/
+// Pure parsing functions that return data without side effects
 
-import type { SpanStatusCode } from '@opentelemetry/api';
-import type { TraceSource } from '@types';
+import type { TraceSource } from './types';
+import {
+  hexToString,
+  nanoToMs,
+  parseAttributes,
+  getAttributeValue,
+  generateLogId,
+  type IKeyValue,
+} from './helpers';
 
-interface IKeyValue {
-  key: string;
-  value: {
-    stringValue?: string;
-    intValue?: string | number;
-    doubleValue?: number;
-    boolValue?: boolean;
-    arrayValue?: { values: any[] };
-    kvlistValue?: { values: IKeyValue[] };
-    bytesValue?: string;
-  };
-}
-
+// OTLP Trace interfaces
 interface IEvent {
   timeUnixNano: string;
   name: string;
@@ -34,7 +30,7 @@ interface ILink {
 
 interface IStatus {
   message?: string;
-  code?: SpanStatusCode;
+  code?: number;
 }
 
 interface ISpan {
@@ -79,7 +75,7 @@ interface IResourceSpans {
   schemaUrl?: string;
 }
 
-interface IExportTraceServiceRequest {
+export interface IExportTraceServiceRequest {
   resourceSpans: IResourceSpans[];
 }
 
@@ -116,79 +112,78 @@ interface IResourceLogs {
   schemaUrl?: string;
 }
 
-interface IExportLogsServiceRequest {
+export interface IExportLogsServiceRequest {
   resourceLogs: IResourceLogs[];
 }
 
-// Convert hex string to readable hex
-function hexToString(hex: string | Uint8Array): string {
-  if (!hex) return '';
-
-  // Handle Uint8Array (binary data)
-  if (hex instanceof Uint8Array) {
-    return Array.from(hex)
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-  }
-
-  // Handle string
-  if (typeof hex === 'string') {
-    // If already hex string, return as is
-    if (/^[0-9a-f]+$/i.test(hex)) {
-      return hex;
-    }
-    // If base64, decode it
-    try {
-      const binary = atob(hex);
-      return Array.from(binary)
-        .map((char) => char.charCodeAt(0).toString(16).padStart(2, '0'))
-        .join('');
-    } catch {
-      return hex;
-    }
-  }
-
-  return String(hex);
+// Output types
+export interface ParsedTrace {
+  trace_id: string;
+  service_name: string;
+  operation_name: string;
+  start_time: number;
+  end_time: number;
+  duration: number;
+  status_code: number;
+  status_message: string | null;
+  source: TraceSource;
 }
 
-// Convert nano timestamp to milliseconds
-function nanoToMs(nano: string | number): number {
-  return Math.floor(Number(nano) / 1000000);
+export interface ParsedSpan {
+  span_id: string;
+  trace_id: string;
+  parent_span_id: string | null;
+  name: string;
+  kind: number;
+  start_time: number;
+  end_time: number;
+  duration: number;
+  status_code: number;
+  status_message: string | null;
+  attributes: Record<string, any>;
+  events: Array<{
+    time: number;
+    name: string;
+    attributes: Record<string, any>;
+  }>;
+  links: Array<{
+    traceId: string;
+    spanId: string;
+    traceState?: string;
+    attributes: Record<string, any>;
+  }>;
 }
 
-// Extract attribute value
-function getAttributeValue(value: IKeyValue['value']): any {
-  if (value.stringValue !== undefined) return value.stringValue;
-  if (value.intValue !== undefined) return Number(value.intValue);
-  if (value.doubleValue !== undefined) return value.doubleValue;
-  if (value.boolValue !== undefined) return value.boolValue;
-  if (value.arrayValue !== undefined) {
-    return value.arrayValue.values.map((v) => getAttributeValue(v));
-  }
-  if (value.kvlistValue !== undefined) {
-    return parseAttributes(value.kvlistValue.values);
-  }
-  if (value.bytesValue !== undefined) return value.bytesValue;
-  return null;
+export interface ParsedLog {
+  log_id: string;
+  timestamp: number;
+  trace_id: string | null;
+  span_id: string | null;
+  severity_number: number;
+  severity_text: string | null;
+  body: string;
+  service_name: string;
+  attributes: Record<string, any>;
 }
 
-// Convert attributes array to object
-function parseAttributes(attributes?: IKeyValue[]): Record<string, any> {
-  if (!attributes) return {};
-
-  const result: Record<string, any> = {};
-  for (const attr of attributes) {
-    result[attr.key] = getAttributeValue(attr.value);
-  }
-  return result;
+export interface ParsedTraceResult {
+  traces: ParsedTrace[];
+  spans: ParsedSpan[];
 }
 
-export async function processOTLPTrace(
+export interface ParsedLogsResult {
+  logs: ParsedLog[];
+}
+
+/**
+ * Parse OTLP trace data without side effects
+ */
+export function parseOTLPTrace(
   otlpData: IExportTraceServiceRequest,
-  source: TraceSource = 'OTLP',
-) {
-  const traces = new Map<string, any>();
-  const spans: any[] = [];
+  source: TraceSource = 'OTLP'
+): ParsedTraceResult {
+  const traces = new Map<string, ParsedTrace>();
+  const spans: ParsedSpan[] = [];
 
   for (const resourceSpan of otlpData.resourceSpans) {
     const resourceAttrs = parseAttributes(resourceSpan.resource?.attributes);
@@ -240,7 +235,7 @@ export async function processOTLPTrace(
           });
         } else {
           // Update trace timing if this span extends it
-          const trace = traces.get(traceId);
+          const trace = traces.get(traceId)!;
           if (startTime < trace.start_time) trace.start_time = startTime;
           if (endTime > trace.end_time) {
             trace.end_time = endTime;
@@ -265,9 +260,9 @@ export async function processOTLPTrace(
           duration: duration,
           status_code: statusCode,
           status_message: statusMessage,
-          attributes: JSON.stringify(attributes),
-          events: JSON.stringify(events),
-          links: JSON.stringify(links),
+          attributes,
+          events,
+          links,
         });
       }
     }
@@ -280,7 +275,7 @@ export async function processOTLPTrace(
 
     // Find root span (no parent or parent not in this trace)
     const rootSpan = traceSpans.find(
-      (s) => !s.parent_span_id || !spanMap.has(s.parent_span_id),
+      (s) => !s.parent_span_id || !spanMap.has(s.parent_span_id)
     );
 
     if (rootSpan) {
@@ -288,20 +283,15 @@ export async function processOTLPTrace(
     }
   }
 
-  // Insert into database
-  for (const trace of traces.values()) {
-    await insertTrace(trace);
-  }
-
-  for (const span of spans) {
-    await insertSpan(span);
-  }
-
-  // Return trace IDs that were updated
-  return Array.from(traces.keys());
+  return {
+    traces: Array.from(traces.values()),
+    spans,
+  };
 }
 
-// Extract log body value
+/**
+ * Extract log body value
+ */
 function getLogBodyValue(body?: ILogRecord['body']): string {
   if (!body) return '';
 
@@ -311,7 +301,7 @@ function getLogBodyValue(body?: ILogRecord['body']): string {
   if (body.boolValue !== undefined) return String(body.boolValue);
   if (body.arrayValue !== undefined) {
     return JSON.stringify(
-      body.arrayValue.values.map((v) => getAttributeValue(v)),
+      body.arrayValue.values.map((v) => getAttributeValue(v))
     );
   }
   if (body.kvlistValue !== undefined) {
@@ -322,8 +312,11 @@ function getLogBodyValue(body?: ILogRecord['body']): string {
   return '';
 }
 
-export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
-  const logs: any[] = [];
+/**
+ * Parse OTLP logs data without side effects
+ */
+export function parseOTLPLogs(otlpData: IExportLogsServiceRequest): ParsedLogsResult {
+  const logs: ParsedLog[] = [];
 
   for (const resourceLog of otlpData.resourceLogs) {
     const resourceAttrs = parseAttributes(resourceLog.resource?.attributes);
@@ -337,16 +330,13 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
           : null;
         const spanId = logRecord.spanId ? hexToString(logRecord.spanId) : null;
 
-        const severityNumber = logRecord.severityNumber || 0;
+        const severityNumber = logRecord.severityNumber || 9; // Default to INFO
         const severityText = logRecord.severityText || null;
         const body = getLogBodyValue(logRecord.body);
         const attributes = parseAttributes(logRecord.attributes);
 
-        // Generate a unique log ID (timestamp + random component)
-        const logId = `${timestamp}-${Math.random().toString(36).substring(2, 11)}`;
-
         logs.push({
-          log_id: logId,
+          log_id: generateLogId(timestamp),
           timestamp,
           trace_id: traceId,
           span_id: spanId,
@@ -354,17 +344,11 @@ export async function processOTLPLogs(otlpData: IExportLogsServiceRequest) {
           severity_text: severityText,
           body,
           service_name: serviceName,
-          attributes: JSON.stringify(attributes),
+          attributes,
         });
       }
     }
   }
 
-  // Insert into database
-  for (const log of logs) {
-    await insertLog(log);
-  }
-
-  // Return log IDs that were inserted
-  return logs.map((log) => log.log_id);
+  return { logs };
 }

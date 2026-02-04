@@ -8,10 +8,16 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: ['@vueuse/nuxt', 'unplugin-icons/nuxt', 'motion-v/nuxt'],
+
+  // Client-side only (local-first architecture)
+  ssr: false,
+
   experimental: {
     componentIslands: true,
   },
+
   css: ['./app/assets/css/main.css'],
+
   app: {
     head: {
       htmlAttrs: {
@@ -42,21 +48,17 @@ export default defineNuxtConfig({
       ],
     },
   },
+
+  // Static generation for Cloudflare Pages
   nitro: {
-    experimental: {
-      websocket: true,
-      database: true,
-    },
-    database: {
-      default: {
-        connector: 'sqlite',
-        options: { name: 'otel' },
-      },
-    },
+    preset: 'static',
   },
+
   alias: {
     '@types': path.resolve(__dirname, 'types'),
+    '@shared': path.resolve(__dirname, 'shared'),
   },
+
   vite: {
     plugins: [
       tailwindcss() as any,
@@ -69,5 +71,19 @@ export default defineNuxtConfig({
         ],
       }),
     ],
+    // Worker configuration for SharedWorker
+    worker: {
+      format: 'es',
+    },
+    optimizeDeps: {
+      include: ['dexie', 'nanoid'],
+    },
+    build: {
+      sourcemap: true,
+    },
+  },
+
+  sourcemap: {
+    client: true,
   },
 });

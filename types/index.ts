@@ -1,38 +1,28 @@
-import type { SpanKind, SpanStatusCode } from '@opentelemetry/api';
+// Re-export shared types for backward compatibility
+export type {
+  TraceSource,
+  Trace,
+  Span,
+  Log,
+  WebSocketTraceUpdateMessage,
+  WebSocketLogUpdateMessage,
+  WebSocketClearDataMessage,
+  WebSocketInfoMessage,
+  WebSocketMessage,
+} from '../shared/parsers/types';
 
-export type TraceSource = 'OTLP' | 'SENTRY';
-
-export interface Trace {
-  trace_id: string;
-  service_name: string;
-  operation_name: string;
-  start_time: number;
-  end_time: number;
-  duration: number;
-  status_code: SpanStatusCode;
-  status_message: string | null;
-  source: TraceSource;
-  created_at: number;
-}
-
-export interface Span {
+// Parsed span type with deserialized JSON fields
+export interface ParsedSpan {
   span_id: string;
   trace_id: string;
   parent_span_id: string | null;
   name: string;
-  kind: SpanKind;
+  kind: number;
   start_time: number;
   end_time: number;
   duration: number;
-  status_code: SpanStatusCode;
+  status_code: number;
   status_message: string | null;
-  attributes: string; // JSON string
-  events: string; // JSON string
-  links: string; // JSON string
-}
-
-export interface ParsedSpan
-  extends Omit<Span, 'attributes' | 'events' | 'links'> {
   attributes: Record<string, unknown>;
   events: Array<{
     time: number;
@@ -47,7 +37,8 @@ export interface ParsedSpan
   }>;
 }
 
-export interface Log {
+// Parsed log type with deserialized JSON fields
+export interface ParsedLog {
   log_id: string;
   timestamp: number;
   trace_id: string | null;
@@ -56,58 +47,31 @@ export interface Log {
   severity_text: string | null;
   body: string;
   service_name: string;
-  attributes: string; // JSON string
-  created_at: number;
-}
-
-export interface ParsedLog extends Omit<Log, 'attributes'> {
   attributes: Record<string, unknown>;
+  created_at?: number;
 }
 
-export interface WebSocketTraceUpdateMessage {
-  type: 'trace_update';
-  data: TraceUpdateData;
-}
-
-export interface WebSocketLogUpdateMessage {
-  type: 'log_update';
-  data: LogUpdateData;
-}
-
-export interface WebSocketClearDataMessage {
-  type: 'clear_data';
-}
-
-export interface WebSocketInfoMessage {
-  type: 'connected' | 'cleared_data';
-  message: string;
-}
-
-export type WebSocketMessage =
-  | WebSocketTraceUpdateMessage
-  | WebSocketLogUpdateMessage
-  | WebSocketClearDataMessage
-  | WebSocketInfoMessage;
-
+// Trace update data for WebSocket messages
 export interface TraceUpdateData {
-  trace: Trace;
-  spans: Span[];
+  trace: import('../shared/parsers/types').Trace;
+  spans: import('../shared/parsers/types').Span[];
 }
 
+// Log update data for WebSocket messages
 export interface LogUpdateData {
-  log: Log;
+  log: import('../shared/parsers/types').Log;
 }
 
-// API response types
+// API response types (kept for potential future use)
 export interface TracesResponse {
-  traces: Trace[];
+  traces: import('../shared/parsers/types').Trace[];
 }
 
 export interface TraceDetailsResponse {
-  trace: Trace;
-  spans: Span[];
+  trace: import('../shared/parsers/types').Trace;
+  spans: import('../shared/parsers/types').Span[];
 }
 
 export interface LogsResponse {
-  logs: Log[];
+  logs: import('../shared/parsers/types').Log[];
 }

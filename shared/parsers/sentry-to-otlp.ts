@@ -2,19 +2,30 @@
 // This allows Sentry SDK data to be stored and displayed in our OTLP viewer
 
 import type { SentryEnvelope } from './sentry-parser';
+import {
+  parseOTLPTrace,
+  parseOTLPLogs,
+  type ParsedTrace,
+  type ParsedSpan,
+  type ParsedLog,
+} from './otlp-parser';
+import { generateTraceId, generateSpanId } from './helpers';
+
+export interface SentryConversionResult {
+  traces: ParsedTrace[];
+  spans: ParsedSpan[];
+  logs: ParsedLog[];
+}
 
 /**
  * Process a Sentry envelope and convert items to OTLP format
  */
-export async function processSentryEnvelope(envelope: SentryEnvelope) {
-  console.log(
-    '[Sentry] Processing envelope with',
-    envelope.items.length,
-    'items',
-  );
-
-  const processedTraces: string[] = [];
-  const processedLogs: string[] = [];
+export function processSentryEnvelope(envelope: SentryEnvelope): SentryConversionResult {
+  const result: SentryConversionResult = {
+    traces: [],
+    spans: [],
+    logs: [],
+  };
 
   for (const item of envelope.items) {
     const itemType = item.headers.type;
@@ -22,26 +33,34 @@ export async function processSentryEnvelope(envelope: SentryEnvelope) {
 
     try {
       switch (itemType) {
-        case 'transaction':
+        case 'transaction': {
           // Sentry transaction -> OTLP trace
-          const traceIds = await processSentryTransaction(item.payload);
-          processedTraces.push(...traceIds);
+          const parsed = convertSentryTransaction(item.payload);
+          result.traces.push(...parsed.traces);
+          result.spans.push(...parsed.spans);
           break;
+        }
 
-        case 'event':
+        case 'event': {
           // Sentry error event -> OTLP log
-          const logIds = await processSentryEvent(item.payload);
-          processedLogs.push(...logIds);
+          const parsed = convertSentryEvent(item.payload);
+          result.logs.push(...parsed.logs);
           break;
+        }
+
+        case 'log': {
+          // Sentry log item -> OTLP log
+          console.log('[Sentry] Log payload:', JSON.stringify(item.payload));
+          const parsed = convertSentryLog(item.payload);
+          result.logs.push(...parsed.logs);
+          break;
+        }
 
         case 'span':
-          console.log('[Sentry] Standalone span items not yet supported');
-          break;
-
         case 'session':
         case 'client_report':
         case 'attachment':
-          console.log('[Sentry] Item type not supported:', itemType);
+          // Not supported
           break;
       }
     } catch (error: any) {
@@ -49,16 +68,13 @@ export async function processSentryEnvelope(envelope: SentryEnvelope) {
     }
   }
 
-  return {
-    traces: processedTraces,
-    logs: processedLogs,
-  };
+  return result;
 }
 
 /**
  * Convert Sentry transaction to OTLP trace
  */
-async function processSentryTransaction(transaction: any) {
+function convertSentryTransaction(transaction: any): { traces: ParsedTrace[]; spans: ParsedSpan[] } {
   const traceId = transaction.contexts?.trace?.trace_id || generateTraceId();
   const spanId = transaction.contexts?.trace?.span_id || generateSpanId();
 
@@ -122,7 +138,7 @@ async function processSentryTransaction(transaction: any) {
     };
   });
 
-  // Build OTLP trace
+  // Build OTLP trace structure
   const otlpTrace = {
     resourceSpans: [
       {
@@ -140,17 +156,14 @@ async function processSentryTransaction(transaction: any) {
     ],
   };
 
-  // Process via existing OTLP handler, marking as SENTRY source
-  const traceIds = await processOTLPTrace(otlpTrace, 'SENTRY');
-  console.log('[Sentry] Converted transaction to trace:', traceIds);
-
-  return traceIds;
+  // Process via OTLP parser, marking as SENTRY source
+  return parseOTLPTrace(otlpTrace, 'SENTRY');
 }
 
 /**
  * Convert Sentry error event to OTLP log
  */
-async function processSentryEvent(event: any) {
+function convertSentryEvent(event: any): { logs: ParsedLog[] } {
   const timestamp = event.timestamp
     ? Math.floor(event.timestamp * 1000)
     : Date.now();
@@ -218,11 +231,73 @@ async function processSentryEvent(event: any) {
     ],
   };
 
-  // Process via existing OTLP handler
-  const logIds = await processOTLPLogs(otlpLogs);
-  console.log('[Sentry] Converted event to log:', logIds);
+  // Process via OTLP parser
+  return parseOTLPLogs(otlpLogs);
+}
 
-  return logIds;
+/**
+ * Convert Sentry log item to OTLP log
+ */
+function convertSentryLog(logItem: any): { logs: ParsedLog[] } {
+  // Sentry log items can contain multiple log records in an "items" array
+  const items = logItem.items || [logItem];
+  const logs: ParsedLog[] = [];
+
+  for (const log of items) {
+    const timestamp = log.timestamp
+      ? Math.floor(log.timestamp * 1000)
+      : Date.now();
+
+    // Map Sentry log level to OTLP severity
+    const severityMap: Record<string, number> = {
+      trace: 1,
+      debug: 5,
+      info: 9,
+      warn: 13,
+      warning: 13,
+      error: 17,
+      fatal: 21,
+    };
+    const level = log.level || log.severity || 'info';
+    const severityNumber = severityMap[level.toLowerCase()] || 9;
+
+    const logRecord = {
+      timeUnixNano: String(timestamp * 1_000_000),
+      severityNumber: severityNumber,
+      severityText: level.toUpperCase(),
+      body: {
+        stringValue: log.message || log.body || '',
+      },
+      attributes: convertAttributes({
+        ...log.attributes,
+        ...log.data,
+      }),
+      traceId: log.trace_id,
+      spanId: log.span_id,
+    };
+
+    const otlpLogs = {
+      resourceLogs: [
+        {
+          resource: {
+            attributes: [
+              { key: 'service.name', value: { stringValue: log.service || 'sentry-app' } },
+            ],
+          },
+          scopeLogs: [
+            {
+              logRecords: [logRecord],
+            },
+          ],
+        },
+      ],
+    };
+
+    const parsed = parseOTLPLogs(otlpLogs);
+    logs.push(...parsed.logs);
+  }
+
+  return { logs };
 }
 
 /**
@@ -240,7 +315,7 @@ function mapSentrySpanKind(op?: string): number {
 }
 
 /**
- * Convert Sentry tags/data to OTLP attributes
+ * Convert Sentry tags/data to OTLP attributes format
  */
 function convertAttributes(data: Record<string, any>) {
   return Object.entries(data)
@@ -252,20 +327,4 @@ function convertAttributes(data: Record<string, any>) {
           typeof value === 'object' ? JSON.stringify(value) : String(value),
       },
     }));
-}
-
-/**
- * Generate a random trace ID (32 hex characters)
- * Uses crypto.randomUUID (32 hex chars when dashes removed)
- */
-function generateTraceId(): string {
-  return crypto.randomUUID().replace(/-/g, '');
-}
-
-/**
- * Generate a random span ID (16 hex characters)
- * Uses half of a UUID
- */
-function generateSpanId(): string {
-  return crypto.randomUUID().replace(/-/g, '').substring(0, 16);
 }
