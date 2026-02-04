@@ -89,19 +89,14 @@ onMounted(async () => {
   if (isNewSession.value) {
     showSetupModal.value = true;
   }
-
-  // Connect to relay with credentials
-  if (roomId.value && receiveToken.value) {
-    connectRelay(roomId.value, receiveToken.value);
-  }
 });
 
-// Watch for session changes to reconnect
+// Connect when credentials are available
 watch([roomId, receiveToken], ([newRoomId, newToken]) => {
   if (newRoomId && newToken) {
     connectRelay(newRoomId, newToken);
   }
-});
+}, { immediate: true });
 
 const handleSetupModalClose = () => {
   showSetupModal.value = false;
