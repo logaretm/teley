@@ -5,13 +5,13 @@
       class="bg-zinc-900 border-b border-zinc-800 px-6 py-4 flex justify-between items-center"
     >
       <div class="flex items-center gap-3">
-        <img src="/logo.svg" alt="OTel Viewer Logo" class="w-10 h-10" />
+        <img src="/logo.svg" alt="Teley Logo" class="w-10 h-10" />
         <h1 class="text-xl font-semibold text-zinc-100">
-          OpenTelemetry Viewer
+          Teley
         </h1>
       </div>
       <div class="flex items-center gap-4">
-        <!-- Room indicator -->
+        <!-- Session indicator -->
         <button
           v-if="sessionInitialized && roomId"
           @click="showSetupModal = true"

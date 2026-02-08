@@ -1,5 +1,5 @@
 {
-  "name": "otel-viewer",
+  "name": "teley",
   "type": "module",
   "private": true,
   "scripts": {

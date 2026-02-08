@@ -23,11 +23,11 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'en',
       },
-      title: 'OpenTelemetry Viewer',
+      title: 'Teley',
       meta: [
         {
           name: 'description',
-          content: 'A real-time OpenTelemetry trace visualizer',
+          content: 'A real-time observability dashboard',
         },
       ],
       link: [

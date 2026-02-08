@@ -15,7 +15,7 @@ export class TelemetryDB extends Dexie {
   credentials!: Table<Credentials, string>;
 
   constructor() {
-    super('otel-viewer');
+    super('teley');
 
     this.version(1).stores({
       traces: 'trace_id, start_time, service_name',

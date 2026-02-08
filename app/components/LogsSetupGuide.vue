@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <p class="text-sm text-zinc-400">
-      Send logs to this viewer using OTLP exporters. Click on your room ID in
+      Send logs to this viewer using OTLP exporters. Click on your session ID in
       the header to see your unique endpoints.
     </p>
 
@@ -15,7 +15,7 @@ import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-log
 
 const loggerProvider = new LoggerProvider();
 const exporter = new OTLPLogExporter({
-  url: 'https://{{ host }}/r/&lt;your-room-id&gt;',
+  url: 'https://{{ host }}/r/&lt;your-session-id&gt;',
 });
 
 loggerProvider.addLogRecordProcessor(
@@ -56,7 +56,7 @@ logger_provider.add_log_record_processor(
       ><code>import * as Sentry from "@sentry/browser";
 
 Sentry.init({
-  dsn: "https://&lt;your-room-id&gt;@{{ host }}/0",
+  dsn: "https://&lt;your-session-id&gt;@{{ host }}/0",
 });
 
 // Errors sent to Sentry will appear as logs

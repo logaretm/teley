@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6">
     <p class="text-sm text-zinc-400">
-      Send traces to this viewer using the endpoints below. Click on your room
+      Send traces to this viewer using the endpoints below. Click on your session
       ID in the header to see your unique endpoints.
     </p>
 
@@ -13,7 +13,7 @@
       ><code>import * as Sentry from "@sentry/browser";
 
 Sentry.init({
-  dsn: "https://&lt;your-room-id&gt;@{{ host }}/0",
+  dsn: "https://&lt;your-session-id&gt;@{{ host }}/0",
   tracesSampleRate: 1.0,
   integrations: [
     Sentry.browserTracingIntegration(),
@@ -32,7 +32,7 @@ import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 
 const provider = new NodeTracerProvider();
 const exporter = new OTLPTraceExporter({
-  url: 'https://{{ host }}/r/&lt;your-room-id&gt;',
+  url: 'https://{{ host }}/r/&lt;your-session-id&gt;',
 });
 
 provider.addSpanProcessor(new SimpleSpanProcessor(exporter));

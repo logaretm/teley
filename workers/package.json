@@ -1,5 +1,5 @@
 {
-  "name": "otel-viewer-worker",
+  "name": "teley-worker",
   "type": "module",
   "private": true,
   "scripts": {

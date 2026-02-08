@@ -5,7 +5,7 @@
       <div class="space-y-6">
         <p class="text-sm text-zinc-400">
           Use the following endpoints to send telemetry data to this viewer.
-          Your room ID is: <code class="text-emerald-400">{{ roomId }}</code>
+          Your session ID is: <code class="text-emerald-400">{{ roomId }}</code>
         </p>
 
         <!-- Sentry DSN -->

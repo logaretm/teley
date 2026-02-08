@@ -2,7 +2,7 @@
   <ModalDialog
     ref="dialog"
     title="Getting Started"
-    description="How to send traces to the OpenTelemetry Viewer"
+    description="How to send traces to Teley"
   >
     <SetupGuide />
 
