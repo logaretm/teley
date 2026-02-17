@@ -25,7 +25,7 @@
 
         <!-- Message -->
         <span class="text-sm text-zinc-400 truncate min-w-0 break-all max-w-xl">
-          {{ log.body }}
+          {{ stripAnsi(log.body) }}
         </span>
 
         <!-- Expand Icon -->
@@ -50,13 +50,31 @@
           <div class="space-y-4 py-4">
             <!-- Full Message -->
             <div>
-              <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-                Full Message
-              </h4>
+              <div class="flex items-center gap-2 mb-2">
+                <h4 class="text-xs font-semibold text-zinc-400 uppercase">
+                  Full Message
+                </h4>
+                <button
+                  v-if="bodyHasAnsi"
+                  class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded transition-colors"
+                  :class="showAnsi
+                    ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
+                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'"
+                  @click.stop="showAnsi = !showAnsi"
+                >
+                  ANSI
+                </button>
+              </div>
               <div
+                v-if="showAnsi && bodyHasAnsi"
+                class="bg-zinc-900 rounded px-4 py-3 text-sm text-zinc-300 font-mono whitespace-pre-wrap wrap-break-words"
+                v-html="bodyHtml"
+              />
+              <div
+                v-else
                 class="bg-zinc-900 rounded px-4 py-3 text-sm text-zinc-300 font-mono whitespace-pre-wrap wrap-break-words"
               >
-                {{ log.body }}
+                {{ stripAnsi(log.body) }}
               </div>
             </div>
 
@@ -109,7 +127,7 @@
 import { motion } from 'motion-v';
 import type { Log } from '@types';
 import { AnimatePresence } from 'motion-v';
-import { formatTimestamp, getSeverityLabel } from '~/utils/formatters';
+import { formatTimestamp, getSeverityLabel, stripAnsi, hasAnsi, ansiToHtml } from '~/utils/formatters';
 
 interface Props {
   log: Log;
@@ -120,6 +138,10 @@ const props = defineProps<Props>();
 const emit = defineEmits<{
   toggleExpanded: [];
 }>();
+
+const showAnsi = ref(false);
+const bodyHasAnsi = computed(() => hasAnsi(props.log.body));
+const bodyHtml = computed(() => ansiToHtml(props.log.body));
 
 const parsedAttributes = computed(() => {
   const attrs = props.log.attributes;
