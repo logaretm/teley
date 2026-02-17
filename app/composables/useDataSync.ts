@@ -11,6 +11,7 @@ import {
 // Event bus for notifying components of new data
 const traceListeners = new Set<(trace: Trace, spans: Span[]) => void>();
 const logListeners = new Set<(log: Log) => void>();
+const viewerCountListeners = new Set<(count: number) => void>();
 
 // Per-type sets of known service names (accumulated as data arrives)
 const traceServiceNames = new Set<string>();
@@ -86,6 +87,16 @@ export function useDataSync() {
         }
         break;
 
+      case 'viewer_count':
+        for (const listener of viewerCountListeners) {
+          try {
+            listener(message.count);
+          } catch (err) {
+            console.error('[DataSync] Error in viewer count listener:', err);
+          }
+        }
+        break;
+
       case 'clear_data':
         console.log('[DataSync] Clear data received');
         break;
@@ -149,4 +160,10 @@ export function onTraceUpdate(callback: (trace: Trace, spans: Span[]) => void): 
 export function onLogUpdate(callback: (log: Log) => void): () => void {
   logListeners.add(callback);
   return () => logListeners.delete(callback);
+}
+
+// Subscribe to viewer count updates
+export function onViewerCount(callback: (count: number) => void): () => void {
+  viewerCountListeners.add(callback);
+  return () => viewerCountListeners.delete(callback);
 }

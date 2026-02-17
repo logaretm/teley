@@ -73,6 +73,11 @@ export interface WebSocketClearDataMessage {
   type: 'clear_data';
 }
 
+export interface WebSocketViewerCountMessage {
+  type: 'viewer_count';
+  count: number;
+}
+
 export interface WebSocketInfoMessage {
   type: 'connected' | 'cleared_data';
   message: string;
@@ -82,4 +87,5 @@ export type WebSocketMessage =
   | WebSocketTraceUpdateMessage
   | WebSocketLogUpdateMessage
   | WebSocketClearDataMessage
+  | WebSocketViewerCountMessage
   | WebSocketInfoMessage;

@@ -10,10 +10,10 @@
           Teley
         </h1>
       </div>
-      <div class="flex items-center gap-4">
-        <!-- Session indicator -->
+      <div class="flex items-center gap-2">
+        <!-- Session indicator (owner only) -->
         <button
-          v-if="sessionInitialized && roomId"
+          v-if="!isViewerRoute && sessionInitialized && roomId"
           @click="showSetupModal = true"
           class="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors bg-zinc-800 hover:bg-zinc-700 px-2 py-1 rounded"
           title="View setup instructions"
@@ -24,8 +24,33 @@
           </span>
         </button>
 
-        <!-- Export / Import / Clear -->
-        <div class="flex items-center gap-1">
+        <!-- Go Live button (owner only) -->
+        <button
+          v-if="!isViewerRoute && sessionInitialized && roomId"
+          @click="showLiveModal = true"
+          class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+        >
+          <IconPhBroadcastBold class="w-3.5 h-3.5" />
+          Go Live
+          <span
+            v-if="viewerCount > 1"
+            class="ml-1 px-1.5 py-0.5 text-[10px] font-semibold rounded-full bg-emerald-500/20 text-emerald-400"
+          >
+            {{ viewerCount }}
+          </span>
+        </button>
+
+        <!-- Viewer count (viewer routes) -->
+        <span
+          v-if="isViewerRoute && viewerCount > 1"
+          class="flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-lg bg-emerald-500/20 text-emerald-400"
+        >
+          <IconPhBroadcastBold class="w-3.5 h-3.5" />
+          {{ viewerCount }} viewing
+        </span>
+
+        <!-- Export / Import / Clear (owner only) -->
+        <div v-if="!isViewerRoute" class="flex items-center gap-1">
           <button
             @click="handleExport"
             class="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 rounded transition-colors"
@@ -85,14 +110,25 @@
       :room-id="roomId || ''"
       @close="handleSetupModalClose"
     />
+
+    <!-- Live Session Modal -->
+    <LiveSessionModal
+      :open="showLiveModal"
+      :room-id="roomId || ''"
+      :receive-token="receiveToken || ''"
+      @close="showLiveModal = false"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import IconPhDownloadSimple from '~icons/ph/download-simple';
 import IconPhUploadSimple from '~icons/ph/upload-simple';
+import IconPhBroadcastBold from '~icons/ph/broadcast-bold';
 import { exportAllData, importAllData } from './database/operations';
+import { onViewerCount } from './composables/useDataSync';
 
+const route = useRoute();
 const { roomId, receiveToken, isNewSession, initialized: sessionInitialized, initialize: initSession } = useSession();
 const { connected: relayConnected, initialize: initRelay, connect: connectRelay } = useRelay();
 const { initialize: initDataSync } = useDataSync();
@@ -102,7 +138,18 @@ const { hasMultipleServices } = useServiceFilter();
 useHashTabs();
 
 const showSetupModal = ref(false);
+const showLiveModal = ref(false);
+const viewerCount = ref(0);
 const fileInput = ref<HTMLInputElement | null>(null);
+
+const isViewerRoute = computed(() =>
+  route.path.startsWith('/live/') || route.path.startsWith('/shared/')
+);
+
+// Subscribe to viewer count updates
+onViewerCount((count) => {
+  viewerCount.value = count;
+});
 
 // Initialize session and relay on mount
 onMounted(async () => {

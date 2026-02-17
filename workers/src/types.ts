@@ -2,6 +2,7 @@
 
 export interface Env {
   TELEMETRY_ROOM: DurableObjectNamespace;
+  SHARED_TRACE: DurableObjectNamespace;
   ASSETS?: Fetcher; // Optional - only available in production with assets binding
 }
 
