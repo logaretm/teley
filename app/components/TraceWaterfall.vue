@@ -7,13 +7,22 @@
           <h2 class="text-xl font-semibold text-zinc-100">
             {{ trace.operation_name }}
           </h2>
-          <button
-            @click="$emit('compare')"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
-          >
-            <IconPhArrowsLeftRightBold class="w-3.5 h-3.5" />
-            Compare
-          </button>
+          <div class="flex items-center gap-2">
+            <button
+              @click="$emit('share')"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              <IconPhShareNetworkBold class="w-3.5 h-3.5" />
+              {{ shareLabel }}
+            </button>
+            <button
+              @click="$emit('compare')"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              <IconPhArrowsLeftRightBold class="w-3.5 h-3.5" />
+              Compare
+            </button>
+          </div>
         </div>
         <div class="flex gap-6 flex-wrap items-center text-sm">
           <span class="text-zinc-400">
@@ -155,7 +164,11 @@ const props = defineProps<Props>();
 defineEmits<{
   selectSpan: [span: Span];
   compare: [];
+  share: [];
 }>();
+
+const shareLabel = ref('Share');
+defineExpose({ setShareLabel: (label: string) => { shareLabel.value = label; } });
 
 const spanTree = computed(() => buildSpanTree(props.spans, props.trace));
 

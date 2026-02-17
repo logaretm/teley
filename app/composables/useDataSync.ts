@@ -11,6 +11,7 @@ import {
 // Event bus for notifying components of new data
 const traceListeners = new Set<(trace: Trace, spans: Span[]) => void>();
 const logListeners = new Set<(log: Log) => void>();
+const viewerCountListeners = new Set<(count: number) => void>();
 
 export function useDataSync() {
   const { onData } = useRelay();
@@ -33,6 +34,16 @@ export function useDataSync() {
       case 'log_update':
         if (message.data) {
           await handleLogUpdate(message.data.log);
+        }
+        break;
+
+      case 'viewer_count':
+        for (const listener of viewerCountListeners) {
+          try {
+            listener(message.count);
+          } catch (err) {
+            console.error('[DataSync] Error in viewer count listener:', err);
+          }
         }
         break;
 
@@ -93,4 +104,10 @@ export function onTraceUpdate(callback: (trace: Trace, spans: Span[]) => void): 
 export function onLogUpdate(callback: (log: Log) => void): () => void {
   logListeners.add(callback);
   return () => logListeners.delete(callback);
+}
+
+// Subscribe to viewer count updates
+export function onViewerCount(callback: (count: number) => void): () => void {
+  viewerCountListeners.add(callback);
+  return () => viewerCountListeners.delete(callback);
 }

@@ -71,6 +71,7 @@ export class TelemetryRoom implements DurableObject {
       message: 'Connected to room',
     }));
 
+    this.broadcastViewerCount();
     await this.resetAlarm();
 
     return new Response(null, { status: 101, webSocket: client });
@@ -123,6 +124,19 @@ export class TelemetryRoom implements DurableObject {
 
   webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean): void {
     console.log('[DO] WebSocket closed, code:', code, 'reason:', reason);
+    this.broadcastViewerCount();
+  }
+
+  private broadcastViewerCount(): void {
+    const sockets = this.state.getWebSockets();
+    const message = JSON.stringify({ type: 'viewer_count', count: sockets.length });
+    for (const ws of sockets) {
+      try {
+        ws.send(message);
+      } catch (error) {
+        console.error('[DO] Failed to send viewer count:', error);
+      }
+    }
   }
 
   webSocketError(ws: WebSocket, error: unknown): void {

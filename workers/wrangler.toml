@@ -5,12 +5,17 @@ compatibility_flags = ["nodejs_compat"]
 
 [durable_objects]
 bindings = [
-  { name = "TELEMETRY_ROOM", class_name = "TelemetryRoom" }
+  { name = "TELEMETRY_ROOM", class_name = "TelemetryRoom" },
+  { name = "SHARED_TRACE", class_name = "SharedTrace" }
 ]
 
 [[migrations]]
 tag = "v1"
 new_classes = ["TelemetryRoom"]
+
+[[migrations]]
+tag = "v2"
+new_classes = ["SharedTrace"]
 
 # Serve static assets (run `pnpm build` first to generate .output/public)
 [assets]

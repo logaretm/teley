@@ -10,6 +10,7 @@ import {
 } from '../../shared/parsers';
 
 export { TelemetryRoom } from './durable-object';
+export { SharedTrace } from './shared-trace';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -44,6 +45,39 @@ export default {
       if (request.method === 'POST') {
         return corsResponse(await handleOTLPIngest(request, env, roomId));
       }
+    }
+
+    // Share API: store a trace snapshot
+    if (url.pathname === '/api/share' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const id = crypto.randomUUID().slice(0, 12);
+        const doId = env.SHARED_TRACE.idFromName(id);
+        const stub = env.SHARED_TRACE.get(doId);
+        await stub.fetch(new Request('http://internal/store', {
+          method: 'POST',
+          body: JSON.stringify(body),
+          headers: { 'Content-Type': 'application/json' },
+        }));
+        return corsResponse(new Response(JSON.stringify({ id }), {
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      } catch (error: any) {
+        return corsResponse(new Response(JSON.stringify({ error: error.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        }));
+      }
+    }
+
+    // Share API: retrieve a trace snapshot
+    const shareMatch = url.pathname.match(/^\/api\/share\/([a-zA-Z0-9_-]+)$/);
+    if (shareMatch && request.method === 'GET') {
+      const id = shareMatch[1];
+      const doId = env.SHARED_TRACE.idFromName(id);
+      const stub = env.SHARED_TRACE.get(doId);
+      const response = await stub.fetch(new Request('http://internal/retrieve'));
+      return corsResponse(response);
     }
 
     // Static assets
