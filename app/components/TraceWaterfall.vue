@@ -3,9 +3,18 @@
     <!-- Header -->
     <div class="bg-zinc-900 border-b border-zinc-800 p-6">
       <div>
-        <h2 class="text-xl font-semibold text-zinc-100 mb-3">
-          {{ trace.operation_name }}
-        </h2>
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xl font-semibold text-zinc-100">
+            {{ trace.operation_name }}
+          </h2>
+          <button
+            @click="$emit('compare')"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+          >
+            <IconPhArrowsLeftRightBold class="w-3.5 h-3.5" />
+            Compare
+          </button>
+        </div>
         <div class="flex gap-6 flex-wrap items-center text-sm">
           <span class="text-zinc-400">
             <strong class="text-zinc-200 mr-1">Provider:</strong>
@@ -134,6 +143,7 @@ import {
   getSpanKindLabel,
 } from '~/utils/formatters';
 import { useResizeObserver } from '@vueuse/core';
+import { buildSpanTree } from '~/utils/span-tree';
 import SourceIcon from './SourceIcon.vue';
 
 interface Props {
@@ -144,70 +154,10 @@ interface Props {
 const props = defineProps<Props>();
 defineEmits<{
   selectSpan: [span: Span];
+  compare: [];
 }>();
 
-interface SpanTreeNode {
-  span: Span;
-  depth: number;
-  offsetPercent: number;
-  widthPercent: number;
-}
-
-// Build hierarchical span tree
-const spanTree = computed<SpanTreeNode[]>(() => {
-  const spanMap = new Map<string, Span>();
-  const children = new Map<string | null, Span[]>();
-
-  // Build maps
-  for (const span of props.spans) {
-    spanMap.set(span.span_id, span);
-
-    const parentId = span.parent_span_id;
-    if (!children.has(parentId)) {
-      children.set(parentId, []);
-    }
-    children.get(parentId)!.push(span);
-  }
-
-  // Find root spans (no parent or parent not in this trace)
-  const rootSpans = props.spans.filter((span) => {
-    return !span.parent_span_id || !spanMap.has(span.parent_span_id);
-  });
-
-  // Sort by start time
-  rootSpans.sort((a, b) => a.start_time - b.start_time);
-
-  const result: SpanTreeNode[] = [];
-  const traceStart = props.trace.start_time;
-  const traceDuration = props.trace.duration;
-
-  function traverse(span: Span, depth: number) {
-    const offsetPercent =
-      ((span.start_time - traceStart) / traceDuration) * 100;
-    const widthPercent = (span.duration / traceDuration) * 100;
-
-    result.push({
-      span,
-      depth,
-      offsetPercent: Math.max(0, offsetPercent),
-      widthPercent: Math.max(0.5, widthPercent), // Minimum width for visibility
-    });
-
-    // Process children
-    const childSpans = children.get(span.span_id) || [];
-    childSpans.sort((a, b) => a.start_time - b.start_time);
-
-    for (const child of childSpans) {
-      traverse(child, depth + 1);
-    }
-  }
-
-  for (const rootSpan of rootSpans) {
-    traverse(rootSpan, 0);
-  }
-
-  return result;
-});
+const spanTree = computed(() => buildSpanTree(props.spans, props.trace));
 
 // Adaptive time scale labels
 const timeScaleRef = ref<HTMLElement | null>(null);
