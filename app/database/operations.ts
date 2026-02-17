@@ -96,3 +96,22 @@ export async function clearAllData(): Promise<void> {
     db.logs.clear(),
   ]);
 }
+
+// Export all telemetry data
+export async function exportAllData(): Promise<{ traces: Trace[]; spans: Span[]; logs: Log[] }> {
+  const [traces, spans, logs] = await Promise.all([
+    db.traces.toArray(),
+    db.spans.toArray(),
+    db.logs.toArray(),
+  ]);
+  return { traces, spans, logs };
+}
+
+// Import telemetry data (merges with existing)
+export async function importAllData(data: { traces: Trace[]; spans: Span[]; logs: Log[] }): Promise<void> {
+  await Promise.all([
+    data.traces.length > 0 ? db.traces.bulkPut(data.traces) : Promise.resolve(),
+    data.spans.length > 0 ? db.spans.bulkPut(data.spans) : Promise.resolve(),
+    data.logs.length > 0 ? db.logs.bulkPut(data.logs) : Promise.resolve(),
+  ]);
+}

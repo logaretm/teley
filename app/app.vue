@@ -24,6 +24,31 @@
           </span>
         </button>
 
+        <!-- Export / Import -->
+        <div class="flex items-center gap-1">
+          <button
+            @click="handleExport"
+            class="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 rounded transition-colors"
+            title="Export data"
+          >
+            <IconPhDownloadSimple class="w-4 h-4" />
+          </button>
+          <button
+            @click="fileInput?.click()"
+            class="p-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 rounded transition-colors"
+            title="Import data"
+          >
+            <IconPhUploadSimple class="w-4 h-4" />
+          </button>
+          <input
+            ref="fileInput"
+            type="file"
+            accept=".json"
+            class="hidden"
+            @change="handleImport"
+          />
+        </div>
+
         <div
           class="flex items-center gap-2 text-sm"
           :class="relayConnected ? 'text-green-400' : 'text-zinc-500'"
@@ -60,6 +85,10 @@
 </template>
 
 <script setup lang="ts">
+import IconPhDownloadSimple from '~icons/ph/download-simple';
+import IconPhUploadSimple from '~icons/ph/upload-simple';
+import { exportAllData, importAllData } from './database/operations';
+
 const { roomId, receiveToken, isNewSession, initialized: sessionInitialized, initialize: initSession } = useSession();
 const { connected: relayConnected, initialize: initRelay, connect: connectRelay } = useRelay();
 const { initialize: initDataSync } = useDataSync();
@@ -68,6 +97,7 @@ const { initialize: initDataSync } = useDataSync();
 useHashTabs();
 
 const showSetupModal = ref(false);
+const fileInput = ref<HTMLInputElement | null>(null);
 
 // Initialize session and relay on mount
 onMounted(async () => {
@@ -95,5 +125,31 @@ watch([roomId, receiveToken], ([newRoomId, newToken]) => {
 
 const handleSetupModalClose = () => {
   showSetupModal.value = false;
+};
+
+const handleExport = async () => {
+  const data = await exportAllData();
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `teley-export-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const handleImport = async (e: Event) => {
+  const file = (e.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+
+  const text = await file.text();
+  const data = JSON.parse(text);
+  await importAllData(data);
+
+  // Reset file input so the same file can be re-imported
+  if (fileInput.value) fileInput.value.value = '';
+
+  // Reload to reflect imported data
+  window.location.reload();
 };
 </script>
