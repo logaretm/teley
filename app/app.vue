@@ -38,10 +38,6 @@
           ></span>
           {{ relayConnected ? 'Connected' : 'Disconnected' }}
         </div>
-        <div class="flex items-center gap-2 text-sm text-zinc-400">
-          <span>Live</span>
-          <ToggleSwitch v-model="liveMode" />
-        </div>
       </div>
     </header>
 
@@ -64,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-const { liveMode } = useLiveMode();
 const { roomId, receiveToken, isNewSession, initialized: sessionInitialized, initialize: initSession } = useSession();
 const { connected: relayConnected, initialize: initRelay, connect: connectRelay } = useRelay();
 const { initialize: initDataSync } = useDataSync();

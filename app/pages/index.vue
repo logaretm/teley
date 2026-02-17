@@ -56,7 +56,6 @@ const selectedTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
 
 const { traces, clearAllTraces } = useTraces();
-const { liveMode } = useLiveMode();
 const [ClearDataDialog, confirmClearData] = useConfirmation(async () => {
   await clearAllTraces();
   selectedTraceId.value = null;
@@ -69,12 +68,10 @@ function handleClearData() {
   );
 }
 
-// Watch for new traces in live mode
+// Auto-select newest trace
 watch(
   () => traces.value[0],
   (newTrace, oldTrace) => {
-    if (!liveMode?.value) return;
-
     if (newTrace && oldTrace?.trace_id !== newTrace.trace_id) {
       selectedTraceId.value = newTrace.trace_id;
     }

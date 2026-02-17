@@ -12,12 +12,8 @@ export function useLogs() {
   const loading = useState<boolean>('logs-loading', () => false);
   const error = useState<string | null>('logs-error', () => null);
 
-  const { liveMode } = useLiveMode();
-
   // Handle real-time log updates
   const handleLogUpdate = (log: Log) => {
-    if (!liveMode.value) return;
-
     console.log('[Logs] Received log update:', log.log_id);
 
     // Update local state - prepend to beginning (newest first)

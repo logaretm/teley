@@ -14,12 +14,9 @@ interface UseTracesReturn {
 
 export function useTraces(): UseTracesReturn {
   const traces = ref<Trace[]>([]);
-  const { liveMode } = useLiveMode();
 
   // Handle real-time trace updates
   const handleTraceUpdate = (trace: Trace, spans: Span[]) => {
-    if (!liveMode.value) return;
-
     console.log('[Traces] Received trace update:', trace.trace_id);
 
     // Update local state
