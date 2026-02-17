@@ -7,6 +7,7 @@
         :trace="trace"
         :spans="spans"
         @select-span="handleSelectSpan"
+        @compare="$emit('compare')"
       />
       <div
         v-else-if="loading"
@@ -40,6 +41,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+defineEmits<{ compare: [] }>();
 
 const getTraceId = () => props.traceId;
 

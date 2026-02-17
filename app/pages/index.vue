@@ -8,13 +8,15 @@
         v-model="selectedTraceId"
         :traces="traces"
         :selected-trace-id="selectedTraceId"
+        :compare-with-trace-id="compareWithTraceId"
         @clear="handleClearData"
         @help="setupDialog?.open()"
+        @compare-started="compareWithTraceId = null"
       />
     </aside>
 
     <!-- Main Content -->
-    <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
+    <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" @compare="startCompare" />
 
     <div v-else class="flex-1 flex items-center justify-center bg-zinc-950">
       <div class="text-center space-y-6 max-w-md px-8">
@@ -53,6 +55,7 @@
 
 <script setup lang="ts">
 const selectedTraceId = ref<string | null>(null);
+const compareWithTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
 
 const { traces, clearAllTraces } = useTraces();
@@ -60,6 +63,12 @@ const [ClearDataDialog, confirmClearData] = useConfirmation(async () => {
   await clearAllTraces();
   selectedTraceId.value = null;
 });
+
+function startCompare() {
+  if (selectedTraceId.value) {
+    compareWithTraceId.value = selectedTraceId.value;
+  }
+}
 
 function handleClearData() {
   confirmClearData(
