@@ -12,6 +12,18 @@ export function formatDuration(ms: number): string {
   }
 }
 
+export function formatDurationCompact(ms: number): string {
+  if (ms === 0) return '0ms';
+  if (ms < 1) {
+    const val = ms * 1000;
+    return `${parseFloat(val.toFixed(1))}µs`;
+  } else if (ms < 1000) {
+    return `${parseFloat(ms.toFixed(1))}ms`;
+  } else {
+    return `${parseFloat((ms / 1000).toFixed(1))}s`;
+  }
+}
+
 export function formatTimestamp(ms: number): string {
   const date = new Date(ms);
   return date.toLocaleString();

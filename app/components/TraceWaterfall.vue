@@ -56,7 +56,10 @@
       <!-- Time Scale -->
       <div class="grid grid-cols-[250px_1fr] gap-4 mb-2">
         <div></div>
-        <div class="flex justify-between py-2 border-b border-zinc-800">
+        <div
+          ref="timeScaleRef"
+          class="flex justify-between py-2 border-b border-zinc-800"
+        >
           <span
             v-for="(label, idx) in timeLabels"
             :key="idx"
@@ -126,9 +129,11 @@ import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import type { Trace, Span } from '@types';
 import {
   formatDuration,
+  formatDurationCompact,
   getStatusColor,
   getSpanKindLabel,
 } from '~/utils/formatters';
+import { useResizeObserver } from '@vueuse/core';
 import SourceIcon from './SourceIcon.vue';
 
 interface Props {
@@ -204,15 +209,31 @@ const spanTree = computed<SpanTreeNode[]>(() => {
   return result;
 });
 
-// Generate time scale labels
+// Adaptive time scale labels
+const timeScaleRef = ref<HTMLElement | null>(null);
+const containerWidth = ref(0);
+
+useResizeObserver(timeScaleRef, (entries) => {
+  const entry = entries[0];
+  if (entry) {
+    containerWidth.value = entry.contentRect.width;
+  }
+});
+
+const numLabels = computed(() => {
+  const width = containerWidth.value;
+  if (width === 0) return 10;
+  return Math.min(10, Math.max(2, Math.floor(width / 60)));
+});
+
 const timeLabels = computed(() => {
   const duration = props.trace.duration;
   const labels: string[] = [];
-  const numLabels = 10;
+  const count = numLabels.value;
 
-  for (let i = 0; i <= numLabels; i++) {
-    const time = (duration / numLabels) * i;
-    labels.push(formatDuration(time));
+  for (let i = 0; i <= count; i++) {
+    const time = (duration / count) * i;
+    labels.push(formatDurationCompact(time));
   }
 
   return labels;
