@@ -6,7 +6,7 @@
     >
       <TraceList
         v-model="selectedTraceId"
-        :traces="traces"
+        :traces="filteredTraces"
         :selected-trace-id="selectedTraceId"
         :compare-with-trace-id="compareWithTraceId"
         @help="setupDialog?.open()"
@@ -53,6 +53,12 @@ const compareWithTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
 
 const { traces } = useTraces();
+const { selectedServices, hasMultipleServices } = useServiceFilter();
+
+const filteredTraces = computed(() => {
+  if (!hasMultipleServices.value) return traces.value;
+  return traces.value.filter(t => selectedServices.value.has(t.service_name));
+});
 
 function startCompare() {
   if (selectedTraceId.value) {
@@ -62,7 +68,7 @@ function startCompare() {
 
 // Auto-select newest trace
 watch(
-  () => traces.value[0],
+  () => filteredTraces.value[0],
   (newTrace, oldTrace) => {
     if (newTrace && oldTrace?.trace_id !== newTrace.trace_id) {
       selectedTraceId.value = newTrace.trace_id;

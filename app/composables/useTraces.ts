@@ -5,7 +5,7 @@ import {
   getTraces as dbGetTraces,
   clearTraces as dbClearTraces,
 } from '../database/operations';
-import { onTraceUpdate } from './useDataSync';
+import { onTraceUpdate, addServiceNames } from './useDataSync';
 
 interface UseTracesReturn {
   traces: Ref<Trace[]>;
@@ -37,6 +37,7 @@ export function useTraces(): UseTracesReturn {
     try {
       const result = await dbGetTraces(100);
       traces.value = result;
+      addServiceNames(result.map(t => t.service_name), 'traces');
       console.log('[Traces] Loaded', result.length, 'traces from IndexedDB');
       return result;
     } catch (error) {

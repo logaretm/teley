@@ -45,7 +45,7 @@
       </div>
 
       <div
-        v-else-if="logs.length === 0"
+        v-else-if="filteredLogs.length === 0"
         class="flex items-center justify-center h-full"
       >
         <div class="text-center space-y-6 max-w-md px-8">
@@ -76,7 +76,7 @@
       <table v-else class="w-full">
         <tbody>
           <LogRow
-            v-for="log in logs"
+            v-for="log in filteredLogs"
             :key="log.log_id"
             :log="log"
             :is-expanded="expandedLogs.has(log.log_id)"
@@ -96,6 +96,12 @@
 
 <script setup lang="ts">
 const { logs, loading, error, fetchLogs } = useLogs();
+const { selectedServices, hasMultipleServices } = useServiceFilter();
+
+const filteredLogs = computed(() => {
+  if (!hasMultipleServices.value) return logs.value;
+  return logs.value.filter(l => selectedServices.value.has(l.service_name));
+});
 
 const expandedLogs = ref<Set<string>>(new Set());
 const setupGuideDialog = ref<{ open: () => void; close: () => void } | null>(

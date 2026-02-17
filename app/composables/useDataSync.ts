@@ -12,6 +12,56 @@ import {
 const traceListeners = new Set<(trace: Trace, spans: Span[]) => void>();
 const logListeners = new Set<(log: Log) => void>();
 
+// Per-type sets of known service names (accumulated as data arrives)
+const traceServiceNames = new Set<string>();
+const logServiceNames = new Set<string>();
+const serviceNamesListeners = new Set<() => void>();
+
+function notifyListeners() {
+  for (const listener of serviceNamesListeners) {
+    listener();
+  }
+}
+
+function addTraceServiceName(name: string) {
+  if (name && !traceServiceNames.has(name)) {
+    traceServiceNames.add(name);
+    notifyListeners();
+  }
+}
+
+function addLogServiceName(name: string) {
+  if (name && !logServiceNames.has(name)) {
+    logServiceNames.add(name);
+    notifyListeners();
+  }
+}
+
+export function addServiceNames(names: string[], type: 'traces' | 'logs') {
+  let changed = false;
+  const set = type === 'traces' ? traceServiceNames : logServiceNames;
+  for (const name of names) {
+    if (name && !set.has(name)) {
+      set.add(name);
+      changed = true;
+    }
+  }
+  if (changed) {
+    notifyListeners();
+  }
+}
+
+export function getServiceNames(type?: 'traces' | 'logs'): Set<string> {
+  if (type === 'traces') return traceServiceNames;
+  if (type === 'logs') return logServiceNames;
+  return new Set([...traceServiceNames, ...logServiceNames]);
+}
+
+export function onServiceNamesChange(callback: () => void): () => void {
+  serviceNamesListeners.add(callback);
+  return () => serviceNamesListeners.delete(callback);
+}
+
 export function useDataSync() {
   const { onData } = useRelay();
 
@@ -48,6 +98,9 @@ export function useDataSync() {
   const handleTraceUpdate = async (trace: Trace, spans: Span[]) => {
     console.log('[DataSync] Received trace:', trace.trace_id);
 
+    // Track service name
+    addTraceServiceName(trace.service_name);
+
     // Save to IndexedDB
     await upsertTrace(trace);
     await upsertSpans(spans);
@@ -64,6 +117,9 @@ export function useDataSync() {
 
   const handleLogUpdate = async (log: Log) => {
     console.log('[DataSync] Received log:', log.log_id);
+
+    // Track service name
+    addLogServiceName(log.service_name);
 
     // Save to IndexedDB
     await upsertLog(log);

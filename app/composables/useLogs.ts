@@ -5,7 +5,7 @@ import {
   getLogs as dbGetLogs,
   clearLogs as dbClearLogs,
 } from '../database/operations';
-import { onLogUpdate } from './useDataSync';
+import { onLogUpdate, addServiceNames } from './useDataSync';
 
 export function useLogs() {
   const logs = useState<Log[]>('logs', () => []);
@@ -33,6 +33,7 @@ export function useLogs() {
     try {
       const result = await dbGetLogs(500);
       logs.value = result;
+      addServiceNames(result.map(l => l.service_name), 'logs');
       console.log('[Logs] Loaded', result.length, 'logs from IndexedDB');
     } catch (err: any) {
       console.error('[Logs] Error fetching logs:', err);

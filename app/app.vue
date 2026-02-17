@@ -67,6 +67,9 @@
       </div>
     </header>
 
+    <!-- Service Filter -->
+    <ServiceFilterBar v-if="hasMultipleServices" />
+
     <!-- Body -->
     <div class="flex-1 flex overflow-hidden">
       <!-- Side Navigation -->
@@ -93,6 +96,7 @@ import { exportAllData, importAllData } from './database/operations';
 const { roomId, receiveToken, isNewSession, initialized: sessionInitialized, initialize: initSession } = useSession();
 const { connected: relayConnected, initialize: initRelay, connect: connectRelay } = useRelay();
 const { initialize: initDataSync } = useDataSync();
+const { hasMultipleServices } = useServiceFilter();
 
 // Initialize hash tabs
 useHashTabs();
