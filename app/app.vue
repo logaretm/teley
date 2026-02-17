@@ -24,7 +24,7 @@
           </span>
         </button>
 
-        <!-- Export / Import -->
+        <!-- Export / Import / Clear -->
         <div class="flex items-center gap-1">
           <button
             @click="handleExport"
@@ -47,6 +47,7 @@
             class="hidden"
             @change="handleImport"
           />
+          <ClearDataButton />
         </div>
 
         <div

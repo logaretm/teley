@@ -11,29 +11,19 @@
             {{ filteredTraces.length }}
           </span>
         </div>
-        <div class="flex items-center gap-1">
-          <button
-            v-if="traces.length"
-            @click="toggleCompareMode"
-            class="p-1.5 rounded transition-colors"
-            :class="
-              compareMode
-                ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
-                : 'hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300'
-            "
-            title="Compare traces"
-          >
-            <IconPhArrowsLeftRightBold class="w-4 h-4" />
-          </button>
-          <button
-            v-if="traces.length"
-            @click="$emit('clear')"
-            class="p-1.5 hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300 rounded transition-colors"
-            title="Clear all traces"
-          >
-            <IconPhTrashBold class="w-4 h-4" />
-          </button>
-        </div>
+        <button
+          v-if="traces.length"
+          @click="toggleCompareMode"
+          class="p-1.5 rounded transition-colors"
+          :class="
+            compareMode
+              ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30'
+              : 'hover:bg-zinc-800 text-zinc-500 hover:text-zinc-300'
+          "
+          title="Compare traces"
+        >
+          <IconPhArrowsLeftRightBold class="w-4 h-4" />
+        </button>
       </div>
 
       <!-- Search -->
@@ -155,7 +145,6 @@ const props = defineProps<Props>();
 const selectedTraceId = defineModel<string | null>({ required: true });
 
 const emit = defineEmits<{
-  clear: [];
   help: [];
   compareStarted: [];
 }>();

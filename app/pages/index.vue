@@ -9,7 +9,6 @@
         :traces="traces"
         :selected-trace-id="selectedTraceId"
         :compare-with-trace-id="compareWithTraceId"
-        @clear="handleClearData"
         @help="setupDialog?.open()"
         @compare-started="compareWithTraceId = null"
       />
@@ -45,11 +44,6 @@
       <TracesSetupGuide />
     </ModalDialog>
 
-    <ClearDataDialog
-      confirm-text="Clear All"
-      cancel-text="Cancel"
-      variant="danger"
-    />
   </div>
 </template>
 
@@ -58,23 +52,12 @@ const selectedTraceId = ref<string | null>(null);
 const compareWithTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
 
-const { traces, clearAllTraces } = useTraces();
-const [ClearDataDialog, confirmClearData] = useConfirmation(async () => {
-  await clearAllTraces();
-  selectedTraceId.value = null;
-});
+const { traces } = useTraces();
 
 function startCompare() {
   if (selectedTraceId.value) {
     compareWithTraceId.value = selectedTraceId.value;
   }
-}
-
-function handleClearData() {
-  confirmClearData(
-    'Clear All Traces',
-    'Are you sure you want to clear all trace data? This action cannot be undone.',
-  );
 }
 
 // Auto-select newest trace
