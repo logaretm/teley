@@ -21,6 +21,10 @@ new_classes = ["SharedTrace"]
 [assets]
 binding = "ASSETS"
 directory = "../.output/public"
+not_found_handling = "single-page-application"
+html_handling = "none"
+# Ensure Worker runs first for API/WebSocket routes (not just navigation requests)
+run_worker_first = ["/api/*", "/r/*"]
 
 # Development settings
 [dev]
