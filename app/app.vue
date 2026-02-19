@@ -153,7 +153,7 @@ onViewerCount((count) => {
 
 // Initialize session and relay on mount
 onMounted(async () => {
-  // Initialize relay worker
+  // Initialize relay worker (must happen before connect)
   initRelay();
 
   // Initialize data sync (saves incoming data to IndexedDB)
@@ -161,6 +161,12 @@ onMounted(async () => {
 
   // Initialize session (loads or creates credentials)
   await initSession();
+
+  // Connect now that relay is initialized and credentials are available
+  // (handles case where credentials were set before mount, e.g. live page)
+  if (roomId.value && receiveToken.value) {
+    connectRelay(roomId.value, receiveToken.value);
+  }
 
   // Show setup modal for new sessions
   if (isNewSession.value) {
@@ -173,7 +179,7 @@ watch([roomId, receiveToken], ([newRoomId, newToken]) => {
   if (newRoomId && newToken) {
     connectRelay(newRoomId, newToken);
   }
-}, { immediate: true });
+});
 
 const handleSetupModalClose = () => {
   showSetupModal.value = false;
