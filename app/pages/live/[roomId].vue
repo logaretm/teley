@@ -7,7 +7,7 @@
 
     <!-- Traces Sidebar -->
     <aside
-      class="w-[350px] bg-zinc-900 border-r border-zinc-800 overflow-y-auto pt-8"
+      class="w-[350px] bg-zinc-900 border-r border-zinc-800 overflow-y-auto"
     >
       <TraceList
         v-model="selectedTraceId"
@@ -17,7 +17,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col pt-8 min-h-0">
+    <div class="flex-1 flex flex-col min-h-0">
       <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
 
       <div v-else class="flex-1 flex items-center justify-center bg-zinc-950 h-full">
