@@ -76,8 +76,8 @@
         </div>
 
         <div
-          class="flex items-center gap-2 text-sm"
-          :class="relayConnected ? 'text-green-400' : 'text-zinc-500'"
+          class="flex items-center gap-2 text-sm group relative"
+          :title="relayConnected ? 'Connected' : 'Disconnected'"
         >
           <span
             class="w-2 h-2 rounded-full"
@@ -87,7 +87,6 @@
                 : 'bg-zinc-500'
             "
           ></span>
-          {{ relayConnected ? 'Connected' : 'Disconnected' }}
         </div>
       </div>
     </header>
