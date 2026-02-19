@@ -17,7 +17,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 pt-8">
+    <div class="flex-1 flex flex-col pt-8 min-h-0">
       <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
 
       <div v-else class="flex-1 flex items-center justify-center bg-zinc-950 h-full">
@@ -47,13 +47,19 @@
 <script setup lang="ts">
 const route = useRoute();
 
-// Set session state from route params BEFORE app.vue's onMounted runs initSession()
+// Override session state with live URL params.
+// useState keys are already created by app.vue's useSession(), so we must
+// assign directly — the init function is ignored for existing keys.
 const roomId = route.params.roomId as string;
 const token = (route.query.token as string) || '';
 
-useState('session-roomId', () => roomId);
-useState('session-receiveToken', () => token);
-useState('session-initialized', () => true);
+const sessionRoomId = useState<string | null>('session-roomId');
+const sessionReceiveToken = useState<string | null>('session-receiveToken');
+const sessionInitialized = useState<boolean>('session-initialized');
+
+sessionRoomId.value = roomId;
+sessionReceiveToken.value = token;
+sessionInitialized.value = true;
 
 const selectedTraceId = ref<string | null>(null);
 const { traces } = useTraces();
