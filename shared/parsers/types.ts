@@ -53,6 +53,32 @@ export interface Log {
   created_at?: number;
 }
 
+export type MetricType = 'counter' | 'gauge' | 'histogram' | 'set';
+
+export interface HistogramData {
+  buckets: { bound: number; count: number }[];
+  sum: number;
+  count: number;
+  min: number;
+  max: number;
+}
+
+export interface Metric {
+  metric_id: string;
+  name: string;
+  description: string | null;
+  unit: string | null;
+  type: MetricType;
+  service_name: string;
+  timestamp: number;
+  value: number | null;
+  histogram: HistogramData | null;
+  set_values: string[] | null;
+  attributes: Record<string, any>;
+  source: TraceSource;
+  created_at?: number;
+}
+
 // WebSocket message types
 export interface WebSocketTraceUpdateMessage {
   type: 'trace_update';
@@ -66,6 +92,13 @@ export interface WebSocketLogUpdateMessage {
   type: 'log_update';
   data: {
     log: Log;
+  };
+}
+
+export interface WebSocketMetricUpdateMessage {
+  type: 'metric_update';
+  data: {
+    metric: Metric;
   };
 }
 
@@ -86,6 +119,7 @@ export interface WebSocketInfoMessage {
 export type WebSocketMessage =
   | WebSocketTraceUpdateMessage
   | WebSocketLogUpdateMessage
+  | WebSocketMetricUpdateMessage
   | WebSocketClearDataMessage
   | WebSocketViewerCountMessage
   | WebSocketInfoMessage;

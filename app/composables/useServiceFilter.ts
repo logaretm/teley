@@ -6,16 +6,20 @@ const logServices = ref<string[]>([]);
 
 let initialized = false;
 
+const metricServices = ref<string[]>([]);
+
 function sync() {
   const traces = Array.from(getServiceNames('traces')).sort();
   const logs = Array.from(getServiceNames('logs')).sort();
-  const prevAll = new Set([...traceServices.value, ...logServices.value]);
+  const metrics = Array.from(getServiceNames('metrics')).sort();
+  const prevAll = new Set([...traceServices.value, ...logServices.value, ...metricServices.value]);
 
   traceServices.value = traces;
   logServices.value = logs;
+  metricServices.value = metrics;
 
   // Auto-select newly discovered services
-  const allNow = new Set([...traces, ...logs]);
+  const allNow = new Set([...traces, ...logs, ...metrics]);
   for (const name of allNow) {
     if (!prevAll.has(name)) {
       selectedServices.value.add(name);
@@ -34,6 +38,7 @@ export function useServiceFilter() {
 
   const availableServices = computed(() => {
     if (route.path === '/logs') return logServices.value;
+    if (route.path === '/metrics') return metricServices.value;
     return traceServices.value;
   });
 

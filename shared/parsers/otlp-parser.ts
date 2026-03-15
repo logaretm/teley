@@ -2,13 +2,14 @@
 // Reference: https://opentelemetry.io/docs/specs/otlp/
 // Pure parsing functions that return data without side effects
 
-import type { TraceSource } from './types';
+import type { TraceSource, MetricType, HistogramData } from './types';
 import {
   hexToString,
   nanoToMs,
   parseAttributes,
   getAttributeValue,
   generateLogId,
+  generateMetricId,
   type IKeyValue,
 } from './helpers';
 
@@ -351,4 +352,185 @@ export function parseOTLPLogs(otlpData: IExportLogsServiceRequest): ParsedLogsRe
   }
 
   return { logs };
+}
+
+// OTLP Metrics interfaces
+interface INumberDataPoint {
+  attributes?: IKeyValue[];
+  startTimeUnixNano?: string;
+  timeUnixNano: string;
+  asDouble?: number;
+  asInt?: string | number;
+  exemplars?: any[];
+}
+
+interface IHistogramDataPoint {
+  attributes?: IKeyValue[];
+  startTimeUnixNano?: string;
+  timeUnixNano: string;
+  count: string | number;
+  sum?: number;
+  min?: number;
+  max?: number;
+  bucketCounts: (string | number)[];
+  explicitBounds: number[];
+  exemplars?: any[];
+}
+
+interface IOTLPMetric {
+  name: string;
+  description?: string;
+  unit?: string;
+  sum?: {
+    dataPoints: INumberDataPoint[];
+    aggregationTemporality?: number;
+    isMonotonic?: boolean;
+  };
+  gauge?: {
+    dataPoints: INumberDataPoint[];
+  };
+  histogram?: {
+    dataPoints: IHistogramDataPoint[];
+    aggregationTemporality?: number;
+  };
+}
+
+interface IScopeMetrics {
+  scope?: IInstrumentationScope;
+  metrics: IOTLPMetric[];
+  schemaUrl?: string;
+}
+
+interface IResourceMetrics {
+  resource?: IResource;
+  scopeMetrics?: IScopeMetrics[];
+  schemaUrl?: string;
+}
+
+export interface IExportMetricsServiceRequest {
+  resourceMetrics: IResourceMetrics[];
+}
+
+export interface ParsedMetric {
+  metric_id: string;
+  name: string;
+  description: string | null;
+  unit: string | null;
+  type: MetricType;
+  service_name: string;
+  timestamp: number;
+  value: number | null;
+  histogram: HistogramData | null;
+  set_values: string[] | null;
+  attributes: Record<string, any>;
+  source: TraceSource;
+}
+
+export interface ParsedMetricsResult {
+  metrics: ParsedMetric[];
+}
+
+/**
+ * Parse OTLP metrics data without side effects
+ */
+export function parseOTLPMetrics(
+  otlpData: IExportMetricsServiceRequest,
+  source: TraceSource = 'OTLP'
+): ParsedMetricsResult {
+  const metrics: ParsedMetric[] = [];
+
+  for (const resourceMetric of otlpData.resourceMetrics) {
+    const resourceAttrs = parseAttributes(resourceMetric.resource?.attributes);
+    const serviceName = resourceAttrs['service.name'] || 'unknown';
+
+    for (const scopeMetric of resourceMetric.scopeMetrics || []) {
+      for (const metric of scopeMetric.metrics) {
+        const baseName = metric.name;
+        const description = metric.description || null;
+        const unit = metric.unit || null;
+
+        if (metric.sum) {
+          for (const dp of metric.sum.dataPoints) {
+            const timestamp = nanoToMs(dp.timeUnixNano);
+            const value = dp.asDouble ?? Number(dp.asInt ?? 0);
+            metrics.push({
+              metric_id: generateMetricId(timestamp),
+              name: baseName,
+              description,
+              unit,
+              type: 'counter',
+              service_name: serviceName,
+              timestamp,
+              value,
+              histogram: null,
+              set_values: null,
+              attributes: parseAttributes(dp.attributes),
+              source,
+            });
+          }
+        }
+
+        if (metric.gauge) {
+          for (const dp of metric.gauge.dataPoints) {
+            const timestamp = nanoToMs(dp.timeUnixNano);
+            const value = dp.asDouble ?? Number(dp.asInt ?? 0);
+            metrics.push({
+              metric_id: generateMetricId(timestamp),
+              name: baseName,
+              description,
+              unit,
+              type: 'gauge',
+              service_name: serviceName,
+              timestamp,
+              value,
+              histogram: null,
+              set_values: null,
+              attributes: parseAttributes(dp.attributes),
+              source,
+            });
+          }
+        }
+
+        if (metric.histogram) {
+          for (const dp of metric.histogram.dataPoints) {
+            const timestamp = nanoToMs(dp.timeUnixNano);
+            const buckets = dp.explicitBounds.map((bound, i) => ({
+              bound,
+              count: Number(dp.bucketCounts[i] ?? 0),
+            }));
+            // Add the overflow bucket
+            if (dp.bucketCounts.length > dp.explicitBounds.length) {
+              buckets.push({
+                bound: Infinity,
+                count: Number(dp.bucketCounts[dp.explicitBounds.length] ?? 0),
+              });
+            }
+
+            metrics.push({
+              metric_id: generateMetricId(timestamp),
+              name: baseName,
+              description,
+              unit,
+              type: 'histogram',
+              service_name: serviceName,
+              timestamp,
+              value: null,
+              histogram: {
+                buckets,
+                sum: dp.sum ?? 0,
+                count: Number(dp.count),
+                min: dp.min ?? 0,
+                max: dp.max ?? 0,
+              },
+              set_values: null,
+              attributes: parseAttributes(dp.attributes),
+              source,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  return { metrics };
 }

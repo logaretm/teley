@@ -13,6 +13,7 @@ export {
   generateSpanId,
   generateEventId,
   generateLogId,
+  generateMetricId,
   type IKeyValue,
 } from './helpers';
 
@@ -30,13 +31,17 @@ export {
 export {
   parseOTLPTrace,
   parseOTLPLogs,
+  parseOTLPMetrics,
   type IExportTraceServiceRequest,
   type IExportLogsServiceRequest,
+  type IExportMetricsServiceRequest,
   type ParsedTrace,
   type ParsedSpan,
   type ParsedLog,
+  type ParsedMetric,
   type ParsedTraceResult,
   type ParsedLogsResult,
+  type ParsedMetricsResult,
 } from './otlp-parser';
 
 // Sentry to OTLP converter

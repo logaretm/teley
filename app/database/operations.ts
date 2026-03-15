@@ -1,7 +1,7 @@
 // Database operations for client-side storage
 
 import { db } from './index';
-import type { Trace, Span, Log } from '../../shared/parsers/types';
+import type { Trace, Span, Log, Metric } from '../../shared/parsers/types';
 
 // Trace operations
 export async function upsertTrace(trace: Trace): Promise<void> {
@@ -55,6 +55,19 @@ export async function clearLogs(): Promise<void> {
   await db.logs.clear();
 }
 
+// Metric operations
+export async function upsertMetric(metric: Metric): Promise<void> {
+  await db.metrics.put(metric);
+}
+
+export async function getMetrics(limit = 1000): Promise<Metric[]> {
+  return db.metrics.orderBy('timestamp').reverse().limit(limit).toArray();
+}
+
+export async function clearMetrics(): Promise<void> {
+  await db.metrics.clear();
+}
+
 // Combined trace + spans
 export async function getTraceWithSpans(traceId: string): Promise<{ trace: Trace | undefined; spans: Span[] }> {
   const [trace, spans] = await Promise.all([
@@ -94,24 +107,27 @@ export async function clearAllData(): Promise<void> {
     db.traces.clear(),
     db.spans.clear(),
     db.logs.clear(),
+    db.metrics.clear(),
   ]);
 }
 
 // Export all telemetry data
-export async function exportAllData(): Promise<{ traces: Trace[]; spans: Span[]; logs: Log[] }> {
-  const [traces, spans, logs] = await Promise.all([
+export async function exportAllData(): Promise<{ traces: Trace[]; spans: Span[]; logs: Log[]; metrics: Metric[] }> {
+  const [traces, spans, logs, metrics] = await Promise.all([
     db.traces.toArray(),
     db.spans.toArray(),
     db.logs.toArray(),
+    db.metrics.toArray(),
   ]);
-  return { traces, spans, logs };
+  return { traces, spans, logs, metrics };
 }
 
 // Import telemetry data (merges with existing)
-export async function importAllData(data: { traces: Trace[]; spans: Span[]; logs: Log[] }): Promise<void> {
+export async function importAllData(data: { traces: Trace[]; spans: Span[]; logs: Log[]; metrics?: Metric[] }): Promise<void> {
   await Promise.all([
     data.traces.length > 0 ? db.traces.bulkPut(data.traces) : Promise.resolve(),
     data.spans.length > 0 ? db.spans.bulkPut(data.spans) : Promise.resolve(),
     data.logs.length > 0 ? db.logs.bulkPut(data.logs) : Promise.resolve(),
+    data.metrics?.length ? db.metrics.bulkPut(data.metrics) : Promise.resolve(),
   ]);
 }

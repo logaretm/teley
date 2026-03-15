@@ -1,7 +1,7 @@
 // Client-side IndexedDB database using Dexie.js
 
 import Dexie, { type Table } from 'dexie';
-import type { Trace, Span, Log } from '../../shared/parsers/types';
+import type { Trace, Span, Log, Metric } from '../../shared/parsers/types';
 
 export interface Credentials {
   key: string;
@@ -12,6 +12,7 @@ export class TelemetryDB extends Dexie {
   traces!: Table<Trace, string>;
   spans!: Table<Span, string>;
   logs!: Table<Log, string>;
+  metrics!: Table<Metric, string>;
   credentials!: Table<Credentials, string>;
 
   constructor() {
@@ -21,6 +22,14 @@ export class TelemetryDB extends Dexie {
       traces: 'trace_id, start_time, service_name',
       spans: 'span_id, trace_id, parent_span_id',
       logs: 'log_id, timestamp, trace_id, severity_number',
+      credentials: 'key',
+    });
+
+    this.version(2).stores({
+      traces: 'trace_id, start_time, service_name',
+      spans: 'span_id, trace_id, parent_span_id',
+      logs: 'log_id, timestamp, trace_id, severity_number',
+      metrics: 'metric_id, name, timestamp, service_name, type',
       credentials: 'key',
     });
   }
@@ -41,5 +50,6 @@ export const db = {
   get traces() { return getDb().traces; },
   get spans() { return getDb().spans; },
   get logs() { return getDb().logs; },
+  get metrics() { return getDb().metrics; },
   get credentials() { return getDb().credentials; },
 };

@@ -19,6 +19,15 @@
     >
       <IconPhLog class="w-6 h-6" />
     </NuxtLink>
+
+    <NuxtLink
+      to="/metrics"
+      class="nav-item"
+      :class="{ active: currentRoute === '/metrics' }"
+      title="Metrics"
+    >
+      <IconPhChartLine class="w-6 h-6" />
+    </NuxtLink>
   </nav>
 </template>
 

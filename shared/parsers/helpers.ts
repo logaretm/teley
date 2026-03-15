@@ -113,3 +113,10 @@ export function generateEventId(): string {
 export function generateLogId(timestamp: number): string {
   return `${timestamp}-${Math.random().toString(36).substring(2, 11)}`;
 }
+
+/**
+ * Generate a unique metric ID
+ */
+export function generateMetricId(timestamp: number): string {
+  return `m-${timestamp}-${Math.random().toString(36).substring(2, 11)}`;
+}

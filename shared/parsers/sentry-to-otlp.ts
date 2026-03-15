@@ -2,19 +2,22 @@
 // This allows Sentry SDK data to be stored and displayed in our OTLP viewer
 
 import type { SentryEnvelope } from './sentry-parser';
+import type { MetricType } from './types';
 import {
   parseOTLPTrace,
   parseOTLPLogs,
   type ParsedTrace,
   type ParsedSpan,
   type ParsedLog,
+  type ParsedMetric,
 } from './otlp-parser';
-import { generateTraceId, generateSpanId } from './helpers';
+import { generateTraceId, generateSpanId, generateMetricId } from './helpers';
 
 export interface SentryConversionResult {
   traces: ParsedTrace[];
   spans: ParsedSpan[];
   logs: ParsedLog[];
+  metrics: ParsedMetric[];
 }
 
 /**
@@ -25,6 +28,7 @@ export function processSentryEnvelope(envelope: SentryEnvelope): SentryConversio
     traces: [],
     spans: [],
     logs: [],
+    metrics: [],
   };
 
   for (const item of envelope.items) {
@@ -53,6 +57,13 @@ export function processSentryEnvelope(envelope: SentryEnvelope): SentryConversio
           console.log('[Sentry] Log payload:', JSON.stringify(item.payload));
           const parsed = convertSentryLog(item.payload);
           result.logs.push(...parsed.logs);
+          break;
+        }
+
+        case 'statsd': {
+          // Sentry statsd metrics
+          const parsed = convertSentryStatsd(item.payload);
+          result.metrics.push(...parsed);
           break;
         }
 
@@ -327,4 +338,126 @@ function convertAttributes(data: Record<string, any>) {
           typeof value === 'object' ? JSON.stringify(value) : String(value),
       },
     }));
+}
+
+/**
+ * Parse Sentry statsd format to metrics
+ * Format: name@unit:value|type|#tag1:val1,tag2:val2|T1234567890
+ * Multiple metrics separated by newlines
+ */
+function convertSentryStatsd(payload: string): ParsedMetric[] {
+  if (typeof payload !== 'string') return [];
+
+  const metrics: ParsedMetric[] = [];
+  const lines = payload.split('\n').filter((l) => l.trim());
+
+  for (const line of lines) {
+    try {
+      // Parse: name[@unit]:value1[:value2...]|type[|#tags][|Ttimestamp]
+      const nameMatch = line.match(/^([^:@]+)(?:@([^:]+))?:(.+)$/);
+      if (!nameMatch) continue;
+
+      const name = nameMatch[1]!;
+      const unit = nameMatch[2] || null;
+      const rest = nameMatch[3]!;
+
+      // Split by | to get value(s), type, optional tags, optional timestamp
+      const parts = rest.split('|');
+      if (parts.length < 2) continue;
+
+      const rawValues = parts[0]!;
+      const typeChar = parts[1]!;
+
+      // Parse tags
+      const attributes: Record<string, any> = {};
+      let timestamp = Date.now();
+
+      for (let i = 2; i < parts.length; i++) {
+        const part = parts[i]!;
+        if (part.startsWith('#')) {
+          // Tags: #key1:val1,key2:val2
+          const tags = part.slice(1).split(',');
+          for (const tag of tags) {
+            const [k, v] = tag.split(':');
+            if (k) attributes[k] = v ?? '';
+          }
+        } else if (part.startsWith('T')) {
+          // Timestamp in seconds
+          timestamp = Math.floor(Number(part.slice(1)) * 1000);
+        }
+      }
+
+      // Map Sentry type to our MetricType
+      const typeMap: Record<string, MetricType> = {
+        c: 'counter',
+        g: 'gauge',
+        d: 'histogram',
+        s: 'set',
+      };
+      const metricType = typeMap[typeChar] || 'gauge';
+
+      if (metricType === 'set') {
+        const setValues = rawValues.split(':');
+        metrics.push({
+          metric_id: generateMetricId(timestamp),
+          name,
+          description: null,
+          unit,
+          type: 'set',
+          service_name: 'sentry-app',
+          timestamp,
+          value: setValues.length,
+          histogram: null,
+          set_values: setValues,
+          attributes,
+          source: 'SENTRY',
+        });
+      } else if (metricType === 'histogram') {
+        const values = rawValues.split(':').map(Number).filter((v) => !isNaN(v));
+        const sum = values.reduce((a, b) => a + b, 0);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        metrics.push({
+          metric_id: generateMetricId(timestamp),
+          name,
+          description: null,
+          unit,
+          type: 'histogram',
+          service_name: 'sentry-app',
+          timestamp,
+          value: null,
+          histogram: {
+            buckets: [],
+            sum,
+            count: values.length,
+            min,
+            max,
+          },
+          set_values: null,
+          attributes,
+          source: 'SENTRY',
+        });
+      } else {
+        const value = Number(rawValues) || 0;
+        metrics.push({
+          metric_id: generateMetricId(timestamp),
+          name,
+          description: null,
+          unit,
+          type: metricType,
+          service_name: 'sentry-app',
+          timestamp,
+          value,
+          histogram: null,
+          set_values: null,
+          attributes,
+          source: 'SENTRY',
+        });
+      }
+    } catch (error: any) {
+      console.error('[Sentry] Error parsing statsd line:', error.message);
+    }
+  }
+
+  return metrics;
 }

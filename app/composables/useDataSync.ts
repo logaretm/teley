@@ -1,21 +1,24 @@
 // Composable for syncing incoming telemetry data to IndexedDB
 // This should be called once at the app level to ensure data is always captured
 
-import type { Trace, Span, Log, WebSocketMessage } from '../../shared/parsers/types';
+import type { Trace, Span, Log, Metric, WebSocketMessage } from '../../shared/parsers/types';
 import {
   upsertTrace,
   upsertSpans,
   upsertLog,
+  upsertMetric,
 } from '../database/operations';
 
 // Event bus for notifying components of new data
 const traceListeners = new Set<(trace: Trace, spans: Span[]) => void>();
 const logListeners = new Set<(log: Log) => void>();
+const metricListeners = new Set<(metric: Metric) => void>();
 const viewerCountListeners = new Set<(count: number) => void>();
 
 // Per-type sets of known service names (accumulated as data arrives)
 const traceServiceNames = new Set<string>();
 const logServiceNames = new Set<string>();
+const metricServiceNames = new Set<string>();
 const serviceNamesListeners = new Set<() => void>();
 
 function notifyListeners() {
@@ -38,9 +41,16 @@ function addLogServiceName(name: string) {
   }
 }
 
-export function addServiceNames(names: string[], type: 'traces' | 'logs') {
+function addMetricServiceName(name: string) {
+  if (name && !metricServiceNames.has(name)) {
+    metricServiceNames.add(name);
+    notifyListeners();
+  }
+}
+
+export function addServiceNames(names: string[], type: 'traces' | 'logs' | 'metrics') {
   let changed = false;
-  const set = type === 'traces' ? traceServiceNames : logServiceNames;
+  const set = type === 'traces' ? traceServiceNames : type === 'logs' ? logServiceNames : metricServiceNames;
   for (const name of names) {
     if (name && !set.has(name)) {
       set.add(name);
@@ -52,10 +62,11 @@ export function addServiceNames(names: string[], type: 'traces' | 'logs') {
   }
 }
 
-export function getServiceNames(type?: 'traces' | 'logs'): Set<string> {
+export function getServiceNames(type?: 'traces' | 'logs' | 'metrics'): Set<string> {
   if (type === 'traces') return traceServiceNames;
   if (type === 'logs') return logServiceNames;
-  return new Set([...traceServiceNames, ...logServiceNames]);
+  if (type === 'metrics') return metricServiceNames;
+  return new Set([...traceServiceNames, ...logServiceNames, ...metricServiceNames]);
 }
 
 export function onServiceNamesChange(callback: () => void): () => void {
@@ -84,6 +95,12 @@ export function useDataSync() {
       case 'log_update':
         if (message.data) {
           await handleLogUpdate(message.data.log);
+        }
+        break;
+
+      case 'metric_update':
+        if (message.data) {
+          await handleMetricUpdate(message.data.metric);
         }
         break;
 
@@ -126,6 +143,22 @@ export function useDataSync() {
     }
   };
 
+  const handleMetricUpdate = async (metric: Metric) => {
+    console.log('[DataSync] Received metric:', metric.metric_id);
+
+    addMetricServiceName(metric.service_name);
+
+    await upsertMetric(metric);
+
+    for (const listener of metricListeners) {
+      try {
+        listener(metric);
+      } catch (err) {
+        console.error('[DataSync] Error in metric listener:', err);
+      }
+    }
+  };
+
   const handleLogUpdate = async (log: Log) => {
     console.log('[DataSync] Received log:', log.log_id);
 
@@ -160,6 +193,12 @@ export function onTraceUpdate(callback: (trace: Trace, spans: Span[]) => void): 
 export function onLogUpdate(callback: (log: Log) => void): () => void {
   logListeners.add(callback);
   return () => logListeners.delete(callback);
+}
+
+// Subscribe to metric updates (for real-time UI updates)
+export function onMetricUpdate(callback: (metric: Metric) => void): () => void {
+  metricListeners.add(callback);
+  return () => metricListeners.delete(callback);
 }
 
 // Subscribe to viewer count updates

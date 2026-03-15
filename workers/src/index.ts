@@ -6,6 +6,7 @@ import {
   processSentryEnvelope,
   parseOTLPTrace,
   parseOTLPLogs,
+  parseOTLPMetrics,
   generateEventId,
 } from '../../shared/parsers';
 
@@ -179,6 +180,14 @@ async function handleSentryIngest(request: Request, env: Env, roomId: string): P
       });
     }
 
+    // Broadcast each metric update
+    for (const metric of result.metrics) {
+      await broadcastToRoom(env, roomId, {
+        type: 'metric_update',
+        data: { metric },
+      });
+    }
+
     const eventId = envelope.headers.event_id || generateEventId();
 
     return new Response(JSON.stringify({ id: eventId, status: 'success' }), {
@@ -229,6 +238,20 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
       }
 
       return new Response(JSON.stringify({ status: 'success', logsReceived: result.logs.length }), {
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } else if (body.resourceMetrics) {
+      // OTLP Metrics
+      const result = parseOTLPMetrics(body);
+
+      for (const metric of result.metrics) {
+        await broadcastToRoom(env, roomId, {
+          type: 'metric_update',
+          data: { metric },
+        });
+      }
+
+      return new Response(JSON.stringify({ status: 'success', metricsReceived: result.metrics.length }), {
         headers: { 'Content-Type': 'application/json' },
       });
     } else {
