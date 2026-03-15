@@ -363,10 +363,16 @@ function convertSentryTraceMetrics(payload: any): ParsedMetric[] {
       };
       const metricType = typeMap[item.type] || 'gauge';
 
-      const attributes: Record<string, any> = { ...item.attributes };
-      // Remove sentry internal attributes from display
+      // Unwrap Sentry v10 attribute format: { value: "...", type: "string" } -> plain values
+      const rawAttrs = item.attributes || {};
+      const attributes: Record<string, any> = {};
+      for (const [key, val] of Object.entries(rawAttrs)) {
+        attributes[key] = val && typeof val === 'object' && 'value' in val ? (val as any).value : val;
+      }
       if (item.trace_id) attributes['trace_id'] = item.trace_id;
       if (item.span_id) attributes['span_id'] = item.span_id;
+
+      const serviceName = String(attributes['sentry.sdk.name'] || 'sentry-app');
 
       if (metricType === 'histogram') {
         const value = Number(item.value) || 0;
@@ -376,7 +382,7 @@ function convertSentryTraceMetrics(payload: any): ParsedMetric[] {
           description: null,
           unit: item.unit || null,
           type: 'histogram',
-          service_name: attributes['sentry.sdk.name'] || 'sentry-app',
+          service_name: serviceName,
           timestamp,
           value: null,
           histogram: {
@@ -397,7 +403,7 @@ function convertSentryTraceMetrics(payload: any): ParsedMetric[] {
           description: null,
           unit: item.unit || null,
           type: metricType,
-          service_name: attributes['sentry.sdk.name'] || 'sentry-app',
+          service_name: serviceName,
           timestamp,
           value: Number(item.value) || 0,
           histogram: null,
