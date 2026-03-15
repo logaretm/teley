@@ -30,12 +30,13 @@
       <div class="space-y-1 mb-3">
         <ToggleCheckbox v-model="clearTraces">Traces & Spans</ToggleCheckbox>
         <ToggleCheckbox v-model="clearLogsOption">Logs</ToggleCheckbox>
+        <ToggleCheckbox v-model="clearMetricsOption">Metrics</ToggleCheckbox>
       </div>
       <button
         @click="handleClearSelected"
-        :disabled="!clearTraces && !clearLogsOption"
+        :disabled="!clearTraces && !clearLogsOption && !clearMetricsOption"
         class="w-full px-3 py-1.5 text-sm font-medium rounded transition-colors"
-        :class="clearTraces || clearLogsOption
+        :class="clearTraces || clearLogsOption || clearMetricsOption
           ? 'bg-red-600 hover:bg-red-500 text-white'
           : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'"
       >
@@ -55,20 +56,24 @@
 const route = useRoute();
 const { clearAllTraces } = useTraces();
 const { clearLogs } = useLogs();
+const { clearMetrics } = useMetrics();
 
 const containerRef = ref<HTMLElement | null>(null);
 const dropdownOpen = ref(false);
 const clearTraces = ref(false);
 const clearLogsOption = ref(false);
+const clearMetricsOption = ref(false);
 
 const isTracesView = computed(() => route.path === '/');
 const isLogsView = computed(() => route.path === '/logs');
+const isMetricsView = computed(() => route.path === '/metrics');
 
 // Pre-check based on current view when dropdown opens
 watch(dropdownOpen, (open) => {
   if (open) {
     clearTraces.value = isTracesView.value;
     clearLogsOption.value = isLogsView.value;
+    clearMetricsOption.value = isMetricsView.value;
   }
 });
 
@@ -85,14 +90,16 @@ onUnmounted(() => document.removeEventListener('click', onClickOutside));
 const [ClearConfirmDialog, confirmClear] = useConfirmation(async () => {
   if (clearTraces.value) await clearAllTraces();
   if (clearLogsOption.value) await clearLogs();
+  if (clearMetricsOption.value) await clearMetrics();
   dropdownOpen.value = false;
 });
 
 function handleMainClear() {
   clearTraces.value = isTracesView.value;
   clearLogsOption.value = isLogsView.value;
+  clearMetricsOption.value = isMetricsView.value;
 
-  const viewName = isLogsView.value ? 'Logs' : 'Traces';
+  const viewName = isMetricsView.value ? 'Metrics' : isLogsView.value ? 'Logs' : 'Traces';
   confirmClear(
     `Clear All ${viewName}`,
     `Are you sure you want to clear all ${viewName.toLowerCase()} data? This action cannot be undone.`,
@@ -103,6 +110,7 @@ function handleClearSelected() {
   const items = [];
   if (clearTraces.value) items.push('traces');
   if (clearLogsOption.value) items.push('logs');
+  if (clearMetricsOption.value) items.push('metrics');
   if (items.length === 0) return;
 
   const label = items.join(' and ');
