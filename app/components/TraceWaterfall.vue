@@ -3,9 +3,27 @@
     <!-- Header -->
     <div class="bg-zinc-900 border-b border-zinc-800 p-6">
       <div>
-        <h2 class="text-xl font-semibold text-zinc-100 mb-3">
-          {{ trace.operation_name }}
-        </h2>
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-xl font-semibold text-zinc-100">
+            {{ trace.operation_name }}
+          </h2>
+          <div class="flex items-center gap-2">
+            <button
+              @click="$emit('share')"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              <IconPhShareNetworkBold class="w-3.5 h-3.5" />
+              {{ shareLabel }}
+            </button>
+            <button
+              @click="$emit('compare')"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+            >
+              <IconPhArrowsLeftRightBold class="w-3.5 h-3.5" />
+              Compare
+            </button>
+          </div>
+        </div>
         <div class="flex gap-6 flex-wrap items-center text-sm">
           <span class="text-zinc-400">
             <strong class="text-zinc-200 mr-1">Provider:</strong>
@@ -56,7 +74,10 @@
       <!-- Time Scale -->
       <div class="grid grid-cols-[250px_1fr] gap-4 mb-2">
         <div></div>
-        <div class="flex justify-between py-2 border-b border-zinc-800">
+        <div
+          ref="timeScaleRef"
+          class="flex justify-between py-2 border-b border-zinc-800"
+        >
           <span
             v-for="(label, idx) in timeLabels"
             :key="idx"
@@ -126,9 +147,12 @@ import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import type { Trace, Span } from '@types';
 import {
   formatDuration,
+  formatDurationCompact,
   getStatusColor,
   getSpanKindLabel,
 } from '~/utils/formatters';
+import { useResizeObserver } from '@vueuse/core';
+import { buildSpanTree } from '~/utils/span-tree';
 import SourceIcon from './SourceIcon.vue';
 
 interface Props {
@@ -139,80 +163,40 @@ interface Props {
 const props = defineProps<Props>();
 defineEmits<{
   selectSpan: [span: Span];
+  compare: [];
+  share: [];
 }>();
 
-interface SpanTreeNode {
-  span: Span;
-  depth: number;
-  offsetPercent: number;
-  widthPercent: number;
-}
+const shareLabel = ref('Share');
+defineExpose({ setShareLabel: (label: string) => { shareLabel.value = label; } });
 
-// Build hierarchical span tree
-const spanTree = computed<SpanTreeNode[]>(() => {
-  const spanMap = new Map<string, Span>();
-  const children = new Map<string | null, Span[]>();
+const spanTree = computed(() => buildSpanTree(props.spans, props.trace));
 
-  // Build maps
-  for (const span of props.spans) {
-    spanMap.set(span.span_id, span);
+// Adaptive time scale labels
+const timeScaleRef = ref<HTMLElement | null>(null);
+const containerWidth = ref(0);
 
-    const parentId = span.parent_span_id;
-    if (!children.has(parentId)) {
-      children.set(parentId, []);
-    }
-    children.get(parentId)!.push(span);
+useResizeObserver(timeScaleRef, (entries) => {
+  const entry = entries[0];
+  if (entry) {
+    containerWidth.value = entry.contentRect.width;
   }
-
-  // Find root spans (no parent or parent not in this trace)
-  const rootSpans = props.spans.filter((span) => {
-    return !span.parent_span_id || !spanMap.has(span.parent_span_id);
-  });
-
-  // Sort by start time
-  rootSpans.sort((a, b) => a.start_time - b.start_time);
-
-  const result: SpanTreeNode[] = [];
-  const traceStart = props.trace.start_time;
-  const traceDuration = props.trace.duration;
-
-  function traverse(span: Span, depth: number) {
-    const offsetPercent =
-      ((span.start_time - traceStart) / traceDuration) * 100;
-    const widthPercent = (span.duration / traceDuration) * 100;
-
-    result.push({
-      span,
-      depth,
-      offsetPercent: Math.max(0, offsetPercent),
-      widthPercent: Math.max(0.5, widthPercent), // Minimum width for visibility
-    });
-
-    // Process children
-    const childSpans = children.get(span.span_id) || [];
-    childSpans.sort((a, b) => a.start_time - b.start_time);
-
-    for (const child of childSpans) {
-      traverse(child, depth + 1);
-    }
-  }
-
-  for (const rootSpan of rootSpans) {
-    traverse(rootSpan, 0);
-  }
-
-  return result;
 });
 
-// Generate time scale labels
+const numLabels = computed(() => {
+  const width = containerWidth.value;
+  if (width === 0) return 10;
+  return Math.min(10, Math.max(2, Math.floor(width / 60)));
+});
+
 const timeLabels = computed(() => {
   const duration = props.trace.duration;
   const labels: string[] = [];
-  const numLabels = 10;
+  const count = numLabels.value;
 
-  for (let i = 0; i <= numLabels; i++) {
-    const time = (duration / numLabels) * i;
-    labels.push(formatDuration(time));
+  for (let i = 0; i <= count; i++) {
+    const time = (duration / count) * i;
+    labels.push(formatDurationCompact(time));
   }
 
   return labels;

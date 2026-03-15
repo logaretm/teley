@@ -1,4 +1,7 @@
-import type { Trace, Span, TraceDetailsResponse } from '@types';
+// Composable for fetching trace details from local IndexedDB
+
+import type { Trace, Span } from '../../shared/parsers/types';
+import { getTraceWithSpans } from '../database/operations';
 
 export function useTraceDetails(traceId: MaybeRefOrGetter<string>) {
   const trace = ref<Trace | null>(null);
@@ -18,10 +21,13 @@ export function useTraceDetails(traceId: MaybeRefOrGetter<string>) {
     error.value = null;
 
     try {
-      const data = await $fetch<TraceDetailsResponse>(`/api/traces/${id}`);
-      if (data) {
+      const data = await getTraceWithSpans(id);
+      if (data.trace) {
         trace.value = data.trace;
         spans.value = data.spans;
+      } else {
+        trace.value = null;
+        spans.value = [];
       }
     } catch (err) {
       console.error('Error fetching trace details:', err);

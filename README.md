@@ -2,10 +2,10 @@
   <img src="public/logo.svg" alt="OTel Viewer Logo" width="120" height="120">
 </p>
 
-<h1 align="center">OpenTelemetry Viewer</h1>
+<h1 align="center">Teley</h1>
 
 <p align="center">
-  A real-time OpenTelemetry trace visualizer built with Nuxt 3 and Vue 3. View and debug traces from your instrumented applications with an intuitive waterfall visualization.
+  A real-time observability dashboard built with Nuxt 3 and Vue 3. View and debug traces and logs from your instrumented applications with an intuitive waterfall visualization.
 </p>
 
 <p align="center">

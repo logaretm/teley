@@ -4,9 +4,12 @@
     <main class="flex-1 overflow-y-auto relative bg-zinc-950">
       <TraceWaterfall
         v-if="trace && spans.length > 0"
+        ref="waterfallRef"
         :trace="trace"
         :spans="spans"
         @select-span="handleSelectSpan"
+        @compare="$emit('compare')"
+        @share="handleShare"
       />
       <div
         v-else-if="loading"
@@ -40,11 +43,13 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+defineEmits<{ compare: [] }>();
 
 const getTraceId = () => props.traceId;
 
 const { trace, spans, loading, error } = useTraceDetails(getTraceId);
 const selectedSpan = ref<Span>();
+const waterfallRef = ref<InstanceType<typeof TraceWaterfall> | null>(null);
 
 // Reset selected span when trace changes
 watch(getTraceId, () => {
@@ -53,5 +58,26 @@ watch(getTraceId, () => {
 
 function handleSelectSpan(span: Span) {
   selectedSpan.value = span;
+}
+
+async function handleShare() {
+  if (!trace.value) return;
+
+  try {
+    waterfallRef.value?.setShareLabel('Sharing...');
+    const res = await fetch('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ trace: trace.value, spans: spans.value }),
+    });
+    const { id } = await res.json();
+    const url = `${window.location.origin}/shared/${id}`;
+    await navigator.clipboard.writeText(url);
+    waterfallRef.value?.setShareLabel('Copied!');
+    setTimeout(() => waterfallRef.value?.setShareLabel('Share'), 2000);
+  } catch (err) {
+    console.error('Failed to share trace:', err);
+    waterfallRef.value?.setShareLabel('Share');
+  }
 }
 </script>

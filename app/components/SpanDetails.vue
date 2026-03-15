@@ -273,27 +273,39 @@ defineEmits<{
 }>();
 
 const parsedAttributes = computed(() => {
-  try {
-    return JSON.parse(props.span.attributes);
-  } catch {
-    return {};
+  const attrs = props.span.attributes;
+  if (typeof attrs === 'string') {
+    try {
+      return JSON.parse(attrs);
+    } catch {
+      return {};
+    }
   }
+  return attrs || {};
 });
 
 const parsedEvents = computed(() => {
-  try {
-    return JSON.parse(props.span.events);
-  } catch {
-    return [];
+  const events = props.span.events;
+  if (typeof events === 'string') {
+    try {
+      return JSON.parse(events);
+    } catch {
+      return [];
+    }
   }
+  return events || [];
 });
 
 const parsedLinks = computed(() => {
-  try {
-    return JSON.parse(props.span.links);
-  } catch {
-    return [];
+  const links = props.span.links;
+  if (typeof links === 'string') {
+    try {
+      return JSON.parse(links);
+    } catch {
+      return [];
+    }
   }
+  return links || [];
 });
 
 function getStatusLabel(code: SpanStatusCode): string {

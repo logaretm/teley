@@ -6,15 +6,16 @@
     >
       <TraceList
         v-model="selectedTraceId"
-        :traces="traces"
+        :traces="filteredTraces"
         :selected-trace-id="selectedTraceId"
-        @clear="handleClearData"
+        :compare-with-trace-id="compareWithTraceId"
         @help="setupDialog?.open()"
+        @compare-started="compareWithTraceId = null"
       />
     </aside>
 
     <!-- Main Content -->
-    <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
+    <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" @compare="startCompare" />
 
     <div v-else class="flex-1 flex items-center justify-center bg-zinc-950">
       <div class="text-center space-y-6 max-w-md px-8">
@@ -43,38 +44,32 @@
       <TracesSetupGuide />
     </ModalDialog>
 
-    <ClearDataDialog
-      confirm-text="Clear All"
-      cancel-text="Cancel"
-      variant="danger"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
 const selectedTraceId = ref<string | null>(null);
+const compareWithTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
 
-const { traces, clearAllTraces } = useTraces();
-const { liveMode } = useLiveMode();
-const [ClearDataDialog, confirmClearData] = useConfirmation(async () => {
-  await clearAllTraces();
-  selectedTraceId.value = null;
+const { traces } = useTraces();
+const { selectedServices, hasMultipleServices } = useServiceFilter();
+
+const filteredTraces = computed(() => {
+  if (!hasMultipleServices.value) return traces.value;
+  return traces.value.filter(t => selectedServices.value.has(t.service_name));
 });
 
-function handleClearData() {
-  confirmClearData(
-    'Clear All Traces',
-    'Are you sure you want to clear all trace data? This action cannot be undone.',
-  );
+function startCompare() {
+  if (selectedTraceId.value) {
+    compareWithTraceId.value = selectedTraceId.value;
+  }
 }
 
-// Watch for new traces in live mode
+// Auto-select newest trace
 watch(
-  () => traces.value[0],
+  () => filteredTraces.value[0],
   (newTrace, oldTrace) => {
-    if (!liveMode?.value) return;
-
     if (newTrace && oldTrace?.trace_id !== newTrace.trace_id) {
       selectedTraceId.value = newTrace.trace_id;
     }

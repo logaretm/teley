@@ -32,13 +32,17 @@
         </div>
 
         <!-- Content -->
-        <div class="text-zinc-300 px-6 pb-6">
-          <slot />
+        <div class="text-zinc-300 px-6 pb-6" :class="size === 'large' ? 'max-w-2xl' : 'max-w-md'">
+          <slot name="content">
+            <slot />
+          </slot>
         </div>
 
-        <!-- Footer -->
-        <div v-if="$slots.footer" class="p-3">
-          <slot name="footer" :close="close" />
+        <!-- Actions/Footer -->
+        <div v-if="$slots.actions || $slots.footer" class="p-4 border-t border-zinc-800 flex justify-end gap-3">
+          <slot name="actions">
+            <slot name="footer" :close="close" />
+          </slot>
         </div>
       </div>
     </div>
@@ -47,15 +51,38 @@
 
 <script setup lang="ts">
 interface Props {
-  title: string;
+  title?: string;
   description?: string;
+  open?: boolean;
+  size?: 'default' | 'large';
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  title: '',
   description: '',
+  open: undefined,
+  size: 'default',
 });
 
+const emit = defineEmits<{
+  close: [];
+}>();
+
 const dialogRef = useTemplateRef('dialog');
+
+// Watch for controlled open prop
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen === undefined) return;
+    if (isOpen) {
+      dialogRef.value?.showModal();
+    } else {
+      dialogRef.value?.close();
+    }
+  },
+  { immediate: true }
+);
 
 function open() {
   dialogRef.value?.showModal();
@@ -63,6 +90,7 @@ function open() {
 
 function close() {
   dialogRef.value?.close();
+  emit('close');
 }
 
 function handleBackdropClick(event: MouseEvent) {

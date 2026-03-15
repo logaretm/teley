@@ -22,16 +22,6 @@
           </p>
         </div>
 
-        <div class="flex items-center gap-2">
-          <button
-            v-if="logs.length > 0"
-            @click="handleClearLogs"
-            class="p-2 text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 rounded transition-colors"
-            title="Clear all logs"
-          >
-            <IconPhTrash class="w-4 h-4" />
-          </button>
-        </div>
       </div>
     </div>
 
@@ -55,7 +45,7 @@
       </div>
 
       <div
-        v-else-if="logs.length === 0"
+        v-else-if="filteredLogs.length === 0"
         class="flex items-center justify-center h-full"
       >
         <div class="text-center space-y-6 max-w-md px-8">
@@ -86,7 +76,7 @@
       <table v-else class="w-full">
         <tbody>
           <LogRow
-            v-for="log in logs"
+            v-for="log in filteredLogs"
             :key="log.log_id"
             :log="log"
             :is-expanded="expandedLogs.has(log.log_id)"
@@ -101,26 +91,22 @@
       <LogsSetupGuide />
     </ModalDialog>
 
-    <ClearLogsDialog
-      confirm-text="Clear All"
-      cancel-text="Cancel"
-      variant="danger"
-    />
   </div>
 </template>
 
 <script setup lang="ts">
-const { logs, loading, error, fetchLogs, clearLogs } = useLogs();
+const { logs, loading, error, fetchLogs } = useLogs();
+const { selectedServices, hasMultipleServices } = useServiceFilter();
+
+const filteredLogs = computed(() => {
+  if (!hasMultipleServices.value) return logs.value;
+  return logs.value.filter(l => selectedServices.value.has(l.service_name));
+});
 
 const expandedLogs = ref<Set<string>>(new Set());
 const setupGuideDialog = ref<{ open: () => void; close: () => void } | null>(
   null,
 );
-
-const [ClearLogsDialog, confirmClearLogs] = useConfirmation(async () => {
-  await clearLogs();
-  expandedLogs.value.clear();
-});
 
 function toggleLogExpansion(logId: string) {
   if (expandedLogs.value.has(logId)) {
@@ -128,13 +114,6 @@ function toggleLogExpansion(logId: string) {
   } else {
     expandedLogs.value.add(logId);
   }
-}
-
-function handleClearLogs() {
-  confirmClearLogs(
-    'Clear All Logs',
-    'Are you sure you want to clear all log data? This action cannot be undone.',
-  );
 }
 
 // Fetch logs on mount

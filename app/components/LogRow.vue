@@ -25,7 +25,7 @@
 
         <!-- Message -->
         <span class="text-sm text-zinc-400 truncate min-w-0 break-all max-w-xl">
-          {{ log.body }}
+          {{ stripAnsi(log.body) }}
         </span>
 
         <!-- Expand Icon -->
@@ -50,13 +50,31 @@
           <div class="space-y-4 py-4">
             <!-- Full Message -->
             <div>
-              <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-                Full Message
-              </h4>
+              <div class="flex items-center gap-2 mb-2">
+                <h4 class="text-xs font-semibold text-zinc-400 uppercase">
+                  Full Message
+                </h4>
+                <button
+                  v-if="bodyHasAnsi"
+                  class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded transition-colors"
+                  :class="showAnsi
+                    ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
+                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'"
+                  @click.stop="showAnsi = !showAnsi"
+                >
+                  ANSI
+                </button>
+              </div>
               <div
+                v-if="showAnsi && bodyHasAnsi"
+                class="bg-zinc-900 rounded px-4 py-3 text-sm text-zinc-300 font-mono whitespace-pre-wrap wrap-break-words"
+                v-html="bodyHtml"
+              />
+              <div
+                v-else
                 class="bg-zinc-900 rounded px-4 py-3 text-sm text-zinc-300 font-mono whitespace-pre-wrap wrap-break-words"
               >
-                {{ log.body }}
+                {{ stripAnsi(log.body) }}
               </div>
             </div>
 
@@ -82,19 +100,35 @@
 
             <!-- Attributes -->
             <div v-if="parsedAttributes.length > 0">
-              <h4 class="text-xs font-semibold text-zinc-400 uppercase mb-2">
-                Attributes
-              </h4>
-              <div class="bg-zinc-900 rounded px-4 py-3 space-y-1">
+              <div class="flex items-center gap-2 mb-2">
+                <h4 class="text-xs font-semibold text-zinc-400 uppercase">
+                  Attributes
+                </h4>
+                <button
+                  class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded transition-colors"
+                  :class="showRawAttributes
+                    ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
+                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'"
+                  @click.stop="showRawAttributes = !showRawAttributes"
+                >
+                  Raw
+                </button>
+              </div>
+              <div v-if="showRawAttributes" class="bg-zinc-900 rounded px-4 py-3">
+                <pre class="text-sm text-zinc-300 font-mono whitespace-pre-wrap break-all">{{ JSON.stringify(log.attributes, null, 2) }}</pre>
+              </div>
+              <div v-else class="bg-zinc-900 rounded px-4 py-3 space-y-1.5">
                 <div
                   v-for="[key, value] in parsedAttributes"
                   :key="key"
-                  class="flex gap-2 text-sm"
+                  class="flex items-baseline gap-2 text-sm"
                 >
                   <span class="text-zinc-500 font-mono">{{ key }}:</span>
-                  <span class="text-zinc-300 font-mono break-all">{{
-                    formatAttributeValue(value)
-                  }}</span>
+                  <span class="text-zinc-300 font-mono break-all">{{ displayValue(value) }}</span>
+                  <span
+                    class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded shrink-0"
+                    :class="typeBadgeClass(value)"
+                  >{{ typeName(value) }}</span>
                 </div>
               </div>
             </div>
@@ -109,7 +143,7 @@
 import { motion } from 'motion-v';
 import type { Log } from '@types';
 import { AnimatePresence } from 'motion-v';
-import { formatTimestamp, getSeverityLabel } from '~/utils/formatters';
+import { formatTimestamp, getSeverityLabel, stripAnsi, hasAnsi, ansiToHtml } from '~/utils/formatters';
 
 interface Props {
   log: Log;
@@ -121,13 +155,21 @@ const emit = defineEmits<{
   toggleExpanded: [];
 }>();
 
+const showAnsi = ref(false);
+const showRawAttributes = ref(false);
+const bodyHasAnsi = computed(() => hasAnsi(props.log.body));
+const bodyHtml = computed(() => ansiToHtml(props.log.body));
+
 const parsedAttributes = computed(() => {
-  try {
-    const attrs = JSON.parse(props.log.attributes);
-    return Object.entries(attrs);
-  } catch {
-    return [];
+  const attrs = props.log.attributes;
+  if (typeof attrs === 'string') {
+    try {
+      return Object.entries(JSON.parse(attrs));
+    } catch {
+      return [];
+    }
   }
+  return Object.entries(attrs || {});
 });
 
 const severityDotColor = computed(() => {
@@ -144,10 +186,49 @@ const severityDotColor = computed(() => {
   return 'bg-zinc-400'; // UNSET
 });
 
-function formatAttributeValue(value: any): string {
-  if (typeof value === 'object') {
-    return JSON.stringify(value);
+interface TypedAttr { value: unknown; type: string }
+
+function parseTypedAttr(value: unknown): TypedAttr | null {
+  let obj = value;
+  if (typeof obj === 'string') {
+    try { obj = JSON.parse(obj); } catch { return null; }
   }
+  if (typeof obj === 'object' && obj !== null && 'value' in obj && 'type' in obj) {
+    return obj as TypedAttr;
+  }
+  return null;
+}
+
+function typeName(value: unknown): string {
+  const typed = parseTypedAttr(value);
+  if (typed) return typed.type;
+  if (value === null || value === undefined) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
+function typeBadgeClass(value: unknown): string {
+  const type = typeName(value);
+  switch (type) {
+    case 'string': return 'bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/40';
+    case 'number': case 'integer': case 'double': return 'bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40';
+    case 'boolean': return 'bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/40';
+    case 'array': return 'bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/40';
+    case 'object': return 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40';
+    default: return 'bg-zinc-500/20 text-zinc-400 ring-1 ring-zinc-500/40';
+  }
+}
+
+function displayValue(value: unknown): string {
+  const typed = parseTypedAttr(value);
+  if (typed) {
+    const inner = typed.value;
+    if (inner === null || inner === undefined) return 'null';
+    if (typeof inner === 'object') return JSON.stringify(inner);
+    return String(inner);
+  }
+  if (value === null || value === undefined) return 'null';
+  if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
 }
 
