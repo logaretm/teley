@@ -15,7 +15,7 @@ export interface SentryEnvelopeHeaders {
 }
 
 export interface SentryItemHeaders {
-  type: 'event' | 'transaction' | 'span' | 'attachment' | 'session' | 'client_report' | 'statsd';
+  type: 'event' | 'transaction' | 'span' | 'attachment' | 'session' | 'client_report' | 'trace_metric';
   length?: number;
   content_type?: string;
   filename?: string;
