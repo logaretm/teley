@@ -188,7 +188,7 @@
             <div
               class="absolute inset-0 bg-gradient-to-br from-zinc-800/50 via-zinc-900 to-zinc-950"
             />
-            <IconPhChartLine class="w-16 h-16 text-zinc-700 relative z-10" />
+            <IconPhGauge class="w-16 h-16 text-zinc-700 relative z-10" />
           </div>
           <div class="space-y-3">
             <h3 class="text-xl font-semibold text-zinc-300">

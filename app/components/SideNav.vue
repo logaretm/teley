@@ -26,7 +26,7 @@
       :class="{ active: currentRoute === '/metrics' }"
       title="Metrics"
     >
-      <IconPhChartLine class="w-6 h-6" />
+      <IconPhGauge class="w-6 h-6" />
     </NuxtLink>
   </nav>
 </template>
