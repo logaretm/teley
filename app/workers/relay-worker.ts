@@ -90,13 +90,13 @@ function handleMessage(port: MessagePort, msg: any) {
 function connect(roomId: string, receiveToken: string, wsUrl: string) {
   console.log('[RelayWorker] connect() called with wsUrl:', wsUrl);
 
-  // If already connected to same room, no-op
-  if (state.roomId === roomId && state.status === 'connected') {
+  // If already connected or connecting to same room, no-op
+  if (state.roomId === roomId && (state.status === 'connected' || state.status === 'connecting')) {
     return;
   }
 
-  // Clean up existing connection if different room
-  if (state.ws && state.roomId !== roomId) {
+  // Clean up existing connection
+  if (state.ws) {
     state.ws.close();
     state.ws = null;
   }
