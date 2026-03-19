@@ -5,7 +5,7 @@ import {
   getMetrics as dbGetMetrics,
   clearMetrics as dbClearMetrics,
 } from '../database/operations';
-import { onMetricUpdate, addServiceNames } from './useDataSync';
+import { onMetricUpdate, addServiceNames, clearServiceNames } from './useDataSync';
 
 export function useMetrics() {
   const metrics = useState<Metric[]>('metrics', () => []);
@@ -44,6 +44,7 @@ export function useMetrics() {
     try {
       await dbClearMetrics();
       metrics.value = [];
+      clearServiceNames('metrics');
       console.log('[Metrics] All metrics cleared');
     } catch (err: any) {
       console.error('[Metrics] Error clearing metrics:', err);

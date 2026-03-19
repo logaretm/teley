@@ -5,7 +5,7 @@ import {
   getLogs as dbGetLogs,
   clearLogs as dbClearLogs,
 } from '../database/operations';
-import { onLogUpdate, addServiceNames } from './useDataSync';
+import { onLogUpdate, addServiceNames, clearServiceNames } from './useDataSync';
 
 export function useLogs() {
   const logs = useState<Log[]>('logs', () => []);
@@ -48,6 +48,7 @@ export function useLogs() {
     try {
       await dbClearLogs();
       logs.value = [];
+      clearServiceNames('logs');
       console.log('[Logs] All logs cleared');
     } catch (err: any) {
       console.error('[Logs] Error clearing logs:', err);

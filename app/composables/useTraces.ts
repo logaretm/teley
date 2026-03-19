@@ -5,7 +5,7 @@ import {
   getTraces as dbGetTraces,
   clearTraces as dbClearTraces,
 } from '../database/operations';
-import { onTraceUpdate, addServiceNames } from './useDataSync';
+import { onTraceUpdate, addServiceNames, clearServiceNames } from './useDataSync';
 
 interface UseTracesReturn {
   traces: Ref<Trace[]>;
@@ -13,7 +13,7 @@ interface UseTracesReturn {
 }
 
 export function useTraces(): UseTracesReturn {
-  const traces = ref<Trace[]>([]);
+  const traces = useState<Trace[]>('traces', () => []);
 
   // Handle real-time trace updates
   const handleTraceUpdate = (trace: Trace, spans: Span[]) => {
@@ -50,6 +50,7 @@ export function useTraces(): UseTracesReturn {
     try {
       await dbClearTraces();
       traces.value = [];
+      clearServiceNames('traces');
       console.log('[Traces] All traces cleared');
       return true;
     } catch (error) {

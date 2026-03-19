@@ -48,6 +48,13 @@ function addMetricServiceName(name: string) {
   }
 }
 
+export function clearServiceNames(type?: 'traces' | 'logs' | 'metrics') {
+  if (!type || type === 'traces') traceServiceNames.clear();
+  if (!type || type === 'logs') logServiceNames.clear();
+  if (!type || type === 'metrics') metricServiceNames.clear();
+  notifyListeners();
+}
+
 export function addServiceNames(names: string[], type: 'traces' | 'logs' | 'metrics') {
   let changed = false;
   const set = type === 'traces' ? traceServiceNames : type === 'logs' ? logServiceNames : metricServiceNames;
