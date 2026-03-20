@@ -64,8 +64,8 @@
 
     <!-- Resize handle -->
     <div
-      class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500/50 transition-colors shrink-0"
-      :class="{ 'bg-blue-500/50': metricsPanelDragging }"
+      class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500 transition-colors shrink-0"
+      :class="{ 'bg-blue-500': metricsPanelDragging }"
       @mousedown="onMetricsPanelMouseDown"
     />
 

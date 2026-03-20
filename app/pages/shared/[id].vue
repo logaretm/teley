@@ -31,8 +31,8 @@
     <!-- Span Details Sidebar -->
     <template v-if="selectedSpan">
       <div
-        class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500/50 transition-colors shrink-0"
-        :class="{ 'bg-blue-500/50': spanPanelDragging }"
+        class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500 transition-colors shrink-0"
+        :class="{ 'bg-blue-500': spanPanelDragging }"
         @mousedown="onSpanPanelMouseDown"
       />
       <aside

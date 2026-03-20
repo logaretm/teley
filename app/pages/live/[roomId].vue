@@ -7,7 +7,8 @@
 
     <!-- Traces Sidebar -->
     <aside
-      class="w-[350px] bg-zinc-900 border-r border-zinc-800 overflow-y-auto"
+      class="bg-zinc-900 border-r border-zinc-800 overflow-y-auto shrink-0"
+      :style="{ width: tracesPanelWidth + 'px' }"
     >
       <TraceList
         v-model="selectedTraceId"
@@ -15,6 +16,13 @@
         :selected-trace-id="selectedTraceId"
       />
     </aside>
+
+    <!-- Resize handle -->
+    <div
+      class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500 transition-colors shrink-0"
+      :class="{ 'bg-blue-500': tracesPanelDragging }"
+      @mousedown="onTracesPanelMouseDown"
+    />
 
     <!-- Main Content -->
     <div class="flex-1 flex flex-col min-h-0">
@@ -61,6 +69,7 @@ sessionRoomId.value = roomId;
 sessionReceiveToken.value = token;
 sessionInitialized.value = true;
 
+const { width: tracesPanelWidth, dragging: tracesPanelDragging, onMouseDownLeft: onTracesPanelMouseDown } = useResizablePanel('traces-panel-width', 350);
 const selectedTraceId = ref<string | null>(null);
 const { traces } = useTraces();
 
