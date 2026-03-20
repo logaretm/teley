@@ -73,9 +73,9 @@
     <div class="flex-1 overflow-y-auto p-4 relative" :style="{ '--name-col': nameColWidth + 'px' }">
       <!-- Column Resize Handle -->
       <div
-        class="absolute top-0 bottom-0 z-10 cursor-col-resize -mx-[1.5px] px-[1.5px] border-l border-transparent hover:border-zinc-600 transition-colors"
-        :class="{ 'border-zinc-600': nameColDragging }"
-        :style="{ left: (nameColWidth + 16) + 'px' }"
+        class="absolute top-0 bottom-0 z-10 cursor-col-resize -mx-[1.5px] px-[1.5px] border-l border-zinc-800 hover:border-zinc-600 transition-colors"
+        :class="{ '!border-zinc-600': nameColDragging }"
+        :style="{ left: (nameColWidth + 32) + 'px' }"
         @mousedown="onNameColMouseDown"
       />
 
