@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 flex overflow-hidden bg-zinc-950">
     <!-- Left panel: metric list -->
-    <aside class="bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-hidden shrink-0" :style="{ width: metricsPanelWidth + 'px' }">
+    <aside class="bg-zinc-950 border-r border-zinc-800 flex flex-col overflow-hidden shrink-0" :style="{ width: metricsPanelWidth + 'px' }">
       <!-- Header -->
       <div class="border-b border-zinc-800 px-4 py-3">
         <div class="flex justify-between items-center">
@@ -64,8 +64,8 @@
 
     <!-- Resize handle -->
     <div
-      class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500 transition-colors shrink-0"
-      :class="{ 'bg-blue-500': metricsPanelDragging }"
+      class="w-0 cursor-col-resize border-l border-zinc-800 hover:border-zinc-600 transition-colors shrink-0 -mx-[1.5px] px-[1.5px] z-10"
+      :class="{ 'border-zinc-600': metricsPanelDragging }"
       @mousedown="onMetricsPanelMouseDown"
     />
 

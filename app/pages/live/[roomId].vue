@@ -19,8 +19,8 @@
 
     <!-- Resize handle -->
     <div
-      class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500 transition-colors shrink-0"
-      :class="{ 'bg-blue-500': tracesPanelDragging }"
+      class="w-0 cursor-col-resize border-l border-zinc-800 hover:border-zinc-600 transition-colors shrink-0 -mx-[1.5px] px-[1.5px] z-10"
+      :class="{ 'border-zinc-600': tracesPanelDragging }"
       @mousedown="onTracesPanelMouseDown"
     />
 
