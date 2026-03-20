@@ -26,12 +26,19 @@
     </main>
 
     <!-- Span Details Sidebar -->
-    <aside
-      v-if="selectedSpan"
-      class="w-[400px] bg-zinc-900 border-l border-zinc-800 overflow-y-auto"
-    >
-      <SpanDetails :span="selectedSpan" @close="selectedSpan = undefined" />
-    </aside>
+    <template v-if="selectedSpan">
+      <div
+        class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500/50 transition-colors shrink-0"
+        :class="{ 'bg-blue-500/50': spanPanelDragging }"
+        @mousedown="onSpanPanelMouseDown"
+      />
+      <aside
+        class="bg-zinc-900 overflow-y-auto shrink-0"
+        :style="{ width: spanPanelWidth + 'px' }"
+      >
+        <SpanDetails :span="selectedSpan" @close="selectedSpan = undefined" />
+      </aside>
+    </template>
   </div>
 </template>
 
@@ -49,6 +56,7 @@ const getTraceId = () => props.traceId;
 
 const { trace, spans, loading, error } = useTraceDetails(getTraceId);
 const selectedSpan = ref<Span>();
+const { width: spanPanelWidth, dragging: spanPanelDragging, onMouseDown: onSpanPanelMouseDown } = useResizablePanel('span-panel-width', 400);
 const waterfallRef = ref<InstanceType<typeof TraceWaterfall> | null>(null);
 
 // Reset selected span when trace changes

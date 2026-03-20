@@ -1,7 +1,7 @@
 <template>
   <div class="flex-1 flex overflow-hidden bg-zinc-950">
     <!-- Left panel: metric list -->
-    <aside class="w-[340px] bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-hidden">
+    <aside class="bg-zinc-900 border-r border-zinc-800 flex flex-col overflow-hidden shrink-0" :style="{ width: metricsPanelWidth + 'px' }">
       <!-- Header -->
       <div class="border-b border-zinc-800 px-4 py-3">
         <div class="flex justify-between items-center">
@@ -61,6 +61,13 @@
         />
       </div>
     </aside>
+
+    <!-- Resize handle -->
+    <div
+      class="w-1 cursor-col-resize bg-zinc-800 hover:bg-blue-500/50 transition-colors shrink-0"
+      :class="{ 'bg-blue-500/50': metricsPanelDragging }"
+      @mousedown="onMetricsPanelMouseDown"
+    />
 
     <!-- Right panel: metric detail / chart -->
     <div class="flex-1 flex flex-col overflow-hidden">
@@ -227,6 +234,7 @@ import type { Metric, MetricType, TraceSource } from '../../shared/parsers/types
 const { metrics, loading } = useMetrics();
 const { selectedServices, hasMultipleServices } = useServiceFilter();
 
+const { width: metricsPanelWidth, dragging: metricsPanelDragging, onMouseDownLeft: onMetricsPanelMouseDown } = useResizablePanel('metrics-panel-width', 340);
 const searchQuery = ref('');
 const selectedMetricName = ref<string | null>(null);
 const setupGuideDialog = ref<{ open: () => void; close: () => void } | null>(null);
