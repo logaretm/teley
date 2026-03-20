@@ -70,9 +70,17 @@
     </div>
 
     <!-- Waterfall Content -->
-    <div class="flex-1 overflow-y-auto p-4">
+    <div class="flex-1 overflow-y-auto p-4 relative" :style="{ '--name-col': nameColWidth + 'px' }">
+      <!-- Column Resize Handle -->
+      <div
+        class="absolute top-0 bottom-0 z-10 cursor-col-resize -mx-[1.5px] px-[1.5px] border-l border-transparent hover:border-zinc-600 transition-colors"
+        :class="{ 'border-zinc-600': nameColDragging }"
+        :style="{ left: (nameColWidth + 16) + 'px' }"
+        @mousedown="onNameColMouseDown"
+      />
+
       <!-- Time Scale -->
-      <div class="grid grid-cols-[250px_1fr] gap-4 mb-2">
+      <div class="grid grid-cols-[var(--name-col)_1fr] gap-4 mb-2">
         <div></div>
         <div
           ref="timeScaleRef"
@@ -93,7 +101,7 @@
         <div
           v-for="spanRow in spanTree"
           :key="spanRow.span.span_id"
-          class="grid grid-cols-[250px_1fr] gap-4 hover:bg-zinc-900 cursor-pointer transition-colors py-2 px-2 rounded"
+          class="grid grid-cols-[var(--name-col)_1fr] gap-4 hover:bg-zinc-900 cursor-pointer transition-colors py-2 px-2 rounded"
           :style="{ paddingLeft: `${spanRow.depth * 20 + 8}px` }"
           @click="$emit('selectSpan', spanRow.span)"
         >
@@ -167,6 +175,7 @@ defineEmits<{
   share: [];
 }>();
 
+const { width: nameColWidth, dragging: nameColDragging, onMouseDownLeft: onNameColMouseDown } = useResizablePanel('waterfall-name-col', 250, { min: 150, max: 500 });
 const shareLabel = ref('Share');
 defineExpose({ setShareLabel: (label: string) => { shareLabel.value = label; } });
 
