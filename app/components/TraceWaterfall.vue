@@ -84,7 +84,7 @@
         <div></div>
         <div
           ref="timeScaleRef"
-          class="flex justify-between py-2 border-b border-zinc-800"
+          class="flex justify-between py-2 pl-2 border-b border-zinc-800"
         >
           <span
             v-for="(label, idx) in timeLabels"
