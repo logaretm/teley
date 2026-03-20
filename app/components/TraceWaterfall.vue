@@ -102,11 +102,10 @@
           v-for="spanRow in spanTree"
           :key="spanRow.span.span_id"
           class="grid grid-cols-[var(--name-col)_1fr] gap-4 hover:bg-zinc-900 cursor-pointer transition-colors py-2 px-2 rounded"
-          :style="{ paddingLeft: `${spanRow.depth * 20 + 8}px` }"
           @click="$emit('selectSpan', spanRow.span)"
         >
           <!-- Span Name -->
-          <div class="flex items-center gap-2 min-w-0">
+          <div class="flex items-center gap-2 min-w-0" :style="{ paddingLeft: `${spanRow.depth * 20}px` }">
             <span v-if="spanRow.depth > 0" class="text-zinc-600 text-xs">
               └─
             </span>
