@@ -16,19 +16,31 @@ export function useResizablePanel(storageKey: string, defaultWidth: number, opti
 
   const dragging = ref(false);
 
-  function onMouseDown(e: MouseEvent) {
+  function preventSelect(e: Event) {
+    e.preventDefault();
+  }
+
+  function startDrag(e: MouseEvent, direction: 'left' | 'right') {
     e.preventDefault();
     dragging.value = true;
     const startX = e.clientX;
     const startWidth = width.value;
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    document.addEventListener('selectstart', preventSelect);
 
     function onMouseMove(e: MouseEvent) {
-      const delta = startX - e.clientX;
+      const delta = direction === 'right'
+        ? startX - e.clientX
+        : e.clientX - startX;
       width.value = Math.min(max, Math.max(min, startWidth + delta));
     }
 
     function onMouseUp() {
       dragging.value = false;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+      document.removeEventListener('selectstart', preventSelect);
       localStorage.setItem(storageKey, String(width.value));
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
@@ -38,26 +50,12 @@ export function useResizablePanel(storageKey: string, defaultWidth: number, opti
     document.addEventListener('mouseup', onMouseUp);
   }
 
+  function onMouseDown(e: MouseEvent) {
+    startDrag(e, 'right');
+  }
+
   function onMouseDownLeft(e: MouseEvent) {
-    e.preventDefault();
-    dragging.value = true;
-    const startX = e.clientX;
-    const startWidth = width.value;
-
-    function onMouseMove(e: MouseEvent) {
-      const delta = e.clientX - startX;
-      width.value = Math.min(max, Math.max(min, startWidth + delta));
-    }
-
-    function onMouseUp() {
-      dragging.value = false;
-      localStorage.setItem(storageKey, String(width.value));
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    }
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    startDrag(e, 'left');
   }
 
   return { width, dragging, onMouseDown, onMouseDownLeft };
