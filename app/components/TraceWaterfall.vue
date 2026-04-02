@@ -22,6 +22,16 @@
               <IconPhArrowsLeftRightBold class="w-3.5 h-3.5" />
               Compare
             </button>
+            <button
+              @click="zoomedOut = !zoomedOut"
+              class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+              :class="{ '!text-zinc-200 !bg-zinc-700': !zoomedOut }"
+              :title="zoomedOut ? 'Switch to scrollable timeline' : 'Switch to fit-to-view timeline'"
+            >
+              <IconPhArrowsOutBold v-if="zoomedOut" class="w-3.5 h-3.5" />
+              <IconPhArrowsInBold v-else class="w-3.5 h-3.5" />
+              {{ zoomedOut ? 'Fit' : 'Scroll' }}
+            </button>
           </div>
         </div>
         <div class="flex gap-6 flex-wrap items-center text-sm">
@@ -129,16 +139,13 @@
           </div>
 
           <!-- Timeline -->
-          <div class="relative h-6 flex items-center">
+          <div class="relative h-6 flex items-center" :class="zoomedOut ? 'overflow-hidden' : ''">
             <div
               class="absolute h-4 rounded transition-all"
               :class="
                 getDepthColorClass(spanRow.depth, spanRow.span.status_code)
               "
-              :style="{
-                left: `${spanRow.offsetPercent}%`,
-                width: `${spanRow.widthPercent}%`,
-              }"
+              :style="getBarStyle(spanRow)"
             >
               <div class="h-full w-full rounded opacity-80"></div>
             </div>
@@ -176,9 +183,28 @@ defineEmits<{
 
 const { width: nameColWidth, dragging: nameColDragging, onMouseDownLeft: onNameColMouseDown } = useResizablePanel('waterfall-name-col', 250, { min: 150, max: 500 });
 const shareLabel = ref('Share');
+const zoomedOut = ref(true);
 defineExpose({ setShareLabel: (label: string) => { shareLabel.value = label; } });
 
 const spanTree = computed(() => buildSpanTree(props.spans, props.trace));
+
+function getBarStyle(spanRow: { offsetPercent: number; widthPercent: number }) {
+  if (!zoomedOut.value) {
+    return {
+      left: `${spanRow.offsetPercent}%`,
+      width: `${spanRow.widthPercent}%`,
+    };
+  }
+
+  const offset = Math.min(spanRow.offsetPercent, 100);
+  const width = Math.min(spanRow.widthPercent, 100 - offset);
+
+  return {
+    left: `${offset}%`,
+    width: `${width}%`,
+    minWidth: '1px',
+  };
+}
 
 // Adaptive time scale labels
 const timeScaleRef = ref<HTMLElement | null>(null);
