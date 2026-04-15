@@ -79,6 +79,8 @@ watch(
   (newTrace, oldTrace) => {
     if (newTrace && oldTrace?.trace_id !== newTrace.trace_id) {
       selectedTraceId.value = newTrace.trace_id;
+    } else if (!newTrace) {
+      selectedTraceId.value = null;
     }
   },
 );
