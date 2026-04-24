@@ -25,6 +25,7 @@ export class SharedTrace implements DurableObject {
       if (!snapshot) {
         return new Response('Not Found', { status: 404 });
       }
+      await this.state.storage.setAlarm(Date.now() + 24 * 60 * 60 * 1000);
       return new Response(JSON.stringify(snapshot), {
         headers: { 'Content-Type': 'application/json' },
       });
