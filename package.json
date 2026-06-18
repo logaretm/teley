@@ -18,26 +18,26 @@
     "node": ">=24.0.0"
   },
   "dependencies": {
-    "@opentelemetry/api": "^1.9.0",
-    "@tailwindcss/vite": "^4.1.18",
-    "@unovis/ts": "^1.6.4",
-    "@unovis/vue": "^1.6.4",
-    "@vueuse/core": "^14.2.0",
-    "@vueuse/nuxt": "^14.2.0",
-    "dexie": "^4.0.0",
+    "@opentelemetry/api": "^1.9.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "@unovis/ts": "^1.6.5",
+    "@unovis/vue": "^1.6.5",
+    "@vueuse/core": "^14.3.0",
+    "@vueuse/nuxt": "^14.3.0",
+    "dexie": "^4.4.4",
     "motion-v": "^1.10.2",
-    "nanoid": "^5.0.0",
-    "nuxt": "^4.3.1",
+    "nanoid": "^5.1.14",
+    "nuxt": "^4.4.8",
     "shiki": "^3.22.0",
-    "vue": "^3.5.27"
+    "vue": "^3.5.38"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260207.0",
-    "@iconify/json": "^2.2.436",
-    "prettier": "^3.8.1",
-    "tailwindcss": "^4.1.18",
+    "@cloudflare/workers-types": "^4.20260617.1",
+    "@iconify/json": "^2.2.487",
+    "prettier": "^3.8.4",
+    "tailwindcss": "^4.3.1",
     "unplugin-icons": "^23.0.1",
-    "unplugin-vue-components": "^31.0.0",
-    "wrangler": "^4.63.0"
+    "unplugin-vue-components": "^32.1.0",
+    "wrangler": "^4.102.0"
   }
 }
