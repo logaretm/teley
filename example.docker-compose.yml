@@ -1,0 +1,69 @@
+services:
+  teley:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '8787:8787'
+    volumes:
+      - teley-data:/app/state
+    restart: unless-stopped
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    volumes:
+      - ./example/otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+      - '4317:4317' # OTLP/gRPC receiver
+      - '4318:4318' # OTLP/HTTP receiver
+    depends_on:
+      - teley
+    restart: unless-stopped
+
+  telemetry-generator-traces:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    command:
+      [
+        'traces',
+        '--otlp-endpoint=otel-collector:4317',
+        '--otlp-insecure',
+        '--rate=1',
+        '--duration=30m',
+        '--batch=false',
+      ]
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  telemetry-generator-logs:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    command:
+      [
+        'logs',
+        '--otlp-endpoint=otel-collector:4317',
+        '--otlp-insecure',
+        '--rate=1',
+        '--duration=30m',
+        '--batch=false',
+      ]
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  telemetry-generator-metrics:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    command:
+      [
+        'metrics',
+        '--otlp-endpoint=otel-collector:4317',
+        '--otlp-insecure',
+        '--rate=1',
+        '--duration=30m',
+        '--batch=false',
+      ]
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+volumes:
+  teley-data:

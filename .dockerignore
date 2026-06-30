@@ -1,0 +1,10 @@
+node_modules
+.output
+.nuxt
+dist
+.wrangler
+.git
+.npmrc
+pnpm-lock.yaml.bak
+Dockerfile
+docker-compose.yml

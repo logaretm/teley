@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/logo.svg" alt="OTel Viewer Logo" width="120" height="120">
+  <img src="public/logo.svg" alt="Teley" width="120" height="120">
 </p>
 
 <h1 align="center">Teley</h1>
@@ -122,6 +122,56 @@ sdk.start();
 6. **View logs**: Navigate to the Logs tab to see real-time log entries
 7. **Expand logs**: Click on any log row to see the full message and attributes
 
+## Docker (self-hosting)
+
+### Minimal setup
+
+```bash
+docker compose up -d
+```
+
+The dashboard will be available at `http://localhost:8787`.
+
+### Full example with OTel Collector and telemetry generators
+
+The `example.docker-compose.yml` spins up Teley together with an OpenTelemetry Collector and `telemetrygen` containers that continuously emit traces, logs, and metrics.
+
+**Step 1 — Start Teley first:**
+
+```bash
+docker compose -f example.docker-compose.yml up teley -d
+```
+
+**Step 2 — Get your session room ID:**
+
+Open `http://localhost:8787` in your browser and copy the room ID shown in the setup modal.
+
+**Step 3 — Set the room ID in the collector config:**
+
+Open `example/otel-collector-config.yaml` and replace `example-room` with your room ID in all three endpoint URLs:
+
+```yaml
+exporters:
+  otlp_http/teley:
+    traces_endpoint: 'http://teley:8787/r/your-room-id'
+    metrics_endpoint: 'http://teley:8787/r/your-room-id'
+    logs_endpoint: 'http://teley:8787/r/your-room-id'
+```
+
+**Step 4 — Bring up the full stack:**
+
+```bash
+docker compose -f example.docker-compose.yml up -d
+```
+
+Telemetry data will start flowing into the dashboard within seconds.
+
+**Tear down and remove all data:**
+
+```bash
+docker compose -f example.docker-compose.yml down -v
+```
+
 ## Features Overview
 
 ### Navigation
@@ -229,4 +279,4 @@ I vibe coded this whole thing, thanks Cursor.
 
 ## License
 
-MIT
+Apache-2.0 — see [LICENSE](LICENSE) and [NOTICE](NOTICE).

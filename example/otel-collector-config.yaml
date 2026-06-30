@@ -1,0 +1,38 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+
+exporters:
+  otlp_http/teley:
+    traces_endpoint: 'http://teley:8787/r/example-room'
+    metrics_endpoint: 'http://teley:8787/r/example-room'
+    logs_endpoint: 'http://teley:8787/r/example-room'
+    encoding: json
+    compression: none
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/teley, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/teley, debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp_http/teley, debug]
+  telemetry:
+    logs:
+      level: 'info'
