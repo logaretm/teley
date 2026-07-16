@@ -1,0 +1,40 @@
+import { UI, BOLD } from '../theme';
+
+type Focus = 'list' | 'detail' | 'links';
+
+function Key({ k, label }: { k: string; label: string }) {
+  return (
+    <>
+      <text fg={UI.text} attributes={BOLD}>{` ${k}`}</text>
+      <text fg={UI.dim}>{` ${label}`}</text>
+    </>
+  );
+}
+
+function Sep() {
+  return <text fg={UI.dim}>{'   '}</text>;
+}
+
+export function StatusBar({ focus }: { focus: Focus }) {
+  return (
+    <box style={{ flexDirection: 'row', paddingLeft: 1 }}>
+      {focus === 'links' ? (
+        <>
+          <Key k="↑↓" label="select link" />
+          <Sep />
+          <Key k="↵" label="copy" />
+        </>
+      ) : (
+        <>
+          <Key k="↑↓" label="navigate" />
+          <Sep />
+          <Key k="c" label="clear" />
+        </>
+      )}
+      <Sep />
+      <Key k="tab" label="focus" />
+      <Sep />
+      <Key k="q" label="quit" />
+    </box>
+  );
+}

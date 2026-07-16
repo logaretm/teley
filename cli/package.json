@@ -1,0 +1,25 @@
+{
+  "name": "@teley/cli",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "teley": "src/index.tsx"
+  },
+  "scripts": {
+    "dev": "bun run src/index.tsx",
+    "dev:node": "tsx src/index.tsx",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.1.24",
+    "@opentui/react": "^0.1.24",
+    "nanoid": "^5.1.14",
+    "react": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "@types/react": "^19.2.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
