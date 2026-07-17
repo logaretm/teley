@@ -207,7 +207,7 @@ import {
   getSpanKindLabel,
 } from '~/utils/formatters';
 import { useResizeObserver } from '@vueuse/core';
-import { buildSpanTree } from '~/utils/span-tree';
+import { buildSpanTree } from '../../../shared/parsers/span-tree';
 import SourceIcon from './SourceIcon.vue';
 
 interface Props {

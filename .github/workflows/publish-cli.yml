@@ -1,0 +1,130 @@
+name: Publish CLI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # The CLI bundles its own code plus the parsers/utils in shared/.
+      # Web-only or worker-only pushes intentionally do not run this.
+      - 'cli/**'
+      - 'shared/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'patch | minor | major, or an explicit x.y.z'
+        required: false
+        default: 'patch'
+
+concurrency:
+  group: publish-cli
+  cancel-in-progress: false
+
+permissions:
+  contents: write # push the release commit + tag
+  id-token: write # npm trusted publishing (OIDC)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing / OIDC needs npm >= 11.5.1.
+      - name: Ensure recent npm
+        run: npm install -g npm@latest
+
+      - name: Build bundle
+        working-directory: cli
+        run: bun run build
+
+      # Fingerprint = bundle bytes + dependencies + bin. If it matches the
+      # published version, nothing that ships changed, so skip (unless the run
+      # was triggered manually, which always forces a release).
+      - name: Decide whether to publish
+        id: decide
+        working-directory: cli
+        run: |
+          fingerprint() {
+            node -e "
+              const fs = require('fs');
+              const crypto = require('crypto');
+              const p = require('$1/package.json');
+              const h = crypto.createHash('sha256');
+              h.update(fs.readFileSync('$1/dist/index.js'));
+              h.update(JSON.stringify({ deps: p.dependencies || {}, bin: p.bin || {} }));
+              console.log(h.digest('hex'));
+            "
+          }
+
+          local_fp=$(fingerprint "$PWD")
+
+          published=$(npm view teley-cli version 2>/dev/null || echo '')
+          if [ -z "$published" ]; then
+            echo "No published version found; will publish."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tarball=$(npm view "teley-cli@$published" dist.tarball)
+          mkdir -p /tmp/published
+          curl -sL "$tarball" | tar -xz -C /tmp/published
+          published_fp=$(fingerprint /tmp/published/package)
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Manual dispatch; forcing release."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          elif [ "$local_fp" = "$published_fp" ]; then
+            echo "Bundle + manifest unchanged vs v$published; skipping."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "Changes detected vs v$published; will publish."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Bump version
+        if: steps.decide.outputs.publish == 'true'
+        id: bump
+        working-directory: cli
+        run: |
+          # Base the bump on the registry so package.json can't drift.
+          published=$(npm view teley-cli version 2>/dev/null || echo '')
+          base=${published:-$(node -p "require('./package.json').version")}
+          npm version "$base" --no-git-tag-version --allow-same-version >/dev/null
+
+          input='${{ github.event.inputs.version }}'
+          bump=${input:-patch}
+          case "$bump" in
+            patch|minor|major) npm version "$bump" --no-git-tag-version >/dev/null ;;
+            *) npm version "$bump" --no-git-tag-version --allow-same-version >/dev/null ;;
+          esac
+
+          new=$(node -p "require('./package.json').version")
+          echo "version=$new" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$new"
+
+      - name: Publish to npm
+        if: steps.decide.outputs.publish == 'true'
+        working-directory: cli
+        run: npm publish --access public
+
+      - name: Commit and tag release
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add cli/package.json
+          git commit -m "chore(cli): release v${{ steps.bump.outputs.version }} [skip ci]"
+          git tag "cli-v${{ steps.bump.outputs.version }}"
+          git push origin "HEAD:${{ github.ref_name }}"
+          git push origin "cli-v${{ steps.bump.outputs.version }}"
