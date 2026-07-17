@@ -1,26 +1,48 @@
 {
-  "name": "@teley/cli",
-  "private": true,
+  "name": "teley",
+  "version": "0.1.0",
+  "description": "Terminal trace and log viewer for Teley. Point your OpenTelemetry or Sentry SDK at a room DSN and watch traces stream in as a live waterfall.",
+  "license": "Apache-2.0",
+  "author": "Abdelrahman Awad",
+  "homepage": "https://teley.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logaretm/teley.git",
+    "directory": "cli"
+  },
   "type": "module",
   "bin": {
-    "teley": "src/index.tsx"
+    "teley": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "opentelemetry",
+    "otlp",
+    "sentry",
+    "tracing",
+    "observability",
+    "terminal",
+    "tui",
+    "cli"
+  ],
   "scripts": {
     "dev": "bun run src/index.tsx",
-    "dev:node": "tsx src/index.tsx",
+    "build": "bun build src/index.tsx --target=bun --packages=external --outdir dist",
+    "prepublishOnly": "bun run build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@opentui/core": "^0.1.24",
     "@opentui/react": "^0.1.24",
-    "bun": "^1.3.14",
     "nanoid": "^5.1.14",
     "react": "^19.2.0"
   },
   "devDependencies": {
     "@types/node": "^24.7.0",
     "@types/react": "^19.2.0",
-    "tsx": "^4.20.0",
     "typescript": "^5.9.0"
   }
 }
