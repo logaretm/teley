@@ -1,6 +1,6 @@
 import type { Trace, Span } from '../../../shared/parsers/types';
-import type { SpanTreeNode } from '~/utils/span-tree';
-import { buildSpanTree } from '~/utils/span-tree';
+import type { SpanTreeNode } from '../../../shared/parsers/span-tree';
+import { buildSpanTree } from '../../../shared/parsers/span-tree';
 import { alignByLCS } from '~/utils/lcs';
 import { getTraceWithSpans } from '~/database/operations';
 
