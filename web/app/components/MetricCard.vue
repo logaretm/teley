@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import type { MetricType, TraceSource } from '../../shared/parsers/types';
+import type { MetricType, TraceSource } from '../../../shared/parsers/types';
 
 const props = defineProps<{
   name: string;

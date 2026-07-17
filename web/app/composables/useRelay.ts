@@ -1,6 +1,6 @@
 // Composable for relay communication via SharedWorker
 
-import type { WebSocketMessage } from '../../shared/parsers/types';
+import type { WebSocketMessage } from '../../../shared/parsers/types';
 
 type RelayStatus = 'disconnected' | 'connecting' | 'connected';
 

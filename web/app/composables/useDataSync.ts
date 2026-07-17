@@ -1,7 +1,7 @@
 // Composable for syncing incoming telemetry data to IndexedDB
 // This should be called once at the app level to ensure data is always captured
 
-import type { Trace, Span, Log, Metric, WebSocketMessage } from '../../shared/parsers/types';
+import type { Trace, Span, Log, Metric, WebSocketMessage } from '../../../shared/parsers/types';
 import {
   upsertTrace,
   upsertSpans,

@@ -229,7 +229,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Metric, MetricType, TraceSource } from '../../shared/parsers/types';
+import type { Metric, MetricType, TraceSource } from '../../../shared/parsers/types';
 
 const { metrics, loading } = useMetrics();
 const { selectedServices, hasMultipleServices } = useServiceFilter();

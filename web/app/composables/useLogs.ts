@@ -1,6 +1,6 @@
 // Composable for managing log data with local-first storage
 
-import type { Log } from '../../shared/parsers/types';
+import type { Log } from '../../../shared/parsers/types';
 import {
   getLogs as dbGetLogs,
   clearLogs as dbClearLogs,

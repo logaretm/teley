@@ -48,7 +48,7 @@ import {
   VisCrosshair,
   VisTooltip,
 } from '@unovis/vue';
-import type { MetricType } from '../../shared/parsers/types';
+import type { MetricType } from '../../../shared/parsers/types';
 
 interface MetricDataPoint {
   x: number;

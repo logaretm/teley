@@ -1,6 +1,6 @@
 // Composable for managing metric data with local-first storage
 
-import type { Metric } from '../../shared/parsers/types';
+import type { Metric } from '../../../shared/parsers/types';
 import {
   getMetrics as dbGetMetrics,
   clearMetrics as dbClearMetrics,

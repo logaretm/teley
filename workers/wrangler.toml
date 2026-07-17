@@ -23,7 +23,7 @@ deleted_classes = ["SharedTrace"]
 # Serve static assets (run `pnpm build` first to generate .output/public)
 [assets]
 binding = "ASSETS"
-directory = "../.output/public"
+directory = "../web/.output/public"
 not_found_handling = "single-page-application"
 html_handling = "none"
 # Ensure Worker runs first for API/WebSocket routes (not just navigation requests)

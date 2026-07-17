@@ -1,6 +1,7 @@
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import IconsResolver from 'unplugin-icons/resolver';
+import Icons from 'unplugin-icons/vite';
 import ViteComponents from 'unplugin-vue-components/vite';
 import MotionResolver from 'motion-v/resolver';
 
@@ -51,17 +52,25 @@ export default defineNuxtConfig({
 
   // Static generation for Cloudflare Pages
   nitro: {
-    preset: 'static',
+    preset: 'cloudflare_module',
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+      wrangler: {
+        name: 'teley',
+      },
+    },
   },
 
   alias: {
-    '@types': path.resolve(__dirname, 'types'),
-    '@shared': path.resolve(__dirname, 'shared'),
+    '@types': path.resolve(__dirname, '../types'),
+    '@shared': path.resolve(__dirname, '../shared'),
   },
 
   vite: {
     plugins: [
       tailwindcss() as any,
+      Icons({ compiler: 'vue3', autoInstall: false }),
       ViteComponents({
         resolvers: [
           IconsResolver({

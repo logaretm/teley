@@ -1,4 +1,4 @@
-import type { Trace, Span } from '../../shared/parsers/types';
+import type { Trace, Span } from '../../../shared/parsers/types';
 
 export interface SpanTreeNode {
   span: Span;

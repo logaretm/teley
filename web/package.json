@@ -1,0 +1,43 @@
+{
+  "name": "teley",
+  "type": "module",
+  "private": true,
+  "license": "Apache-2.0",
+  "author": "Abdelrahman Awad",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "dev:worker": "cd workers && wrangler dev",
+    "deploy:worker": "cd workers && wrangler deploy",
+    "deploy:static": "wrangler pages deploy dist"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.1",
+    "@tailwindcss/vite": "^4.3.1",
+    "@unovis/ts": "^1.6.5",
+    "@unovis/vue": "^1.6.5",
+    "@vueuse/core": "^14.3.0",
+    "@vueuse/nuxt": "^14.3.0",
+    "dexie": "^4.4.4",
+    "motion-v": "^1.10.2",
+    "nanoid": "^5.1.14",
+    "nuxt": "^4.4.8",
+    "shiki": "^3.22.0",
+    "vue": "^3.5.38"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260617.1",
+    "@iconify/json": "^2.2.487",
+    "prettier": "^3.8.4",
+    "tailwindcss": "^4.3.1",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-vue-components": "^32.1.0",
+    "wrangler": "^4.102.0"
+  }
+}

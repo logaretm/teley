@@ -1,6 +1,6 @@
 // Composable for fetching trace details from local IndexedDB
 
-import type { Trace, Span } from '../../shared/parsers/types';
+import type { Trace, Span } from '../../../shared/parsers/types';
 import { getTraceWithSpans } from '../database/operations';
 
 export function useTraceDetails(traceId: MaybeRefOrGetter<string>) {
