@@ -25,7 +25,11 @@ export {
   type SentryEnvelopeHeaders,
   type SentryEnvelopeItem,
   type SentryItemHeaders,
+  type SentryItemType,
 } from './sentry-parser';
+
+// Trace summary helper
+export { summarizeTrace } from './trace-summary';
 
 // OTLP parser
 export {

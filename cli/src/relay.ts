@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { Trace, Span, Log, TraceEntry, WebSocketMessage } from './types';
+import { summarizeTrace } from '../../shared/parsers/trace-summary';
 
 export type RelayStatus = 'connecting' | 'connected' | 'disconnected';
 
@@ -115,16 +116,19 @@ class TraceStore {
   private spans = new Map<string, Map<string, Span>>();
 
   upsert(trace: Trace, spans: Span[]) {
-    const existing = this.traces.get(trace.trace_id);
-    // Later messages win, but preserve a custom_name if a later update drops it.
-    this.traces.set(trace.trace_id, { ...existing, ...trace });
-
     let bucket = this.spans.get(trace.trace_id);
     if (!bucket) {
       bucket = new Map();
       this.spans.set(trace.trace_id, bucket);
     }
     for (const span of spans) bucket.set(span.span_id, span);
+
+    const existing = this.traces.get(trace.trace_id);
+    // Later messages win, but preserve a custom_name if a later update drops it.
+    // Recompute timing/operation/status from all accumulated spans so streamed
+    // (Sentry v2) spans arriving across messages build a stable trace summary.
+    const merged = { ...existing, ...trace };
+    this.traces.set(trace.trace_id, summarizeTrace(merged, [...bucket.values()]));
   }
 
   clear() {

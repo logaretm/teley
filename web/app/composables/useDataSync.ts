@@ -2,12 +2,14 @@
 // This should be called once at the app level to ensure data is always captured
 
 import type { Trace, Span, Log, Metric, WebSocketMessage } from '../../../shared/parsers/types';
+import { summarizeTrace } from '../../../shared/parsers/trace-summary';
 import {
   upsertTrace,
   upsertSpans,
   upsertLog,
   upsertMetric,
   getTrace,
+  getSpansByTraceId,
 } from '../database/operations';
 
 // Event bus for notifying components of new data
@@ -143,14 +145,18 @@ export function useDataSync() {
       trace.custom_name = existing.custom_name;
     }
 
-    // Save to IndexedDB
-    await upsertTrace(trace);
+    // Save spans first, then recompute trace summary from everything seen so
+    // far. Streamed (Sentry v2) spans arrive across many messages, so the trace
+    // record must be derived from all accumulated spans, not just this batch.
     await upsertSpans(spans);
+    const allSpans = await getSpansByTraceId(trace.trace_id);
+    const summary = summarizeTrace(trace, allSpans);
+    await upsertTrace(summary);
 
     // Notify listeners
     for (const listener of traceListeners) {
       try {
-        listener(trace, spans);
+        listener(summary, spans);
       } catch (err) {
         console.error('[DataSync] Error in trace listener:', err);
       }
