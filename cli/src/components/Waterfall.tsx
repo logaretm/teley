@@ -13,10 +13,12 @@ interface Props {
 
 const NAME_COL = 32;
 
+const GUTTER = 2; // leading "▸ " selection marker column
+
 export function Waterfall({ trace, width, height, focused, selectedSpanId }: Props) {
   const inner = width - 4; // borders + padding
   const nameCol = Math.max(12, Math.min(NAME_COL, Math.floor(inner * 0.5)));
-  const timelineWidth = Math.max(4, inner - nameCol - 1);
+  const timelineWidth = Math.max(4, inner - GUTTER - nameCol - 1);
 
   const nodes = buildSpanTree(trace.spans, trace.trace);
   const isErr = trace.trace.status_code === 2;
@@ -62,7 +64,7 @@ export function Waterfall({ trace, width, height, focused, selectedSpanId }: Pro
 
       {/* Time scale */}
       <box style={{ flexDirection: 'row', marginTop: 1 }}>
-        <box style={{ width: nameCol }} />
+        <box style={{ width: GUTTER + nameCol }} />
         <text fg={UI.dim}>{scaleLabels}</text>
       </box>
 
@@ -85,10 +87,14 @@ export function Waterfall({ trace, width, height, focused, selectedSpanId }: Pro
             key={span.span_id}
             style={{ flexDirection: 'row', backgroundColor: isSel ? UI.panel : undefined }}
           >
+            {/* Selection marker */}
+            <text fg={UI.accent} attributes={BOLD}>{isSel ? '▸ ' : '  '}</text>
             {/* Name column */}
             <box style={{ flexDirection: 'row', width: nameCol }}>
               <text fg={color} attributes={BOLD}>{`${indent}${badge}`}</text>
-              <text fg={UI.text}>{` ${truncate(span.name, nameMax)}`}</text>
+              <text fg={isSel ? UI.textStrong : UI.text} attributes={isSel ? BOLD : 0}>
+                {` ${truncate(span.name, nameMax)}`}
+              </text>
               <box style={{ flexGrow: 1 }} />
               <text fg={UI.dim}>{dur}</text>
             </box>
