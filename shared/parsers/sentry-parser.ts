@@ -14,11 +14,24 @@ export interface SentryEnvelopeHeaders {
   };
 }
 
+export type SentryItemType =
+  | 'event'
+  | 'transaction'
+  | 'span'
+  | 'log'
+  | 'attachment'
+  | 'session'
+  | 'client_report'
+  | 'trace_metric';
+
 export interface SentryItemHeaders {
-  type: 'event' | 'transaction' | 'span' | 'attachment' | 'session' | 'client_report' | 'trace_metric';
+  type: SentryItemType;
   length?: number;
   content_type?: string;
   filename?: string;
+  // Present on span v2 (streamed span) container items. The payload then holds
+  // an `items` array of standalone spans rather than a single span.
+  item_count?: number;
 }
 
 export interface SentryEnvelopeItem {

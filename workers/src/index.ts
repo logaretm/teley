@@ -9,6 +9,14 @@ import {
   parseOTLPMetrics,
   generateEventId,
 } from '../../shared/parsers';
+import {
+  handleCORS,
+  corsResponse,
+  extractRoomIdFromSentryAuth,
+  isTraceRequest,
+  isLogsRequest,
+  isMetricsRequest,
+} from './util';
 
 export { TelemetryRoom } from './durable-object';
 
@@ -64,48 +72,6 @@ export default {
     return new Response('Not Found', { status: 404 });
   },
 };
-
-function handleCORS(): Response {
-  return new Response(null, {
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, X-Sentry-Auth, sentry-trace, baggage',
-      'Access-Control-Max-Age': '86400',
-    },
-  });
-}
-
-function corsResponse(response: Response): Response {
-  const newHeaders = new Headers(response.headers);
-  newHeaders.set('Access-Control-Allow-Origin', '*');
-  newHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  newHeaders.set('Access-Control-Allow-Headers', 'Content-Type, X-Sentry-Auth, sentry-trace, baggage');
-
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders,
-  });
-}
-
-function extractRoomIdFromSentryAuth(request: Request): string | null {
-  // Check X-Sentry-Auth header first
-  const auth = request.headers.get('x-sentry-auth') || '';
-  const headerMatch = auth.match(/sentry_key=([a-zA-Z0-9_-]+)/);
-  if (headerMatch) {
-    return headerMatch[1];
-  }
-
-  // Fall back to query string (sentry_key parameter)
-  const url = new URL(request.url);
-  const queryKey = url.searchParams.get('sentry_key');
-  if (queryKey) {
-    return queryKey;
-  }
-
-  return null;
-}
 
 async function handleSentryIngest(request: Request, env: Env, roomId: string): Promise<Response> {
   console.log('[Worker] handleSentryIngest called, roomId:', roomId);
@@ -177,7 +143,7 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
     console.log('[Worker] OTLP body keys:', Object.keys(body));
 
     // Detect if this is traces or logs based on the payload
-    if (body.resourceSpans) {
+    if (isTraceRequest(body)) {
       // OTLP Traces
       const result = parseOTLPTrace(body);
 
@@ -192,7 +158,7 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
       return new Response(JSON.stringify({ status: 'success', tracesReceived: result.traces.length }), {
         headers: { 'Content-Type': 'application/json' },
       });
-    } else if (body.resourceLogs) {
+    } else if (isLogsRequest(body)) {
       // OTLP Logs
       const result = parseOTLPLogs(body);
 
@@ -206,7 +172,7 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
       return new Response(JSON.stringify({ status: 'success', logsReceived: result.logs.length }), {
         headers: { 'Content-Type': 'application/json' },
       });
-    } else if (body.resourceMetrics) {
+    } else if (isMetricsRequest(body)) {
       // OTLP Metrics
       const result = parseOTLPMetrics(body);
 

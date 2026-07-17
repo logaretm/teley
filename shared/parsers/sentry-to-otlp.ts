@@ -67,7 +67,27 @@ export function processSentryEnvelope(envelope: SentryEnvelope): SentryConversio
           break;
         }
 
-        case 'span':
+        case 'span': {
+          // Sentry sends two shapes under `type: "span"`:
+          //  - v2 streamed spans: a container `{ version: 2, items: [...] }`,
+          //    tagged with content_type `application/vnd.sentry.items.span.v2+json`.
+          //  - v1 standalone spans: a single SpanJSON (same shape as a span
+          //    embedded in a transaction).
+          const isV2 =
+            (typeof item.headers.content_type === 'string' &&
+              item.headers.content_type.includes('span.v2')) ||
+            (item.payload &&
+              item.payload.version === 2 &&
+              Array.isArray(item.payload.items));
+
+          const parsed = isV2
+            ? convertStreamedSpans(item.payload)
+            : convertStandaloneSpan(item.payload);
+          result.traces.push(...parsed.traces);
+          result.spans.push(...parsed.spans);
+          break;
+        }
+
         case 'session':
         case 'client_report':
         case 'attachment':
@@ -168,6 +188,128 @@ function convertSentryTransaction(transaction: any): { traces: ParsedTrace[]; sp
   };
 
   // Process via OTLP parser, marking as SENTRY source
+  return parseOTLPTrace(otlpTrace, 'SENTRY');
+}
+
+/**
+ * Convert a Sentry span v2 streamed-span container to OTLP traces/spans.
+ *
+ * Payload shape: `{ version: 2, ingest_settings?, items: StreamedSpan[] }`.
+ * Each streamed span is OTLP-aligned: `name` (not `description`),
+ * `start_timestamp` + `end_timestamp` (not `timestamp`), `status: "ok" | "error"`,
+ * and a typed `attributes` map (`{ value, type }`) instead of a flat `data` object.
+ * Spans stream one flush at a time, so a trace is assembled incrementally by the
+ * client/CLI as more spans for the same trace_id arrive.
+ */
+function convertStreamedSpans(payload: any): { traces: ParsedTrace[]; spans: ParsedSpan[] } {
+  const items: any[] = Array.isArray(payload?.items) ? payload.items : [];
+  if (items.length === 0) return { traces: [], spans: [] };
+
+  const serviceName = String(
+    readTypedAttr(items[0]?.attributes, 'service.name') ??
+      readTypedAttr(items[0]?.attributes, 'sentry.sdk.name') ??
+      'sentry-app'
+  );
+
+  const otlpSpans = items.map((span) => streamedSpanToOtlp(span));
+
+  const otlpTrace = {
+    resourceSpans: [
+      {
+        resource: {
+          attributes: [{ key: 'service.name', value: { stringValue: serviceName } }],
+        },
+        scopeSpans: [{ spans: otlpSpans }],
+      },
+    ],
+  };
+
+  return parseOTLPTrace(otlpTrace, 'SENTRY');
+}
+
+/**
+ * Convert a single Sentry v2 streamed span to an OTLP span.
+ */
+function streamedSpanToOtlp(span: any) {
+  const startTime =
+    typeof span.start_timestamp === 'number'
+      ? Math.floor(span.start_timestamp * 1000)
+      : Date.now();
+  const endTime =
+    typeof span.end_timestamp === 'number'
+      ? Math.floor(span.end_timestamp * 1000)
+      : startTime;
+
+  const op = readTypedAttr(span.attributes, 'sentry.op');
+
+  return {
+    traceId: span.trace_id,
+    spanId: span.span_id,
+    parentSpanId: span.parent_span_id || undefined,
+    name: span.name || (typeof op === 'string' ? op : 'span'),
+    kind: mapSentrySpanKind(typeof op === 'string' ? op : undefined),
+    startTimeUnixNano: String(startTime * 1_000_000),
+    endTimeUnixNano: String(endTime * 1_000_000),
+    attributes: convertTypedAttributes(span.attributes),
+    status: {
+      code: span.status === 'error' ? 2 : span.status === 'ok' ? 1 : 0,
+      message: span.status,
+    },
+    links: Array.isArray(span.links)
+      ? span.links.map((link: any) => ({
+          traceId: link.trace_id,
+          spanId: link.span_id,
+          attributes: convertTypedAttributes(link.attributes),
+        }))
+      : undefined,
+  };
+}
+
+/**
+ * Convert a Sentry v1 standalone span (single SpanJSON) to an OTLP trace/span.
+ * Same payload shape as a span embedded in a transaction: `description`, `op`,
+ * `data`, `start_timestamp`, `timestamp`.
+ */
+function convertStandaloneSpan(span: any): { traces: ParsedTrace[]; spans: ParsedSpan[] } {
+  if (!span || (!span.span_id && !span.trace_id)) return { traces: [], spans: [] };
+
+  const startTime =
+    typeof span.start_timestamp === 'number'
+      ? Math.floor(span.start_timestamp * 1000)
+      : Date.now();
+  const endTime =
+    typeof span.timestamp === 'number' ? Math.floor(span.timestamp * 1000) : startTime;
+
+  const otlpSpan = {
+    traceId: span.trace_id,
+    spanId: span.span_id,
+    parentSpanId: span.parent_span_id || undefined,
+    name: span.description || span.op || 'span',
+    kind: mapSentrySpanKind(span.op),
+    startTimeUnixNano: String(startTime * 1_000_000),
+    endTimeUnixNano: String(endTime * 1_000_000),
+    attributes: convertAttributes({
+      'sentry.op': span.op,
+      'sentry.status': span.status,
+      ...span.tags,
+      ...span.data,
+    }),
+    status: {
+      code: span.status === 'ok' ? 1 : 2,
+    },
+  };
+
+  const otlpTrace = {
+    resourceSpans: [
+      {
+        resource: {
+          attributes: [{ key: 'service.name', value: { stringValue: 'sentry-app' } }],
+        },
+        scopeSpans: [{ spans: [otlpSpan] }],
+      },
+    ],
+  };
+
   return parseOTLPTrace(otlpTrace, 'SENTRY');
 }
 
@@ -338,6 +480,61 @@ function convertAttributes(data: Record<string, any>) {
           typeof value === 'object' ? JSON.stringify(value) : String(value),
       },
     }));
+}
+
+/**
+ * Read a value out of a Sentry v2 typed-attribute map (`{ key: { value, type } }`),
+ * tolerating a plain value if the attribute isn't wrapped.
+ */
+function readTypedAttr(attrs: Record<string, any> | undefined, key: string): any {
+  const entry = attrs?.[key];
+  if (entry == null) return undefined;
+  return typeof entry === 'object' && 'value' in entry ? entry.value : entry;
+}
+
+/**
+ * Convert a Sentry v2 typed-attribute map to OTLP KeyValue attributes,
+ * preserving the declared type (string/boolean/integer/double).
+ */
+function convertTypedAttributes(attrs: Record<string, any> | undefined) {
+  if (!attrs || typeof attrs !== 'object') return [];
+
+  const out: Array<{ key: string; value: Record<string, any> }> = [];
+  for (const [key, entry] of Object.entries(attrs)) {
+    if (entry == null) continue;
+
+    const isWrapped = typeof entry === 'object' && 'value' in entry;
+    const raw = isWrapped ? (entry as any).value : entry;
+    const type = isWrapped ? (entry as any).type : undefined;
+    if (raw === undefined || raw === null) continue;
+
+    let value: Record<string, any>;
+    switch (type) {
+      case 'boolean':
+        value = { boolValue: Boolean(raw) };
+        break;
+      case 'integer':
+        value = { intValue: Number(raw) };
+        break;
+      case 'double':
+        value = { doubleValue: Number(raw) };
+        break;
+      case 'string':
+        value = { stringValue: String(raw) };
+        break;
+      default:
+        if (typeof raw === 'boolean') value = { boolValue: raw };
+        else if (typeof raw === 'number')
+          value = Number.isInteger(raw) ? { intValue: raw } : { doubleValue: raw };
+        else
+          value = {
+            stringValue: typeof raw === 'object' ? JSON.stringify(raw) : String(raw),
+          };
+    }
+
+    out.push({ key, value });
+  }
+  return out;
 }
 
 /**
