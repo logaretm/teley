@@ -1,49 +1,68 @@
-# teley CLI
+# teley-cli
 
-A terminal trace viewer for [Teley](../). It generates a room DSN, connects to
-the relay over WebSocket, and renders live traces as a colorful waterfall,
-without leaving the terminal.
+A terminal viewer for [Teley](https://teley.dev). It generates a room DSN,
+connects to the relay over WebSocket, and renders live traces (as a colorful
+waterfall) and logs, without leaving the terminal.
 
-Built with [OpenTUI](https://opentui.com) (React bindings). Traces only for now;
-logs and metrics come later.
+Built with [OpenTUI](https://opentui.com) (React bindings), so it runs on
+**Bun**.
 
 ## Run
 
 ```bash
-pnpm install
-pnpm dev                 # connects to the deployed relay (teley.dev)
-pnpm dev --demo          # render sample traces, no network
-pnpm dev --host localhost:8787   # point at a local worker (pnpm dev:worker)
-pnpm dev --new           # start a fresh room (new DSN)
+bunx teley-cli                     # connect to the deployed relay (teley.dev)
+bunx teley-cli --demo              # render sample data, no network
+bunx teley-cli --host localhost:8787   # point at a local worker
+bunx teley-cli --new               # start a fresh room (new DSN)
 ```
 
 Point your app's OpenTelemetry or Sentry SDK at the DSN shown in the header.
 
+> Requires [Bun](https://bun.sh). OpenTUI uses `bun:ffi` for its native renderer
+> and loads tree-sitter assets that Node can't resolve, so `bunx` (not `npx`) is
+> the way to run it.
+
 ## Keys
 
-- `↑`/`↓` (or `j`/`k`): navigate traces
-- `tab`: cycle focus — trace list → detail → connection links
-- when the links region is focused: `↑`/`↓` selects DSN/OTLP, `↵` copies it
+- `←`/`→`: switch between the Traces and Logs views
+- `↑`/`↓` (or `j`/`k`): navigate the focused panel
+  - trace list focused: move between traces
+  - waterfall focused: move between spans (the attribute panel shows the
+    selected span)
+  - logs view: move between log entries
+- `tab`: cycle focus — list → detail → connection links
+- links focused: `↑`/`↓` selects DSN/OTLP, `↵` (or `y`) copies it
 - `c`: clear the local view
 - `q`: quit
 
 ## How it connects
 
-The CLI is just another relay client (same path the web app uses). It reuses the
-shared domain types (`shared/parsers/types.ts`) and the app's `buildSpanTree`.
+The CLI is just another relay client (the same path the web app uses). It reuses
+the shared domain types (`shared/parsers/types.ts`) and the app's
+`buildSpanTree` (`web/app/utils/span-tree.ts`).
 
 - Credentials: `roomId` (nanoid 12) + `receiveToken` (nanoid 24), persisted to
   `~/.teley/session.json` and reused across runs. `--new` rolls a fresh pair.
 - Host resolution: `--host` > `$TELEY_HOST` > `teley.dev`. Non-local hosts use
   `wss://`/`https://`; localhost uses plain `ws://`/`http://`.
 
-## Requirements
+## Local development
 
-Runs under **Bun** — OpenTUI's native core imports tree-sitter query files that
-Node's ESM loader can't resolve. Packaging for `npx` (bundle or Bun binary) is a
-follow-up.
+From this directory:
 
-## Send a test trace
+```bash
+bun install
+bun run dev              # bun run src/index.tsx
+bun run dev --demo
+bun run typecheck
+bun run build            # bundle to dist/ (what gets published)
+```
+
+The published package is a single Bun-bundled `dist/index.js` (deps kept
+external); the cross-package imports from `shared/` and `web/app` are inlined at
+build time.
+
+### Send a test trace
 
 With the CLI running and a worker up, inject a sample trace:
 
