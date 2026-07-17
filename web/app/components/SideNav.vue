@@ -28,12 +28,24 @@
     >
       <IconPhGauge class="w-6 h-6" />
     </NuxtLink>
+
+    <button
+      @click="aboutRef?.open()"
+      class="nav-item mt-auto mb-0"
+      title="About Teley"
+    >
+      <IconPhInfo class="w-6 h-6" />
+    </button>
+
+    <AboutDialog ref="aboutRef" />
   </nav>
 </template>
 
 <script setup lang="ts">
 const route = useRoute();
 const currentRoute = computed(() => route.path);
+
+const aboutRef = useTemplateRef('aboutRef');
 </script>
 
 <style scoped>
