@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import tailwindcss from '@tailwindcss/vite';
 import IconsResolver from 'unplugin-icons/resolver';
@@ -5,10 +6,23 @@ import Icons from 'unplugin-icons/vite';
 import ViteComponents from 'unplugin-vue-components/vite';
 import MotionResolver from 'motion-v/resolver';
 
+const cliVersion = JSON.parse(
+  readFileSync(path.resolve(__dirname, '../cli/package.json'), 'utf-8')
+).version as string;
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   modules: ['@vueuse/nuxt', 'unplugin-icons/nuxt', 'motion-v/nuxt'],
+
+  runtimeConfig: {
+    public: {
+      cliVersion,
+      githubUrl: 'https://github.com/logaretm/teley',
+      authorName: 'Abdelrahman Awad',
+      authorUrl: 'https://awad.dev',
+    },
+  },
 
   // Client-side only (local-first architecture)
   ssr: false,
