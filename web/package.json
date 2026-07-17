@@ -10,8 +10,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "dev:worker": "cd workers && wrangler dev",
-    "deploy:worker": "cd workers && wrangler deploy",
+    "dev:worker": "cd ../workers && wrangler dev",
+    "deploy:worker": "cd ../workers && wrangler deploy",
     "deploy:static": "wrangler pages deploy dist"
   },
   "engines": {
