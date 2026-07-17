@@ -50,16 +50,9 @@ export default defineNuxtConfig({
     },
   },
 
-  // Static generation for Cloudflare Pages
+  // Static generation; the worker in ../workers serves .output/public
   nitro: {
-    preset: 'cloudflare_module',
-    cloudflare: {
-      deployConfig: true,
-      nodeCompat: true,
-      wrangler: {
-        name: 'teley',
-      },
-    },
+    preset: 'static',
   },
 
   alias: {
