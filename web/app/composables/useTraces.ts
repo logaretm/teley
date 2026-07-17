@@ -1,6 +1,6 @@
 // Composable for managing trace data with local-first storage
 
-import type { Trace, Span } from '../../shared/parsers/types';
+import type { Trace, Span } from '../../../shared/parsers/types';
 import {
   getTraces as dbGetTraces,
   clearTraces as dbClearTraces,

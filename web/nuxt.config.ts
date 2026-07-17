@@ -51,12 +51,19 @@ export default defineNuxtConfig({
 
   // Static generation for Cloudflare Pages
   nitro: {
-    preset: 'static',
+    preset: 'cloudflare_module',
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+      wrangler: {
+        name: 'teley',
+      },
+    },
   },
 
   alias: {
-    '@types': path.resolve(__dirname, 'types'),
-    '@shared': path.resolve(__dirname, 'shared'),
+    '@types': path.resolve(__dirname, '../types'),
+    '@shared': path.resolve(__dirname, '../shared'),
   },
 
   vite: {

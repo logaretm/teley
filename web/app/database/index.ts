@@ -1,7 +1,7 @@
 // Client-side IndexedDB database using Dexie.js
 
 import Dexie, { type Table } from 'dexie';
-import type { Trace, Span, Log, Metric } from '../../shared/parsers/types';
+import type { Trace, Span, Log, Metric } from '../../../shared/parsers/types';
 
 export interface Credentials {
   key: string;

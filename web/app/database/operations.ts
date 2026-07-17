@@ -1,7 +1,7 @@
 // Database operations for client-side storage
 
 import { db } from './index';
-import type { Trace, Span, Log, Metric } from '../../shared/parsers/types';
+import type { Trace, Span, Log, Metric } from '../../../shared/parsers/types';
 
 // Trace operations
 export async function upsertTrace(trace: Trace): Promise<void> {
