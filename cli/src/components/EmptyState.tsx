@@ -3,9 +3,10 @@ import type { RelayStatus } from '../relay';
 
 interface Props {
   status: RelayStatus;
+  what?: 'traces' | 'logs';
 }
 
-export function EmptyState({ status }: Props) {
+export function EmptyState({ status, what = 'traces' }: Props) {
   return (
     <box
       style={{
@@ -21,7 +22,7 @@ export function EmptyState({ status }: Props) {
       }}
     >
       <text fg={UI.text} attributes={BOLD}>
-        {status === 'connected' ? 'Waiting for traces…' : 'Connecting to relay…'}
+        {status === 'connected' ? `Waiting for ${what}…` : 'Connecting to relay…'}
       </text>
       <text fg={UI.dim}>Point your app's telemetry at the DSN above.</text>
       <text fg={UI.dim}>Press tab to select a link, then ↵ to copy it.</text>

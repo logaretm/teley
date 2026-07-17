@@ -6,12 +6,14 @@ import { formatDuration, spanKindBadge, statusLabel, truncate } from '../format'
 interface Props {
   trace: TraceEntry;
   width: number;
+  height: number; // rows available for this panel (incl. border)
   focused: boolean;
+  selectedSpanId: string | null;
 }
 
 const NAME_COL = 32;
 
-export function Waterfall({ trace, width, focused }: Props) {
+export function Waterfall({ trace, width, height, focused, selectedSpanId }: Props) {
   const inner = width - 4; // borders + padding
   const nameCol = Math.max(12, Math.min(NAME_COL, Math.floor(inner * 0.5)));
   const timelineWidth = Math.max(4, inner - nameCol - 1);
@@ -19,6 +21,16 @@ export function Waterfall({ trace, width, focused }: Props) {
   const nodes = buildSpanTree(trace.spans, trace.trace);
   const isErr = trace.trace.status_code === 2;
   const scaleLabels = timeScale(trace.trace.duration, timelineWidth);
+
+  // Window the span rows so the selected span stays visible in deep traces.
+  // Overhead: border (2) + meta line (1) + time-scale block (2).
+  const selectedIndex = Math.max(0, nodes.findIndex((n) => n.span.span_id === selectedSpanId));
+  const visible = Math.max(1, height - 5);
+  const start =
+    selectedIndex < visible
+      ? 0
+      : Math.min(selectedIndex - visible + 1, Math.max(0, nodes.length - visible));
+  const shown = nodes.slice(start, start + visible);
 
   return (
     <box
@@ -33,15 +45,15 @@ export function Waterfall({ trace, width, focused }: Props) {
       }}
       title={` ${truncate(trace.trace.operation_name, Math.max(4, inner - 2))} `}
     >
-      {/* Meta line */}
+      {/* Meta line. Composed as one truncated string so it never wraps; the
+          status keeps its own color on the right. */}
       <box style={{ flexDirection: 'row' }}>
-        <text fg={UI.dim}>{trace.trace.service_name}</text>
-        <text fg={UI.dim}>{'  ·  '}</text>
-        <text fg={UI.text}>{formatDuration(trace.trace.duration)}</text>
-        <text fg={UI.dim}>{'  ·  '}</text>
-        <text fg={UI.dim}>{`${trace.spans.length} spans`}</text>
-        <text fg={UI.dim}>{'  ·  '}</text>
-        <text fg={UI.dim}>{trace.trace.source}</text>
+        <text fg={UI.dim}>
+          {truncate(
+            `${trace.trace.service_name}  ·  ${formatDuration(trace.trace.duration)}  ·  ${trace.spans.length} spans  ·  ${trace.trace.source}`,
+            Math.max(4, inner - statusLabel(trace.trace.status_code).length - 1),
+          )}
+        </text>
         <box style={{ flexGrow: 1 }} />
         <text fg={isErr ? ERROR_RED : OK_GREEN} attributes={BOLD}>
           {statusLabel(trace.trace.status_code)}
@@ -55,8 +67,9 @@ export function Waterfall({ trace, width, focused }: Props) {
       </box>
 
       {/* Spans */}
-      {nodes.map((node) => {
+      {shown.map((node) => {
         const { span, depth } = node;
+        const isSel = focused && span.span_id === selectedSpanId;
         const color = depthColor(depth, span.status_code);
         const indent = '  '.repeat(depth);
         const badge = spanKindBadge(span.kind);
@@ -68,7 +81,10 @@ export function Waterfall({ trace, width, focused }: Props) {
         const clampedOffset = Math.max(0, Math.min(offsetCells, timelineWidth - barCells));
 
         return (
-          <box key={span.span_id} style={{ flexDirection: 'row' }}>
+          <box
+            key={span.span_id}
+            style={{ flexDirection: 'row', backgroundColor: isSel ? UI.panel : undefined }}
+          >
             {/* Name column */}
             <box style={{ flexDirection: 'row', width: nameCol }}>
               <text fg={color} attributes={BOLD}>{`${indent}${badge}`}</text>

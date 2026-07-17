@@ -1,6 +1,6 @@
 // Static mock telemetry for --demo mode (and for iterating on the UI).
 
-import type { TraceEntry, Span, TraceSource } from './types';
+import type { TraceEntry, Span, Log, TraceSource } from './types';
 
 let seq = 0;
 
@@ -82,3 +82,40 @@ export const MOCK_TRACES: TraceEntry[] = [
     { id: 'email', parent: 'root', name: 'POST email-service', kind: 3, start: 110, duration: 42, service: 'worker' },
   ]),
 ];
+
+interface LogSpec {
+  ago: number; // seconds before "now" the log was emitted
+  severity: number; // OTLP severity number
+  service: string;
+  body: string;
+  trace_id?: string;
+  span_id?: string;
+  attributes?: Record<string, unknown>;
+}
+
+const LOG_SPECS: LogSpec[] = [
+  { ago: 42, severity: 9, service: 'api-gateway', body: 'GET /api/users 200 41ms', attributes: { 'http.method': 'GET', 'http.status_code': 200 } },
+  { ago: 38, severity: 5, service: 'user-service', body: 'cache hit for user:4821', attributes: { 'cache.key': 'user:4821' } },
+  { ago: 30, severity: 13, service: 'payment-service', body: 'stripe latency above threshold (224ms)', attributes: { 'peer.service': 'stripe', threshold_ms: 200 } },
+  { ago: 24, severity: 9, service: 'worker', body: 'processed order queue batch of 12', attributes: { 'messaging.system': 'sqs', batch: 12 } },
+  { ago: 18, severity: 17, service: 'payment-service', body: 'stripe.charge failed: connection reset by peer', trace_id: 'trace01', span_id: 'trace01-stripe', attributes: { 'peer.service': 'stripe', 'http.status_code': 500, error: true } },
+  { ago: 12, severity: 17, service: 'api-gateway', body: 'POST /checkout 500 318ms', trace_id: 'trace01', span_id: 'trace01-root', attributes: { 'http.method': 'POST', 'http.status_code': 500 } },
+  { ago: 6, severity: 13, service: 'user-service', body: 'slow query: SELECT * FROM users WHERE id = $1 (30ms)', attributes: { 'db.system': 'postgresql' } },
+  { ago: 2, severity: 9, service: 'worker', body: 'invoice rendered and emailed', attributes: { 'messaging.system': 'sqs' } },
+];
+
+// Built lazily so timestamps are relative to launch, not module load.
+export function buildMockLogs(): Log[] {
+  const now = Date.now();
+  return LOG_SPECS.map((s, i) => ({
+    log_id: `log${(i + 1).toString().padStart(2, '0')}`,
+    timestamp: now - s.ago * 1000,
+    trace_id: s.trace_id ?? null,
+    span_id: s.span_id ?? null,
+    severity_number: s.severity,
+    severity_text: null,
+    body: s.body,
+    service_name: s.service,
+    attributes: s.attributes ?? {},
+  }));
+}

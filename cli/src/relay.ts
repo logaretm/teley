@@ -3,17 +3,19 @@
 // to the room, heartbeat ping/pong, auto-reconnect with 3s backoff.
 
 import { useEffect, useRef, useState } from 'react';
-import type { Trace, Span, TraceEntry, WebSocketMessage } from './types';
+import type { Trace, Span, Log, TraceEntry, WebSocketMessage } from './types';
 
 export type RelayStatus = 'connecting' | 'connected' | 'disconnected';
 
 const HEARTBEAT_MS = 30_000;
 const RECONNECT_MS = 3_000;
 const MAX_TRACES = 200;
+const MAX_LOGS = 500;
 
 interface RelayEvents {
   onStatus?: (status: RelayStatus) => void;
   onTrace?: (trace: Trace, spans: Span[]) => void;
+  onLog?: (log: Log) => void;
   onViewerCount?: (count: number) => void;
   onClear?: () => void;
 }
@@ -70,6 +72,9 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
         case 'trace_update':
           events.onTrace?.(msg.data.trace, msg.data.spans);
           break;
+        case 'log_update':
+          events.onLog?.(msg.data.log);
+          break;
         case 'viewer_count':
           events.onViewerCount?.(msg.count);
           break;
@@ -77,7 +82,7 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
         case 'cleared_data':
           events.onClear?.();
           break;
-        // log_update / metric_update: ignored for now (traces first)
+        // metric_update: ignored for now
       }
     };
 
@@ -138,18 +143,39 @@ class TraceStore {
   }
 }
 
-export interface LiveTraces {
+// Accumulates logs, deduped by id, newest first, capped at MAX_LOGS.
+class LogStore {
+  private logs = new Map<string, Log>();
+
+  upsert(log: Log) {
+    this.logs.set(log.log_id, log);
+  }
+
+  clear() {
+    this.logs.clear();
+  }
+
+  list(): Log[] {
+    return [...this.logs.values()]
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, MAX_LOGS);
+  }
+}
+
+export interface LiveData {
   status: RelayStatus;
   viewers: number;
   traces: TraceEntry[];
+  logs: Log[];
   clear: () => void;
 }
 
-export function useLiveTraces(wsUrl: string): LiveTraces {
+export function useLiveData(wsUrl: string): LiveData {
   const [status, setStatus] = useState<RelayStatus>('connecting');
   const [viewers, setViewers] = useState(0);
   const [, bump] = useState(0);
-  const store = useRef<TraceStore>(new TraceStore());
+  const traceStore = useRef<TraceStore>(new TraceStore());
+  const logStore = useRef<LogStore>(new LogStore());
 
   useEffect(() => {
     const rerender = () => bump((n) => n + 1);
@@ -157,11 +183,16 @@ export function useLiveTraces(wsUrl: string): LiveTraces {
       onStatus: setStatus,
       onViewerCount: setViewers,
       onTrace: (trace, spans) => {
-        store.current.upsert(trace, spans);
+        traceStore.current.upsert(trace, spans);
+        rerender();
+      },
+      onLog: (log) => {
+        logStore.current.upsert(log);
         rerender();
       },
       onClear: () => {
-        store.current.clear();
+        traceStore.current.clear();
+        logStore.current.clear();
         rerender();
       },
     });
@@ -171,9 +202,11 @@ export function useLiveTraces(wsUrl: string): LiveTraces {
   return {
     status,
     viewers,
-    traces: store.current.list(),
+    traces: traceStore.current.list(),
+    logs: logStore.current.list(),
     clear: () => {
-      store.current.clear();
+      traceStore.current.clear();
+      logStore.current.clear();
       bump((n) => n + 1);
     },
   };

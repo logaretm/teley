@@ -1,5 +1,6 @@
 import { UI, OK_GREEN, BOLD } from '../theme';
 import type { RelayStatus } from '../relay';
+import type { View } from './Dashboard';
 
 interface Props {
   dsn: string;
@@ -9,6 +10,9 @@ interface Props {
   focused: boolean; // links region has focus
   selectedLink: number; // 0 = DSN, 1 = OTLP
   copiedLink: number | null;
+  view: View;
+  traceCount: number;
+  logCount: number;
 }
 
 const STATUS_META: Record<RelayStatus, { dot: string; label: string; color: string }> = {
@@ -40,7 +44,29 @@ function LinkRow({
   );
 }
 
-export function Header({ dsn, otlp, viewers, status, focused, selectedLink, copiedLink }: Props) {
+function Tab({ label, count, active }: { label: string; count: number; active: boolean }) {
+  return (
+    <>
+      <text fg={active ? UI.accent : UI.dim} attributes={active ? BOLD : 0}>
+        {active ? `▸ ${label}` : `  ${label}`}
+      </text>
+      <text fg={UI.dim}>{` (${count})  `}</text>
+    </>
+  );
+}
+
+export function Header({
+  dsn,
+  otlp,
+  viewers,
+  status,
+  focused,
+  selectedLink,
+  copiedLink,
+  view,
+  traceCount,
+  logCount,
+}: Props) {
   const s = STATUS_META[status];
   return (
     <box
@@ -57,7 +83,9 @@ export function Header({ dsn, otlp, viewers, status, focused, selectedLink, copi
         <text fg={UI.accent} attributes={BOLD}>
           teley
         </text>
-        <text fg={UI.dim}> · terminal trace viewer</text>
+        <text fg={UI.dim}>{'   '}</text>
+        <Tab label="Traces" count={traceCount} active={view === 'traces'} />
+        <Tab label="Logs" count={logCount} active={view === 'logs'} />
         <box style={{ flexGrow: 1 }} />
         {focused ? (
           <text fg={UI.dim}>↑↓ select · ↵ copy   </text>

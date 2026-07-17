@@ -17,6 +17,21 @@ export const DEPTH_COLORS = [
 export const ERROR_RED = '#ef4444';
 export const OK_GREEN = '#22c55e';
 
+// Log severity colors, keyed by the label from severityLabel().
+export const SEVERITY_COLORS: Record<string, string> = {
+  FATAL: '#f87171', // red-400
+  ERROR: '#f87171',
+  WARN: '#fbbf24', // amber-400
+  INFO: '#60a5fa', // blue-400
+  DEBUG: '#c084fc', // purple-400
+  TRACE: '#a1a1aa', // zinc-400
+  UNSET: '#a1a1aa',
+};
+
+export function severityColor(label: string): string {
+  return SEVERITY_COLORS[label] ?? SEVERITY_COLORS.UNSET!;
+}
+
 // UI chrome (zinc scale, matching the web app)
 export const UI = {
   bg: '#09090b', // zinc-950

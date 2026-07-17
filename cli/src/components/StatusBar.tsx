@@ -32,6 +32,8 @@ export function StatusBar({ focus }: { focus: Focus }) {
         </>
       )}
       <Sep />
+      <Key k="←→" label="traces/logs" />
+      <Sep />
       <Key k="tab" label="focus" />
       <Sep />
       <Key k="q" label="quit" />
