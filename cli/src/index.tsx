@@ -71,9 +71,13 @@ let shuttingDown = false;
 function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
-  root.unmount(); // runs effect cleanups, closing the relay WebSocket
-  renderer.destroy(); // restores the terminal (exits alt-screen, shows cursor)
-  process.exit(0);
+  // Exit in finally so a throwing teardown never leaves the CLI hung.
+  try {
+    root.unmount(); // runs effect cleanups, closing the relay WebSocket
+    renderer.destroy(); // restores the terminal (exits alt-screen, shows cursor)
+  } finally {
+    process.exit(0);
+  }
 }
 
 root.render(
