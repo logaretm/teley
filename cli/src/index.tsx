@@ -3,6 +3,7 @@ import { createCliRenderer } from '@opentui/core';
 import { createRoot } from '@opentui/react';
 import { LiveApp, DemoApp } from './App';
 import { loadOrCreateSession, resolveEndpoints } from './session';
+import pkg from '../package.json' with { type: 'json' };
 
 // Deployed relay host. Override with --host / $TELEY_HOST (e.g. localhost:8787 for local dev).
 const DEFAULT_HOST = 'teley.dev';
@@ -12,6 +13,7 @@ interface Args {
   fresh: boolean;
   demo: boolean;
   help: boolean;
+  version: boolean;
 }
 
 function parseArgs(argv: string[]): Args {
@@ -20,6 +22,7 @@ function parseArgs(argv: string[]): Args {
     fresh: false,
     demo: false,
     help: false,
+    version: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -34,6 +37,8 @@ function parseArgs(argv: string[]): Args {
       args.demo = true;
     } else if (arg === '--help' || arg === '-h') {
       args.help = true;
+    } else if (arg === '--version' || arg === '-v') {
+      args.version = true;
     }
   }
 
@@ -48,11 +53,17 @@ Options:
   --host <host>   Relay host (default: ${DEFAULT_HOST}, or $TELEY_HOST)
   --new           Start a fresh room (new DSN), ignoring the saved session
   --demo          Render sample traces without connecting
+  -v, --version   Show the version number
   -h, --help      Show this help
 
 Point your app's OpenTelemetry/Sentry SDK at the DSN shown in the header.`;
 
 const args = parseArgs(process.argv.slice(2));
+
+if (args.version) {
+  console.log(pkg.version);
+  process.exit(0);
+}
 
 if (args.help) {
   console.log(HELP);
