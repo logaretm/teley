@@ -37,6 +37,6 @@
     "tailwindcss": "^4.3.3",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
-    "wrangler": "^4.102.0"
+    "wrangler": "^4.111.0"
   }
 }
