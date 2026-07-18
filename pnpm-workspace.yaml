@@ -2,3 +2,10 @@ packages:
   - web
   - cli
   - workers
+
+allowBuilds:
+  '@parcel/watcher': true
+  esbuild: true
+  maplibre-gl: true
+  sharp: true
+  workerd: true
