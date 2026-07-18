@@ -32,7 +32,7 @@
     "vue": "^3.5.40"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20260617.1",
+    "@cloudflare/workers-types": "^5.0.0",
     "@iconify/json": "^2.2.500",
     "tailwindcss": "^4.3.3",
     "unplugin-icons": "^23.0.1",
