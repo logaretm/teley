@@ -76,7 +76,7 @@ export function useTraces(): UseTracesReturn {
     const unsubscribe = onTraceUpdate(handleTraceUpdate);
 
     // Load existing traces from IndexedDB
-    fetchTraces();
+    void fetchTraces();
 
     // Cleanup on unmount
     onUnmounted(() => {
