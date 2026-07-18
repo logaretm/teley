@@ -8,5 +8,14 @@
   },
   "devDependencies": {
     "changelogithub": "^14.0.0"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "maplibre-gl",
+      "sharp",
+      "workerd"
+    ]
   }
 }
