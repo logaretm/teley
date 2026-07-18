@@ -109,11 +109,62 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
   };
 }
 
+// Holds at most `max` items in a Map keyed by id. On every insert the oldest
+// item (by orderOf) is evicted once over the cap, so a long-running session
+// stays bounded in memory instead of accumulating entries indefinitely.
+abstract class BoundedStore<T> {
+  protected items = new Map<string, T>();
+
+  protected abstract readonly max: number;
+  protected abstract idOf(item: T): string;
+  protected abstract orderOf(item: T): number;
+
+  // Hook for subclasses to drop side data (e.g. spans) tied to an evicted id.
+  protected onEvict(_id: string): void {}
+
+  protected store(item: T) {
+    this.items.set(this.idOf(item), item);
+    while (this.items.size > this.max) {
+      let oldestId: string | null = null;
+      let oldestOrder = Infinity;
+      for (const it of this.items.values()) {
+        const order = this.orderOf(it);
+        if (order < oldestOrder) {
+          oldestOrder = order;
+          oldestId = this.idOf(it);
+        }
+      }
+      if (oldestId === null) break;
+      this.items.delete(oldestId);
+      this.onEvict(oldestId);
+    }
+  }
+
+  clear() {
+    this.items.clear();
+  }
+
+  // Items newest-first by orderOf.
+  protected sorted(): T[] {
+    return [...this.items.values()].sort((a, b) => this.orderOf(b) - this.orderOf(a));
+  }
+}
+
 // Accumulates traces and their spans, deduped by id. Spans for a trace may
 // arrive across several messages, so merge additively.
-class TraceStore {
-  private traces = new Map<string, Trace>();
+class TraceStore extends BoundedStore<Trace> {
+  protected readonly max = MAX_TRACES;
   private spans = new Map<string, Map<string, Span>>();
+
+  protected idOf(trace: Trace) {
+    return trace.trace_id;
+  }
+  protected orderOf(trace: Trace) {
+    return trace.start_time;
+  }
+  protected onEvict(id: string) {
+    this.spans.delete(id);
+  }
 
   upsert(trace: Trace, spans: Span[]) {
     let bucket = this.spans.get(trace.trace_id);
@@ -123,77 +174,44 @@ class TraceStore {
     }
     for (const span of spans) bucket.set(span.span_id, span);
 
-    const existing = this.traces.get(trace.trace_id);
+    const existing = this.items.get(trace.trace_id);
     // Later messages win, but preserve a custom_name if a later update drops it.
     // Recompute timing/operation/status from all accumulated spans so streamed
     // (Sentry v2) spans arriving across messages build a stable trace summary.
     const merged = { ...existing, ...trace };
-    this.traces.set(trace.trace_id, summarizeTrace(merged, [...bucket.values()]));
-
-    this.evict();
-  }
-
-  // Drop the oldest traces (and their span buckets) once over the cap, so a
-  // long-running session doesn't accumulate traces and spans indefinitely.
-  private evict() {
-    while (this.traces.size > MAX_TRACES) {
-      let oldestId: string | null = null;
-      let oldestStart = Infinity;
-      for (const trace of this.traces.values()) {
-        if (trace.start_time < oldestStart) {
-          oldestStart = trace.start_time;
-          oldestId = trace.trace_id;
-        }
-      }
-      if (oldestId === null) break;
-      this.traces.delete(oldestId);
-      this.spans.delete(oldestId);
-    }
+    this.store(summarizeTrace(merged, [...bucket.values()]));
   }
 
   clear() {
-    this.traces.clear();
+    super.clear();
     this.spans.clear();
   }
 
   list(): TraceEntry[] {
-    return [...this.traces.values()]
-      .sort((a, b) => b.start_time - a.start_time)
-      .map((trace) => ({
-        trace,
-        spans: [...(this.spans.get(trace.trace_id)?.values() ?? [])],
-      }));
+    return this.sorted().map((trace) => ({
+      trace,
+      spans: [...(this.spans.get(trace.trace_id)?.values() ?? [])],
+    }));
   }
 }
 
 // Accumulates logs, deduped by id, newest first, capped at MAX_LOGS.
-class LogStore {
-  private logs = new Map<string, Log>();
+class LogStore extends BoundedStore<Log> {
+  protected readonly max = MAX_LOGS;
 
-  upsert(log: Log) {
-    this.logs.set(log.log_id, log);
-
-    // Drop the oldest logs once over the cap so memory stays bounded.
-    while (this.logs.size > MAX_LOGS) {
-      let oldestId: string | null = null;
-      let oldestTs = Infinity;
-      for (const l of this.logs.values()) {
-        if (l.timestamp < oldestTs) {
-          oldestTs = l.timestamp;
-          oldestId = l.log_id;
-        }
-      }
-      if (oldestId === null) break;
-      this.logs.delete(oldestId);
-    }
+  protected idOf(log: Log) {
+    return log.log_id;
+  }
+  protected orderOf(log: Log) {
+    return log.timestamp;
   }
 
-  clear() {
-    this.logs.clear();
+  upsert(log: Log) {
+    this.store(log);
   }
 
   list(): Log[] {
-    return [...this.logs.values()].sort((a, b) => b.timestamp - a.timestamp);
+    return this.sorted();
   }
 }
 
