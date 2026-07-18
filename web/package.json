@@ -34,7 +34,6 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260617.1",
     "@iconify/json": "^2.2.487",
-    "prettier": "^3.8.4",
     "tailwindcss": "^4.3.1",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",

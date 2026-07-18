@@ -5,7 +5,11 @@ import {
   getMetrics as dbGetMetrics,
   clearMetrics as dbClearMetrics,
 } from '../database/operations';
-import { onMetricUpdate, addServiceNames, clearServiceNames } from './useDataSync';
+import {
+  onMetricUpdate,
+  addServiceNames,
+  clearServiceNames,
+} from './useDataSync';
 
 export function useMetrics() {
   const metrics = useState<Metric[]>('metrics', () => []);
@@ -30,7 +34,10 @@ export function useMetrics() {
     try {
       const result = await dbGetMetrics(1000);
       metrics.value = result;
-      addServiceNames(result.map(m => m.service_name), 'metrics');
+      addServiceNames(
+        result.map((m) => m.service_name),
+        'metrics',
+      );
       console.log('[Metrics] Loaded', result.length, 'metrics from IndexedDB');
     } catch (err: any) {
       console.error('[Metrics] Error fetching metrics:', err);

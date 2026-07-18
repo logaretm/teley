@@ -181,7 +181,7 @@ export interface ParsedLogsResult {
  */
 export function parseOTLPTrace(
   otlpData: IExportTraceServiceRequest,
-  source: TraceSource = 'OTLP'
+  source: TraceSource = 'OTLP',
 ): ParsedTraceResult {
   const traces = new Map<string, ParsedTrace>();
   const spans: ParsedSpan[] = [];
@@ -276,7 +276,7 @@ export function parseOTLPTrace(
 
     // Find root span (no parent or parent not in this trace)
     const rootSpan = traceSpans.find(
-      (s) => !s.parent_span_id || !spanMap.has(s.parent_span_id)
+      (s) => !s.parent_span_id || !spanMap.has(s.parent_span_id),
     );
 
     if (rootSpan) {
@@ -302,7 +302,7 @@ function getLogBodyValue(body?: ILogRecord['body']): string {
   if (body.boolValue !== undefined) return String(body.boolValue);
   if (body.arrayValue !== undefined) {
     return JSON.stringify(
-      body.arrayValue.values.map((v) => getAttributeValue(v))
+      body.arrayValue.values.map((v) => getAttributeValue(v)),
     );
   }
   if (body.kvlistValue !== undefined) {
@@ -316,7 +316,9 @@ function getLogBodyValue(body?: ILogRecord['body']): string {
 /**
  * Parse OTLP logs data without side effects
  */
-export function parseOTLPLogs(otlpData: IExportLogsServiceRequest): ParsedLogsResult {
+export function parseOTLPLogs(
+  otlpData: IExportLogsServiceRequest,
+): ParsedLogsResult {
   const logs: ParsedLog[] = [];
 
   for (const resourceLog of otlpData.resourceLogs) {
@@ -435,7 +437,7 @@ export interface ParsedMetricsResult {
  */
 export function parseOTLPMetrics(
   otlpData: IExportMetricsServiceRequest,
-  source: TraceSource = 'OTLP'
+  source: TraceSource = 'OTLP',
 ): ParsedMetricsResult {
   const metrics: ParsedMetric[] = [];
 

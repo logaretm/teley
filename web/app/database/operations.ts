@@ -20,7 +20,10 @@ export async function getTrace(traceId: string): Promise<Trace | undefined> {
   return db.traces.get(traceId);
 }
 
-export async function setTraceCustomName(traceId: string, customName: string | null): Promise<void> {
+export async function setTraceCustomName(
+  traceId: string,
+  customName: string | null,
+): Promise<void> {
   const value = customName?.trim();
   await db.traces.update(traceId, { custom_name: value || undefined });
 }
@@ -81,7 +84,9 @@ export async function clearMetrics(): Promise<void> {
 }
 
 // Combined trace + spans
-export async function getTraceWithSpans(traceId: string): Promise<{ trace: Trace | undefined; spans: Span[] }> {
+export async function getTraceWithSpans(
+  traceId: string,
+): Promise<{ trace: Trace | undefined; spans: Span[] }> {
   const [trace, spans] = await Promise.all([
     getTrace(traceId),
     getSpansByTraceId(traceId),
@@ -90,14 +95,20 @@ export async function getTraceWithSpans(traceId: string): Promise<{ trace: Trace
 }
 
 // Credentials operations
-export async function saveCredentials(roomId: string, receiveToken: string): Promise<void> {
+export async function saveCredentials(
+  roomId: string,
+  receiveToken: string,
+): Promise<void> {
   await db.credentials.bulkPut([
     { key: 'roomId', value: roomId },
     { key: 'receiveToken', value: receiveToken },
   ]);
 }
 
-export async function getCredentials(): Promise<{ roomId: string | null; receiveToken: string | null }> {
+export async function getCredentials(): Promise<{
+  roomId: string | null;
+  receiveToken: string | null;
+}> {
   const [roomIdRecord, tokenRecord] = await Promise.all([
     db.credentials.get('roomId'),
     db.credentials.get('receiveToken'),
@@ -124,7 +135,12 @@ export async function clearAllData(): Promise<void> {
 }
 
 // Export all telemetry data
-export async function exportAllData(): Promise<{ traces: Trace[]; spans: Span[]; logs: Log[]; metrics: Metric[] }> {
+export async function exportAllData(): Promise<{
+  traces: Trace[];
+  spans: Span[];
+  logs: Log[];
+  metrics: Metric[];
+}> {
   const [traces, spans, logs, metrics] = await Promise.all([
     db.traces.toArray(),
     db.spans.toArray(),
@@ -135,7 +151,12 @@ export async function exportAllData(): Promise<{ traces: Trace[]; spans: Span[];
 }
 
 // Import telemetry data (merges with existing)
-export async function importAllData(data: { traces: Trace[]; spans: Span[]; logs: Log[]; metrics?: Metric[] }): Promise<void> {
+export async function importAllData(data: {
+  traces: Trace[];
+  spans: Span[];
+  logs: Log[];
+  metrics?: Metric[];
+}): Promise<void> {
   await Promise.all([
     data.traces.length > 0 ? db.traces.bulkPut(data.traces) : Promise.resolve(),
     data.spans.length > 0 ? db.spans.bulkPut(data.spans) : Promise.resolve(),

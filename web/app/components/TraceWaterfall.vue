@@ -24,7 +24,9 @@
               >
                 <IconPhTagBold class="w-4 h-4 text-amber-400 shrink-0" />
                 <span class="truncate">{{ trace.custom_name }}</span>
-                <span class="text-sm font-normal text-zinc-500 truncate">{{ trace.operation_name }}</span>
+                <span class="text-sm font-normal text-zinc-500 truncate">{{
+                  trace.operation_name
+                }}</span>
               </h2>
               <h2 v-else class="text-xl font-semibold text-zinc-100 truncate">
                 {{ trace.operation_name }}
@@ -67,7 +69,11 @@
               @click="zoomedOut = !zoomedOut"
               class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-200 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
               :class="{ '!text-zinc-200 !bg-zinc-700': !zoomedOut }"
-              :title="zoomedOut ? 'Switch to scrollable timeline' : 'Switch to fit-to-view timeline'"
+              :title="
+                zoomedOut
+                  ? 'Switch to scrollable timeline'
+                  : 'Switch to fit-to-view timeline'
+              "
             >
               <IconPhArrowsOutBold v-if="zoomedOut" class="w-3.5 h-3.5" />
               <IconPhArrowsInBold v-else class="w-3.5 h-3.5" />
@@ -121,12 +127,15 @@
     </div>
 
     <!-- Waterfall Content -->
-    <div class="flex-1 overflow-y-auto p-4 relative" :style="{ '--name-col': nameColWidth + 'px' }">
+    <div
+      class="flex-1 overflow-y-auto p-4 relative"
+      :style="{ '--name-col': nameColWidth + 'px' }"
+    >
       <!-- Column Resize Handle -->
       <div
         class="absolute top-0 bottom-0 z-10 cursor-col-resize -mx-[1.5px] px-[1.5px] border-l border-zinc-800 hover:border-zinc-600 transition-colors"
         :class="{ '!border-zinc-600': nameColDragging }"
-        :style="{ left: (nameColWidth + 32) + 'px' }"
+        :style="{ left: nameColWidth + 32 + 'px' }"
         @mousedown="onNameColMouseDown"
       />
 
@@ -156,7 +165,10 @@
           @click="$emit('selectSpan', spanRow.span)"
         >
           <!-- Span Name -->
-          <div class="flex items-center gap-2 min-w-0" :style="{ paddingLeft: `${spanRow.depth * 20}px` }">
+          <div
+            class="flex items-center gap-2 min-w-0"
+            :style="{ paddingLeft: `${spanRow.depth * 20}px` }"
+          >
             <span v-if="spanRow.depth > 0" class="text-zinc-600 text-xs">
               └─
             </span>
@@ -180,7 +192,10 @@
           </div>
 
           <!-- Timeline -->
-          <div class="relative h-6 flex items-center" :class="zoomedOut ? 'overflow-hidden' : ''">
+          <div
+            class="relative h-6 flex items-center"
+            :class="zoomedOut ? 'overflow-hidden' : ''"
+          >
             <div
               class="absolute h-4 rounded transition-all"
               :class="
@@ -248,7 +263,11 @@ function clearName() {
   emit('rename', null);
 }
 
-const { width: nameColWidth, dragging: nameColDragging, onMouseDownLeft: onNameColMouseDown } = useResizablePanel('waterfall-name-col', 250, { min: 150, max: 500 });
+const {
+  width: nameColWidth,
+  dragging: nameColDragging,
+  onMouseDownLeft: onNameColMouseDown,
+} = useResizablePanel('waterfall-name-col', 250, { min: 150, max: 500 });
 const zoomedOut = ref(true);
 
 const spanTree = computed(() => buildSpanTree(props.spans, props.trace));

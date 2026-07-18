@@ -4,9 +4,7 @@ compatibility_date = "2026-02-07"
 compatibility_flags = ["nodejs_compat"]
 
 [durable_objects]
-bindings = [
-  { name = "TELEMETRY_ROOM", class_name = "TelemetryRoom" }
-]
+bindings = [{ name = "TELEMETRY_ROOM", class_name = "TelemetryRoom" }]
 
 [[migrations]]
 tag = "v1"

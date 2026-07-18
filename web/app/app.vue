@@ -6,9 +6,7 @@
     >
       <div class="flex items-center gap-3">
         <img src="/logo.svg" alt="Teley Logo" class="w-10 h-10" />
-        <h1 class="text-xl font-semibold text-zinc-100">
-          Teley
-        </h1>
+        <h1 class="text-xl font-semibold text-zinc-100">Teley</h1>
       </div>
       <div class="flex items-center gap-2">
         <!-- Session indicator (owner only) -->
@@ -128,8 +126,18 @@ import { exportAllData, importAllData } from './database/operations';
 import { onViewerCount } from './composables/useDataSync';
 
 const route = useRoute();
-const { roomId, receiveToken, isNewSession, initialized: sessionInitialized, initialize: initSession } = useSession();
-const { connected: relayConnected, initialize: initRelay, connect: connectRelay } = useRelay();
+const {
+  roomId,
+  receiveToken,
+  isNewSession,
+  initialized: sessionInitialized,
+  initialize: initSession,
+} = useSession();
+const {
+  connected: relayConnected,
+  initialize: initRelay,
+  connect: connectRelay,
+} = useRelay();
 const { initialize: initDataSync } = useDataSync();
 const { hasMultipleServices } = useServiceFilter();
 
@@ -141,9 +149,7 @@ const showLiveModal = ref(false);
 const viewerCount = ref(0);
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const isViewerRoute = computed(() =>
-  route.path.startsWith('/live/')
-);
+const isViewerRoute = computed(() => route.path.startsWith('/live/'));
 
 // Subscribe to viewer count updates
 onViewerCount((count) => {

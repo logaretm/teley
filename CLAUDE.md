@@ -112,20 +112,20 @@ useTraces / useLogs / useMetrics composables
 
 ## Key Composables
 
-| Composable | Purpose |
-|-----------|---------|
-| `useSession()` | Generates/loads roomId (nanoid 12) + receiveToken (nanoid 24) from IndexedDB |
-| `useRelay()` | Manages SharedWorker lifecycle, connect/disconnect |
-| `useDataSync()` | Event bus: relay messages → IndexedDB writes → component notifications |
-| `useTraces()` | Trace list state, fetches 100 from IndexedDB, real-time updates |
-| `useLogs()` | Log state, 500 cap |
-| `useMetrics()` | Metric state, 1000 cap |
-| `useTraceDetails(traceId)` | Single trace + spans, reactive to ID changes |
-| `useTraceComparison(idA, idB)` | LCS-based span alignment, diff calculation |
-| `useServiceFilter()` | Multi-service filter across data types |
-| `useResizablePanel(key, default, opts)` | Drag-to-resize panels, persisted to localStorage |
-| `useHashTabs()` | Hash-based tab navigation |
-| `useConfirmation(onConfirm)` | Programmatic confirmation dialogs |
+| Composable                              | Purpose                                                                      |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| `useSession()`                          | Generates/loads roomId (nanoid 12) + receiveToken (nanoid 24) from IndexedDB |
+| `useRelay()`                            | Manages SharedWorker lifecycle, connect/disconnect                           |
+| `useDataSync()`                         | Event bus: relay messages → IndexedDB writes → component notifications       |
+| `useTraces()`                           | Trace list state, fetches 100 from IndexedDB, real-time updates              |
+| `useLogs()`                             | Log state, 500 cap                                                           |
+| `useMetrics()`                          | Metric state, 1000 cap                                                       |
+| `useTraceDetails(traceId)`              | Single trace + spans, reactive to ID changes                                 |
+| `useTraceComparison(idA, idB)`          | LCS-based span alignment, diff calculation                                   |
+| `useServiceFilter()`                    | Multi-service filter across data types                                       |
+| `useResizablePanel(key, default, opts)` | Drag-to-resize panels, persisted to localStorage                             |
+| `useHashTabs()`                         | Hash-based tab navigation                                                    |
+| `useConfirmation(onConfirm)`            | Programmatic confirmation dialogs                                            |
 
 ## IndexedDB Schema (Dexie v2)
 
@@ -141,13 +141,13 @@ credentials: key (stores roomId, receiveToken)
 
 ### Cloudflare Worker
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/r/{roomId}` | POST | OTLP trace/log/metric ingest |
-| `/r/{roomId}` | WebSocket | Real-time relay connection |
-| `/api/{projectId}/envelope` | POST | Sentry envelope ingest |
-| `/api/share` | POST | Store trace snapshot (24h TTL) |
-| `/api/share/{id}` | GET | Retrieve trace snapshot |
+| Endpoint                    | Method    | Purpose                        |
+| --------------------------- | --------- | ------------------------------ |
+| `/r/{roomId}`               | POST      | OTLP trace/log/metric ingest   |
+| `/r/{roomId}`               | WebSocket | Real-time relay connection     |
+| `/api/{projectId}/envelope` | POST      | Sentry envelope ingest         |
+| `/api/share`                | POST      | Store trace snapshot (24h TTL) |
+| `/api/share/{id}`           | GET       | Retrieve trace snapshot        |
 
 ### Auth Model
 

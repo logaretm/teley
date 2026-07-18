@@ -23,7 +23,9 @@ export interface SentryConversionResult {
 /**
  * Process a Sentry envelope and convert items to OTLP format
  */
-export function processSentryEnvelope(envelope: SentryEnvelope): SentryConversionResult {
+export function processSentryEnvelope(
+  envelope: SentryEnvelope,
+): SentryConversionResult {
   const result: SentryConversionResult = {
     traces: [],
     spans: [],
@@ -105,7 +107,10 @@ export function processSentryEnvelope(envelope: SentryEnvelope): SentryConversio
 /**
  * Convert Sentry transaction to OTLP trace
  */
-function convertSentryTransaction(transaction: any): { traces: ParsedTrace[]; spans: ParsedSpan[] } {
+function convertSentryTransaction(transaction: any): {
+  traces: ParsedTrace[];
+  spans: ParsedSpan[];
+} {
   const traceId = transaction.contexts?.trace?.trace_id || generateTraceId();
   const spanId = transaction.contexts?.trace?.span_id || generateSpanId();
 
@@ -201,14 +206,17 @@ function convertSentryTransaction(transaction: any): { traces: ParsedTrace[]; sp
  * Spans stream one flush at a time, so a trace is assembled incrementally by the
  * client/CLI as more spans for the same trace_id arrive.
  */
-function convertStreamedSpans(payload: any): { traces: ParsedTrace[]; spans: ParsedSpan[] } {
+function convertStreamedSpans(payload: any): {
+  traces: ParsedTrace[];
+  spans: ParsedSpan[];
+} {
   const items: any[] = Array.isArray(payload?.items) ? payload.items : [];
   if (items.length === 0) return { traces: [], spans: [] };
 
   const serviceName = String(
     readTypedAttr(items[0]?.attributes, 'service.name') ??
       readTypedAttr(items[0]?.attributes, 'sentry.sdk.name') ??
-      'sentry-app'
+      'sentry-app',
   );
 
   const otlpSpans = items.map((span) => streamedSpanToOtlp(span));
@@ -217,7 +225,9 @@ function convertStreamedSpans(payload: any): { traces: ParsedTrace[]; spans: Par
     resourceSpans: [
       {
         resource: {
-          attributes: [{ key: 'service.name', value: { stringValue: serviceName } }],
+          attributes: [
+            { key: 'service.name', value: { stringValue: serviceName } },
+          ],
         },
         scopeSpans: [{ spans: otlpSpans }],
       },
@@ -270,15 +280,21 @@ function streamedSpanToOtlp(span: any) {
  * Same payload shape as a span embedded in a transaction: `description`, `op`,
  * `data`, `start_timestamp`, `timestamp`.
  */
-function convertStandaloneSpan(span: any): { traces: ParsedTrace[]; spans: ParsedSpan[] } {
-  if (!span || (!span.span_id && !span.trace_id)) return { traces: [], spans: [] };
+function convertStandaloneSpan(span: any): {
+  traces: ParsedTrace[];
+  spans: ParsedSpan[];
+} {
+  if (!span || (!span.span_id && !span.trace_id))
+    return { traces: [], spans: [] };
 
   const startTime =
     typeof span.start_timestamp === 'number'
       ? Math.floor(span.start_timestamp * 1000)
       : Date.now();
   const endTime =
-    typeof span.timestamp === 'number' ? Math.floor(span.timestamp * 1000) : startTime;
+    typeof span.timestamp === 'number'
+      ? Math.floor(span.timestamp * 1000)
+      : startTime;
 
   const otlpSpan = {
     traceId: span.trace_id,
@@ -303,7 +319,9 @@ function convertStandaloneSpan(span: any): { traces: ParsedTrace[]; spans: Parse
     resourceSpans: [
       {
         resource: {
-          attributes: [{ key: 'service.name', value: { stringValue: 'sentry-app' } }],
+          attributes: [
+            { key: 'service.name', value: { stringValue: 'sentry-app' } },
+          ],
         },
         scopeSpans: [{ spans: [otlpSpan] }],
       },
@@ -434,7 +452,10 @@ function convertSentryLog(logItem: any): { logs: ParsedLog[] } {
         {
           resource: {
             attributes: [
-              { key: 'service.name', value: { stringValue: log.service || 'sentry-app' } },
+              {
+                key: 'service.name',
+                value: { stringValue: log.service || 'sentry-app' },
+              },
             ],
           },
           scopeLogs: [
@@ -486,7 +507,10 @@ function convertAttributes(data: Record<string, any>) {
  * Read a value out of a Sentry v2 typed-attribute map (`{ key: { value, type } }`),
  * tolerating a plain value if the attribute isn't wrapped.
  */
-function readTypedAttr(attrs: Record<string, any> | undefined, key: string): any {
+function readTypedAttr(
+  attrs: Record<string, any> | undefined,
+  key: string,
+): any {
   const entry = attrs?.[key];
   if (entry == null) return undefined;
   return typeof entry === 'object' && 'value' in entry ? entry.value : entry;
@@ -525,10 +549,13 @@ function convertTypedAttributes(attrs: Record<string, any> | undefined) {
       default:
         if (typeof raw === 'boolean') value = { boolValue: raw };
         else if (typeof raw === 'number')
-          value = Number.isInteger(raw) ? { intValue: raw } : { doubleValue: raw };
+          value = Number.isInteger(raw)
+            ? { intValue: raw }
+            : { doubleValue: raw };
         else
           value = {
-            stringValue: typeof raw === 'object' ? JSON.stringify(raw) : String(raw),
+            stringValue:
+              typeof raw === 'object' ? JSON.stringify(raw) : String(raw),
           };
     }
 
@@ -564,7 +591,10 @@ function convertSentryTraceMetrics(payload: any): ParsedMetric[] {
       const rawAttrs = item.attributes || {};
       const attributes: Record<string, any> = {};
       for (const [key, val] of Object.entries(rawAttrs)) {
-        attributes[key] = val && typeof val === 'object' && 'value' in val ? (val as any).value : val;
+        attributes[key] =
+          val && typeof val === 'object' && 'value' in val
+            ? (val as any).value
+            : val;
       }
       if (item.trace_id) attributes['trace_id'] = item.trace_id;
       if (item.span_id) attributes['span_id'] = item.span_id;

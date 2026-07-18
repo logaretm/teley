@@ -10,15 +10,24 @@ import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
 const hostArg = process.argv.indexOf('--host');
-const host = hostArg !== -1 ? process.argv[hostArg + 1] : process.env.TELEY_HOST || 'localhost:8787';
-const secure = !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:\d+)?$/.test(host!);
+const host =
+  hostArg !== -1
+    ? process.argv[hostArg + 1]
+    : process.env.TELEY_HOST || 'localhost:8787';
+const secure = !/^(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\])(:\d+)?$/.test(
+  host!,
+);
 const scheme = secure ? 'https' : 'http';
 
-const session = JSON.parse(readFileSync(join(homedir(), '.teley', 'session.json'), 'utf8'));
+const session = JSON.parse(
+  readFileSync(join(homedir(), '.teley', 'session.json'), 'utf8'),
+);
 const url = `${scheme}://${host}/r/${session.roomId}`;
 
 const hex = (n: number) =>
-  Array.from({ length: n }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  Array.from({ length: n }, () =>
+    Math.floor(Math.random() * 16).toString(16),
+  ).join('');
 
 const traceId = hex(32);
 const now = Date.now();
@@ -58,15 +67,24 @@ const payload = {
   resourceSpans: [
     {
       resource: {
-        attributes: [{ key: 'service.name', value: { stringValue: 'checkout-api' } }],
+        attributes: [
+          { key: 'service.name', value: { stringValue: 'checkout-api' } },
+        ],
       },
       scopeSpans: [
         {
           scope: { name: 'teley.test' },
           spans: [
-            span(root, null, 'POST /checkout', 2, 0, 214, 2, { 'http.method': 'POST', 'http.status_code': 500 }),
-            span(httpSpan, root, 'GET inventory-service', 3, 10, 60, 0, { 'peer.service': 'inventory' }),
-            span(dbSpan, root, 'db.query orders', 3, 80, 120, 2, { 'db.system': 'postgresql' }),
+            span(root, null, 'POST /checkout', 2, 0, 214, 2, {
+              'http.method': 'POST',
+              'http.status_code': 500,
+            }),
+            span(httpSpan, root, 'GET inventory-service', 3, 10, 60, 0, {
+              'peer.service': 'inventory',
+            }),
+            span(dbSpan, root, 'db.query orders', 3, 80, 120, 2, {
+              'db.system': 'postgresql',
+            }),
           ],
         },
       ],

@@ -15,7 +15,10 @@ interface Props {
   logCount: number;
 }
 
-const STATUS_META: Record<RelayStatus, { dot: string; label: string; color: string }> = {
+const STATUS_META: Record<
+  RelayStatus,
+  { dot: string; label: string; color: string }
+> = {
   connected: { dot: '●', label: 'live', color: OK_GREEN },
   connecting: { dot: '○', label: 'connecting', color: '#f59e0b' },
   disconnected: { dot: '○', label: 'offline', color: UI.dim },
@@ -34,18 +37,29 @@ function LinkRow({
   copied: boolean;
 }) {
   return (
-    <box style={{ flexDirection: 'row', backgroundColor: active ? UI.panel : undefined }}>
+    <box
+      style={{
+        flexDirection: 'row',
+        backgroundColor: active ? UI.panel : undefined,
+      }}
+    >
       <text fg={active ? UI.accent : UI.dim}>{active ? '▸ ' : '  '}</text>
       <text fg={UI.dim}>{label}</text>
       <text fg={active ? UI.textStrong : UI.text}>{value}</text>
-      {copied ? (
-        <text fg={OK_GREEN}> copied ✓</text>
-      ) : null}
+      {copied ? <text fg={OK_GREEN}> copied ✓</text> : null}
     </box>
   );
 }
 
-function Tab({ label, count, active }: { label: string; count: number; active: boolean }) {
+function Tab({
+  label,
+  count,
+  active,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+}) {
   return (
     <>
       <text fg={active ? UI.accent : UI.dim} attributes={active ? BOLD : 0}>
@@ -88,12 +102,12 @@ export function Header({
         <Tab label="Traces" count={traceCount} active={view === 'traces'} />
         <Tab label="Logs" count={logCount} active={view === 'logs'} />
         <box style={{ flexGrow: 1 }} />
-        {focused ? (
-          <text fg={UI.dim}>↑↓ select · ↵ copy   </text>
-        ) : null}
+        {focused ? <text fg={UI.dim}>↑↓ select · ↵ copy </text> : null}
         <text fg={s.color}>{`${s.dot} ${s.label}`}</text>
         {status === 'connected' ? (
-          <text fg={UI.dim}>{`  ·  ${viewers} viewer${viewers === 1 ? '' : 's'}`}</text>
+          <text
+            fg={UI.dim}
+          >{`  ·  ${viewers} viewer${viewers === 1 ? '' : 's'}`}</text>
         ) : null}
       </box>
       <LinkRow

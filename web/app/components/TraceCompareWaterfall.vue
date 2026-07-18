@@ -3,10 +3,16 @@
     <!-- Column Headers -->
     <div class="grid grid-cols-2 gap-px bg-zinc-800 mb-2">
       <div class="bg-zinc-950 px-4 py-2">
-        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wide">Trace A</span>
+        <span
+          class="text-xs font-semibold text-zinc-400 uppercase tracking-wide"
+          >Trace A</span
+        >
       </div>
       <div class="bg-zinc-950 px-4 py-2">
-        <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wide">Trace B</span>
+        <span
+          class="text-xs font-semibold text-zinc-400 uppercase tracking-wide"
+          >Trace B</span
+        >
       </div>
     </div>
 
@@ -24,20 +30,31 @@
       <div
         class="py-2 px-2 transition-colors"
         :class="getRowBgClass(row, 'a')"
-        :style="row.spanA ? { paddingLeft: `${row.spanA.depth * 16 + 8}px` } : {}"
+        :style="
+          row.spanA ? { paddingLeft: `${row.spanA.depth * 16 + 8}px` } : {}
+        "
       >
         <template v-if="row.spanA">
           <div class="flex items-center gap-2">
             <!-- Span info -->
             <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span v-if="row.spanA.depth > 0" class="text-zinc-600 text-xs">└─</span>
+              <span v-if="row.spanA.depth > 0" class="text-zinc-600 text-xs"
+                >└─</span
+              >
               <span
                 class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0"
-                :class="getDepthColorClassForLabel(row.spanA.depth, row.spanA.span.status_code)"
+                :class="
+                  getDepthColorClassForLabel(
+                    row.spanA.depth,
+                    row.spanA.span.status_code,
+                  )
+                "
               >
                 {{ getSpanKindLabel(row.spanA.span.kind)[0] }}
               </span>
-              <span class="text-sm text-zinc-300 truncate">{{ row.spanA.span.name }}</span>
+              <span class="text-sm text-zinc-300 truncate">{{
+                row.spanA.span.name
+              }}</span>
               <span class="text-xs text-zinc-500 font-mono shrink-0 ml-auto">
                 {{ formatDuration(row.spanA.span.duration) }}
               </span>
@@ -47,7 +64,9 @@
           <div class="relative h-4 mt-1">
             <div
               class="absolute h-3 rounded opacity-80"
-              :class="getDepthColorClass(row.spanA.depth, row.spanA.span.status_code)"
+              :class="
+                getDepthColorClass(row.spanA.depth, row.spanA.span.status_code)
+              "
               :style="{
                 left: `${row.spanA.offsetPercent}%`,
                 width: `${row.spanA.widthPercent}%`,
@@ -57,7 +76,9 @@
         </template>
         <template v-else>
           <div class="h-[52px] flex items-center justify-center">
-            <div class="border border-dashed border-zinc-700 rounded h-4 w-full mx-4" />
+            <div
+              class="border border-dashed border-zinc-700 rounded h-4 w-full mx-4"
+            />
           </div>
         </template>
       </div>
@@ -66,19 +87,30 @@
       <div
         class="py-2 px-2 transition-colors"
         :class="getRowBgClass(row, 'b')"
-        :style="row.spanB ? { paddingLeft: `${row.spanB.depth * 16 + 8}px` } : {}"
+        :style="
+          row.spanB ? { paddingLeft: `${row.spanB.depth * 16 + 8}px` } : {}
+        "
       >
         <template v-if="row.spanB">
           <div class="flex items-center gap-2">
             <div class="flex items-center gap-2 min-w-0 flex-1">
-              <span v-if="row.spanB.depth > 0" class="text-zinc-600 text-xs">└─</span>
+              <span v-if="row.spanB.depth > 0" class="text-zinc-600 text-xs"
+                >└─</span
+              >
               <span
                 class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0"
-                :class="getDepthColorClassForLabel(row.spanB.depth, row.spanB.span.status_code)"
+                :class="
+                  getDepthColorClassForLabel(
+                    row.spanB.depth,
+                    row.spanB.span.status_code,
+                  )
+                "
               >
                 {{ getSpanKindLabel(row.spanB.span.kind)[0] }}
               </span>
-              <span class="text-sm text-zinc-300 truncate">{{ row.spanB.span.name }}</span>
+              <span class="text-sm text-zinc-300 truncate">{{
+                row.spanB.span.name
+              }}</span>
               <span class="text-xs text-zinc-500 font-mono shrink-0 ml-auto">
                 {{ formatDuration(row.spanB.span.duration) }}
               </span>
@@ -96,7 +128,9 @@
           <div class="relative h-4 mt-1">
             <div
               class="absolute h-3 rounded opacity-80"
-              :class="getDepthColorClass(row.spanB.depth, row.spanB.span.status_code)"
+              :class="
+                getDepthColorClass(row.spanB.depth, row.spanB.span.status_code)
+              "
               :style="{
                 left: `${row.spanB.offsetPercent}%`,
                 width: `${row.spanB.widthPercent}%`,
@@ -106,7 +140,9 @@
         </template>
         <template v-else>
           <div class="h-[52px] flex items-center justify-center">
-            <div class="border border-dashed border-zinc-700 rounded h-4 w-full mx-4" />
+            <div
+              class="border border-dashed border-zinc-700 rounded h-4 w-full mx-4"
+            />
           </div>
         </template>
       </div>
@@ -157,8 +193,14 @@ function formatDelta(delta: number): string {
 function getDepthColorClass(depth: number, statusCode: number): string {
   if (statusCode === 2) return 'bg-red-500';
   const colors = [
-    'bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-amber-500',
-    'bg-cyan-500', 'bg-pink-500', 'bg-lime-500', 'bg-indigo-500',
+    'bg-blue-500',
+    'bg-purple-500',
+    'bg-emerald-500',
+    'bg-amber-500',
+    'bg-cyan-500',
+    'bg-pink-500',
+    'bg-lime-500',
+    'bg-indigo-500',
   ];
   return colors[depth % colors.length];
 }
@@ -166,10 +208,14 @@ function getDepthColorClass(depth: number, statusCode: number): string {
 function getDepthColorClassForLabel(depth: number, statusCode: number): string {
   if (statusCode === 2) return 'bg-red-500/20 text-red-400';
   const colors = [
-    'bg-blue-500/20 text-blue-400', 'bg-purple-500/20 text-purple-400',
-    'bg-emerald-500/20 text-emerald-400', 'bg-amber-500/20 text-amber-400',
-    'bg-cyan-500/20 text-cyan-400', 'bg-pink-500/20 text-pink-400',
-    'bg-lime-500/20 text-lime-400', 'bg-indigo-500/20 text-indigo-400',
+    'bg-blue-500/20 text-blue-400',
+    'bg-purple-500/20 text-purple-400',
+    'bg-emerald-500/20 text-emerald-400',
+    'bg-amber-500/20 text-amber-400',
+    'bg-cyan-500/20 text-cyan-400',
+    'bg-pink-500/20 text-pink-400',
+    'bg-lime-500/20 text-lime-400',
+    'bg-indigo-500/20 text-indigo-400',
   ];
   return colors[depth % colors.length];
 }

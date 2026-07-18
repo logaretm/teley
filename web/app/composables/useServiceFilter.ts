@@ -12,7 +12,11 @@ function sync() {
   const traces = Array.from(getServiceNames('traces')).sort();
   const logs = Array.from(getServiceNames('logs')).sort();
   const metrics = Array.from(getServiceNames('metrics')).sort();
-  const prevAll = new Set([...traceServices.value, ...logServices.value, ...metricServices.value]);
+  const prevAll = new Set([
+    ...traceServices.value,
+    ...logServices.value,
+    ...metricServices.value,
+  ]);
 
   traceServices.value = traces;
   logServices.value = logs;
@@ -42,7 +46,9 @@ export function useServiceFilter() {
     return traceServices.value;
   });
 
-  const hasMultipleServices = computed(() => availableServices.value.length >= 2);
+  const hasMultipleServices = computed(
+    () => availableServices.value.length >= 2,
+  );
 
   function toggleService(name: string) {
     const next = new Set(selectedServices.value);

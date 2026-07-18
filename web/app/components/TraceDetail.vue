@@ -58,7 +58,11 @@ const getTraceId = () => props.traceId;
 const { trace, spans, loading, error } = useTraceDetails(getTraceId);
 const { renameTrace } = useTraces();
 const selectedSpan = ref<Span>();
-const { width: spanPanelWidth, dragging: spanPanelDragging, onMouseDown: onSpanPanelMouseDown } = useResizablePanel('span-panel-width', 400);
+const {
+  width: spanPanelWidth,
+  dragging: spanPanelDragging,
+  onMouseDown: onSpanPanelMouseDown,
+} = useResizablePanel('span-panel-width', 400);
 
 // Reset selected span when trace changes
 watch(getTraceId, () => {

@@ -47,9 +47,19 @@ export function getDb(): TelemetryDB {
 
 // For backward compatibility
 export const db = {
-  get traces() { return getDb().traces; },
-  get spans() { return getDb().spans; },
-  get logs() { return getDb().logs; },
-  get metrics() { return getDb().metrics; },
-  get credentials() { return getDb().credentials; },
+  get traces() {
+    return getDb().traces;
+  },
+  get spans() {
+    return getDb().spans;
+  },
+  get logs() {
+    return getDb().logs;
+  },
+  get metrics() {
+    return getDb().metrics;
+  },
+  get credentials() {
+    return getDb().credentials;
+  },
 };

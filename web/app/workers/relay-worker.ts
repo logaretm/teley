@@ -36,7 +36,10 @@ self.onconnect = (e: MessageEvent) => {
     return;
   }
 
-  console.log('[RelayWorker] New port connected, total ports:', state.ports.size + 1);
+  console.log(
+    '[RelayWorker] New port connected, total ports:',
+    state.ports.size + 1,
+  );
   state.ports.add(port);
 
   port.onmessage = (event) => {
@@ -46,7 +49,10 @@ self.onconnect = (e: MessageEvent) => {
   port.start();
 
   // Send current state to new tab
-  console.log('[RelayWorker] Sending initial status to new port:', state.status);
+  console.log(
+    '[RelayWorker] Sending initial status to new port:',
+    state.status,
+  );
   port.postMessage({ type: 'status', status: state.status });
   if (state.roomId) {
     port.postMessage({
@@ -91,7 +97,10 @@ function connect(roomId: string, receiveToken: string, wsUrl: string) {
   console.log('[RelayWorker] connect() called with wsUrl:', wsUrl);
 
   // If already connected or connecting to same room, no-op
-  if (state.roomId === roomId && (state.status === 'connected' || state.status === 'connecting')) {
+  if (
+    state.roomId === roomId &&
+    (state.status === 'connected' || state.status === 'connecting')
+  ) {
     return;
   }
 
@@ -140,15 +149,25 @@ function connect(roomId: string, receiveToken: string, wsUrl: string) {
       }
     };
 
-    state.ws.onclose = (e) => {
+    state.ws.onclose = () => {
       state.status = 'disconnected';
       state.ws = null;
       broadcast({ type: 'status', status: 'disconnected' });
 
       // Auto-reconnect after 3s if there are still connected ports and we have credentials
-      if (state.ports.size > 0 && state.roomId && state.receiveToken && state.wsUrl) {
+      if (
+        state.ports.size > 0 &&
+        state.roomId &&
+        state.receiveToken &&
+        state.wsUrl
+      ) {
         state.reconnectTimer = setTimeout(() => {
-          if (state.ports.size > 0 && state.roomId && state.receiveToken && state.wsUrl) {
+          if (
+            state.ports.size > 0 &&
+            state.roomId &&
+            state.receiveToken &&
+            state.wsUrl
+          ) {
             connect(state.roomId, state.receiveToken, state.wsUrl);
           }
         }, 3000);

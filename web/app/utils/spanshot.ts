@@ -83,7 +83,9 @@ function bytesToB64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 async function gzip(str: string): Promise<Uint8Array> {
-  const stream = new Blob([str]).stream().pipeThrough(new CompressionStream('gzip'));
+  const stream = new Blob([str])
+    .stream()
+    .pipeThrough(new CompressionStream('gzip'));
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 async function encodeState(state: ShareState): Promise<string> {
@@ -99,7 +101,10 @@ async function encodeState(state: ShareState): Promise<string> {
  * synchronously (popup-blocker friendly) and navigated once the (async) hash
  * is built.
  */
-export async function openInSpanshot(trace: Trace, spans: Span[]): Promise<void> {
+export async function openInSpanshot(
+  trace: Trace,
+  spans: Span[],
+): Promise<void> {
   const win = window.open('about:blank', '_blank');
   try {
     const state: ShareState = {

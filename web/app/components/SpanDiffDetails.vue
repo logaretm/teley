@@ -1,13 +1,19 @@
 <template>
   <div class="bg-zinc-900 border-t border-zinc-800">
     <!-- Header -->
-    <div class="px-4 py-3 flex items-center justify-between border-b border-zinc-800">
+    <div
+      class="px-4 py-3 flex items-center justify-between border-b border-zinc-800"
+    >
       <div class="flex items-center gap-3">
         <h3 class="text-sm font-semibold text-zinc-100">Span Diff</h3>
         <span
           v-if="row.type === 'matched'"
           class="text-xs font-mono px-2 py-0.5 rounded"
-          :class="row.spanA?.span.name === row.spanB?.span.name ? 'bg-zinc-800 text-zinc-400' : 'bg-amber-500/20 text-amber-400'"
+          :class="
+            row.spanA?.span.name === row.spanB?.span.name
+              ? 'bg-zinc-800 text-zinc-400'
+              : 'bg-amber-500/20 text-amber-400'
+          "
         >
           {{ row.spanA?.span.name }}
         </span>
@@ -53,30 +59,53 @@
     <div class="max-h-80 overflow-y-auto">
       <!-- Overview Tab -->
       <div v-if="activeTab === 'overview'" class="p-4">
-        <div v-if="row.type === 'matched' && row.spanA && row.spanB" class="space-y-2">
+        <div
+          v-if="row.type === 'matched' && row.spanA && row.spanB"
+          class="space-y-2"
+        >
           <div
             v-for="field in overviewFields"
             :key="field.label"
             class="grid grid-cols-[120px_1fr_1fr] gap-2 p-2 rounded text-sm"
-            :class="field.changed ? 'bg-amber-500/5 border-l-2 border-amber-500' : 'bg-zinc-950'"
+            :class="
+              field.changed
+                ? 'bg-amber-500/5 border-l-2 border-amber-500'
+                : 'bg-zinc-950'
+            "
           >
-            <span class="text-xs text-zinc-500 uppercase tracking-wide font-bold">{{ field.label }}</span>
-            <span class="text-xs font-mono" :class="field.changed ? 'text-red-400' : 'text-zinc-300'">
+            <span
+              class="text-xs text-zinc-500 uppercase tracking-wide font-bold"
+              >{{ field.label }}</span
+            >
+            <span
+              class="text-xs font-mono"
+              :class="field.changed ? 'text-red-400' : 'text-zinc-300'"
+            >
               {{ field.valueA }}
             </span>
-            <span class="text-xs font-mono" :class="field.changed ? 'text-green-400' : 'text-zinc-300'">
+            <span
+              class="text-xs font-mono"
+              :class="field.changed ? 'text-green-400' : 'text-zinc-300'"
+            >
               {{ field.valueB }}
             </span>
           </div>
         </div>
         <div v-else class="p-4 text-sm text-zinc-500 text-center">
-          {{ row.type === 'added' ? 'This span only exists in Trace B' : 'This span only exists in Trace A' }}
+          {{
+            row.type === 'added'
+              ? 'This span only exists in Trace B'
+              : 'This span only exists in Trace A'
+          }}
         </div>
       </div>
 
       <!-- Attributes Tab -->
       <div v-if="activeTab === 'attributes'" class="p-4">
-        <div v-if="row.type === 'matched' && row.diff?.attributeDiffs.length" class="space-y-1">
+        <div
+          v-if="row.type === 'matched' && row.diff?.attributeDiffs.length"
+          class="space-y-1"
+        >
           <div
             v-for="attr in row.diff.attributeDiffs"
             :key="attr.key"
@@ -84,9 +113,19 @@
             :class="getAttrRowClass(attr.type)"
           >
             <span class="text-zinc-400 break-words">
-              <span v-if="attr.type === 'added'" class="text-green-500 mr-1">+</span>
-              <span v-else-if="attr.type === 'removed'" class="text-red-500 mr-1">-</span>
-              <span v-else-if="attr.type === 'changed'" class="text-amber-500 mr-1">~</span>
+              <span v-if="attr.type === 'added'" class="text-green-500 mr-1"
+                >+</span
+              >
+              <span
+                v-else-if="attr.type === 'removed'"
+                class="text-red-500 mr-1"
+                >-</span
+              >
+              <span
+                v-else-if="attr.type === 'changed'"
+                class="text-amber-500 mr-1"
+                >~</span
+              >
               {{ attr.key }}
             </span>
             <span class="text-zinc-300 break-all whitespace-pre-wrap">
@@ -97,7 +136,10 @@
             </span>
           </div>
         </div>
-        <div v-else-if="row.type === 'matched'" class="p-4 text-sm text-zinc-500 text-center">
+        <div
+          v-else-if="row.type === 'matched'"
+          class="p-4 text-sm text-zinc-500 text-center"
+        >
           No attribute differences
         </div>
         <div v-else class="p-4">
@@ -107,7 +149,9 @@
             class="grid grid-cols-[160px_1fr] gap-2 p-2 rounded text-xs font-mono bg-zinc-950"
           >
             <span class="text-zinc-400 break-words">{{ key }}</span>
-            <span class="text-zinc-300 break-all whitespace-pre-wrap">{{ formatValue(value) }}</span>
+            <span class="text-zinc-300 break-all whitespace-pre-wrap">{{
+              formatValue(value)
+            }}</span>
           </div>
         </div>
       </div>
@@ -122,9 +166,12 @@
             <span
               v-if="row.diff.eventCountDelta !== 0"
               class="ml-2 font-mono"
-              :class="row.diff.eventCountDelta > 0 ? 'text-green-400' : 'text-red-400'"
+              :class="
+                row.diff.eventCountDelta > 0 ? 'text-green-400' : 'text-red-400'
+              "
             >
-              ({{ row.diff.eventCountDelta > 0 ? '+' : '' }}{{ row.diff.eventCountDelta }})
+              ({{ row.diff.eventCountDelta > 0 ? '+' : ''
+              }}{{ row.diff.eventCountDelta }})
             </span>
           </div>
           <div class="grid grid-cols-2 gap-4">
@@ -136,7 +183,10 @@
               >
                 <span class="text-zinc-200 font-medium">{{ event.name }}</span>
               </div>
-              <div v-if="!row.spanA?.span.events.length" class="text-xs text-zinc-600 text-center p-2">
+              <div
+                v-if="!row.spanA?.span.events.length"
+                class="text-xs text-zinc-600 text-center p-2"
+              >
                 No events
               </div>
             </div>
@@ -148,7 +198,10 @@
               >
                 <span class="text-zinc-200 font-medium">{{ event.name }}</span>
               </div>
-              <div v-if="!row.spanB?.span.events.length" class="text-xs text-zinc-600 text-center p-2">
+              <div
+                v-if="!row.spanB?.span.events.length"
+                class="text-xs text-zinc-600 text-center p-2"
+              >
                 No events
               </div>
             </div>

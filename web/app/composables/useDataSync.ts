@@ -1,7 +1,13 @@
 // Composable for syncing incoming telemetry data to IndexedDB
 // This should be called once at the app level to ensure data is always captured
 
-import type { Trace, Span, Log, Metric, WebSocketMessage } from '../../../shared/parsers/types';
+import type {
+  Trace,
+  Span,
+  Log,
+  Metric,
+  WebSocketMessage,
+} from '../../../shared/parsers/types';
 import { summarizeTrace } from '../../../shared/parsers/trace-summary';
 import {
   upsertTrace,
@@ -58,9 +64,17 @@ export function clearServiceNames(type?: 'traces' | 'logs' | 'metrics') {
   notifyListeners();
 }
 
-export function addServiceNames(names: string[], type: 'traces' | 'logs' | 'metrics') {
+export function addServiceNames(
+  names: string[],
+  type: 'traces' | 'logs' | 'metrics',
+) {
   let changed = false;
-  const set = type === 'traces' ? traceServiceNames : type === 'logs' ? logServiceNames : metricServiceNames;
+  const set =
+    type === 'traces'
+      ? traceServiceNames
+      : type === 'logs'
+        ? logServiceNames
+        : metricServiceNames;
   for (const name of names) {
     if (name && !set.has(name)) {
       set.add(name);
@@ -72,11 +86,17 @@ export function addServiceNames(names: string[], type: 'traces' | 'logs' | 'metr
   }
 }
 
-export function getServiceNames(type?: 'traces' | 'logs' | 'metrics'): Set<string> {
+export function getServiceNames(
+  type?: 'traces' | 'logs' | 'metrics',
+): Set<string> {
   if (type === 'traces') return traceServiceNames;
   if (type === 'logs') return logServiceNames;
   if (type === 'metrics') return metricServiceNames;
-  return new Set([...traceServiceNames, ...logServiceNames, ...metricServiceNames]);
+  return new Set([
+    ...traceServiceNames,
+    ...logServiceNames,
+    ...metricServiceNames,
+  ]);
 }
 
 export function onServiceNamesChange(callback: () => void): () => void {
@@ -204,7 +224,9 @@ export function useDataSync() {
 }
 
 // Subscribe to trace updates (for real-time UI updates)
-export function onTraceUpdate(callback: (trace: Trace, spans: Span[]) => void): () => void {
+export function onTraceUpdate(
+  callback: (trace: Trace, spans: Span[]) => void,
+): () => void {
   traceListeners.add(callback);
   return () => traceListeners.delete(callback);
 }

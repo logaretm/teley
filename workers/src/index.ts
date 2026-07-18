@@ -31,12 +31,17 @@ export default {
     }
 
     // Sentry envelope endpoint: /api/{projectId}/envelope/
-    if (url.pathname.match(/^\/api\/\d+\/envelope\/?$/) && request.method === 'POST') {
+    if (
+      url.pathname.match(/^\/api\/\d+\/envelope\/?$/) &&
+      request.method === 'POST'
+    ) {
       console.log('[Worker] Sentry envelope endpoint matched');
       const roomId = extractRoomIdFromSentryAuth(request);
       console.log('[Worker] Extracted roomId:', roomId);
       if (!roomId) {
-        return corsResponse(new Response('Missing room ID in X-Sentry-Auth', { status: 400 }));
+        return corsResponse(
+          new Response('Missing room ID in X-Sentry-Auth', { status: 400 }),
+        );
       }
       return corsResponse(await handleSentryIngest(request, env, roomId));
     }
@@ -62,7 +67,10 @@ export default {
 
       // If not found and it's a navigation request (not a file), serve index.html for SPA
       if (response.status === 404 && !url.pathname.includes('.')) {
-        const indexRequest = new Request(new URL('/index.html', request.url), request);
+        const indexRequest = new Request(
+          new URL('/index.html', request.url),
+          request,
+        );
         return env.ASSETS.fetch(indexRequest);
       }
 
@@ -73,7 +81,11 @@ export default {
   },
 };
 
-async function handleSentryIngest(request: Request, env: Env, roomId: string): Promise<Response> {
+async function handleSentryIngest(
+  request: Request,
+  env: Env,
+  roomId: string,
+): Promise<Response> {
   console.log('[Worker] handleSentryIngest called, roomId:', roomId);
 
   try {
@@ -93,11 +105,20 @@ async function handleSentryIngest(request: Request, env: Env, roomId: string): P
 
     // Convert Sentry data to OTLP format
     const result = processSentryEnvelope(envelope);
-    console.log('[Worker] Processed envelope, traces:', result.traces.length, 'spans:', result.spans.length, 'logs:', result.logs.length);
+    console.log(
+      '[Worker] Processed envelope, traces:',
+      result.traces.length,
+      'spans:',
+      result.spans.length,
+      'logs:',
+      result.logs.length,
+    );
 
     // Broadcast each trace update
     for (const trace of result.traces) {
-      const traceSpans = result.spans.filter(s => s.trace_id === trace.trace_id);
+      const traceSpans = result.spans.filter(
+        (s) => s.trace_id === trace.trace_id,
+      );
       await broadcastToRoom(env, roomId, {
         type: 'trace_update',
         data: { trace, spans: traceSpans },
@@ -134,12 +155,15 @@ async function handleSentryIngest(request: Request, env: Env, roomId: string): P
   }
 }
 
-async function handleOTLPIngest(request: Request, env: Env, roomId: string): Promise<Response> {
+async function handleOTLPIngest(
+  request: Request,
+  env: Env,
+  roomId: string,
+): Promise<Response> {
   console.log('[Worker] handleOTLPIngest called, roomId:', roomId);
 
   try {
-    const contentType = request.headers.get('content-type') || '';
-    const body = await request.json() as Record<string, any>;
+    const body = (await request.json()) as Record<string, any>;
     console.log('[Worker] OTLP body keys:', Object.keys(body));
 
     // Detect if this is traces or logs based on the payload
@@ -148,16 +172,24 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
       const result = parseOTLPTrace(body);
 
       for (const trace of result.traces) {
-        const traceSpans = result.spans.filter(s => s.trace_id === trace.trace_id);
+        const traceSpans = result.spans.filter(
+          (s) => s.trace_id === trace.trace_id,
+        );
         await broadcastToRoom(env, roomId, {
           type: 'trace_update',
           data: { trace, spans: traceSpans },
         });
       }
 
-      return new Response(JSON.stringify({ status: 'success', tracesReceived: result.traces.length }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          status: 'success',
+          tracesReceived: result.traces.length,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } else if (isLogsRequest(body)) {
       // OTLP Logs
       const result = parseOTLPLogs(body);
@@ -169,9 +201,12 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
         });
       }
 
-      return new Response(JSON.stringify({ status: 'success', logsReceived: result.logs.length }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ status: 'success', logsReceived: result.logs.length }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } else if (isMetricsRequest(body)) {
       // OTLP Metrics
       const result = parseOTLPMetrics(body);
@@ -183,9 +218,15 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
         });
       }
 
-      return new Response(JSON.stringify({ status: 'success', metricsReceived: result.metrics.length }), {
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          status: 'success',
+          metricsReceived: result.metrics.length,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     } else {
       return new Response(JSON.stringify({ error: 'Invalid OTLP payload' }), {
         status: 400,
@@ -201,24 +242,39 @@ async function handleOTLPIngest(request: Request, env: Env, roomId: string): Pro
   }
 }
 
-async function handleWebSocket(request: Request, env: Env, roomId: string): Promise<Response> {
+async function handleWebSocket(
+  request: Request,
+  env: Env,
+  roomId: string,
+): Promise<Response> {
   console.log('[Worker] handleWebSocket called, roomId:', roomId);
   const doId = env.TELEMETRY_ROOM.idFromName(roomId);
   const room = env.TELEMETRY_ROOM.get(doId);
   return room.fetch(request);
 }
 
-async function broadcastToRoom(env: Env, roomId: string, data: any): Promise<void> {
-  console.log('[Worker] broadcastToRoom called, roomId:', roomId, 'type:', data.type);
+async function broadcastToRoom(
+  env: Env,
+  roomId: string,
+  data: any,
+): Promise<void> {
+  console.log(
+    '[Worker] broadcastToRoom called, roomId:',
+    roomId,
+    'type:',
+    data.type,
+  );
 
   const doId = env.TELEMETRY_ROOM.idFromName(roomId);
   const room = env.TELEMETRY_ROOM.get(doId);
 
   console.log('[Worker] Sending to Durable Object...');
-  const response = await room.fetch(new Request('http://internal/broadcast', {
-    method: 'POST',
-    body: JSON.stringify(data),
-    headers: { 'Content-Type': 'application/json' },
-  }));
+  const response = await room.fetch(
+    new Request('http://internal/broadcast', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
+    }),
+  );
   console.log('[Worker] Durable Object response:', response.status);
 }

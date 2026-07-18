@@ -13,7 +13,8 @@ export class TelemetryRoom implements DurableObject {
 
     // Restore token from storage
     this.state.blockConcurrencyWhile(async () => {
-      this.receiveToken = await this.state.storage.get<string>('receiveToken') ?? null;
+      this.receiveToken =
+        (await this.state.storage.get<string>('receiveToken')) ?? null;
     });
   }
 
@@ -40,7 +41,10 @@ export class TelemetryRoom implements DurableObject {
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
 
-    console.log('[DO] WebSocket upgrade request, token:', token ? 'present' : 'missing');
+    console.log(
+      '[DO] WebSocket upgrade request, token:',
+      token ? 'present' : 'missing',
+    );
 
     if (!token) {
       return new Response('Missing token', { status: 400 });
@@ -64,12 +68,17 @@ export class TelemetryRoom implements DurableObject {
 
     // Accept the WebSocket with hibernation support
     this.state.acceptWebSocket(server);
-    console.log('[DO] WebSocket accepted, total sockets:', this.state.getWebSockets().length);
+    console.log(
+      '[DO] WebSocket accepted, total sockets:',
+      this.state.getWebSockets().length,
+    );
 
-    server.send(JSON.stringify({
-      type: 'connected',
-      message: 'Connected to room',
-    }));
+    server.send(
+      JSON.stringify({
+        type: 'connected',
+        message: 'Connected to room',
+      }),
+    );
 
     this.broadcastViewerCount();
     await this.resetAlarm();
@@ -122,14 +131,22 @@ export class TelemetryRoom implements DurableObject {
     }
   }
 
-  webSocketClose(ws: WebSocket, code: number, reason: string, wasClean: boolean): void {
+  webSocketClose(
+    ws: WebSocket,
+    code: number,
+    reason: string,
+    _wasClean: boolean,
+  ): void {
     console.log('[DO] WebSocket closed, code:', code, 'reason:', reason);
     this.broadcastViewerCount();
   }
 
   private broadcastViewerCount(): void {
     const sockets = this.state.getWebSockets();
-    const message = JSON.stringify({ type: 'viewer_count', count: sockets.length });
+    const message = JSON.stringify({
+      type: 'viewer_count',
+      count: sockets.length,
+    });
     for (const ws of sockets) {
       try {
         ws.send(message);

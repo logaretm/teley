@@ -40,7 +40,10 @@
               class="font-semibold text-zinc-100 text-sm leading-tight flex items-center gap-1.5"
             >
               <IconPhTagBold class="w-3 h-3 text-amber-400 shrink-0" />
-              <span class="truncate" v-html="highlightText(trace.custom_name)" />
+              <span
+                class="truncate"
+                v-html="highlightText(trace.custom_name)"
+              />
             </h3>
             <h3
               v-else

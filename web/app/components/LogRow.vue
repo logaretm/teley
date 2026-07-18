@@ -57,9 +57,11 @@
                 <button
                   v-if="bodyHasAnsi"
                   class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded transition-colors"
-                  :class="showAnsi
-                    ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
-                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'"
+                  :class="
+                    showAnsi
+                      ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
+                      : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'
+                  "
                   @click.stop="showAnsi = !showAnsi"
                 >
                   ANSI
@@ -106,16 +108,23 @@
                 </h4>
                 <button
                   class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded transition-colors"
-                  :class="showRawAttributes
-                    ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
-                    : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'"
+                  :class="
+                    showRawAttributes
+                      ? 'bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40'
+                      : 'bg-zinc-800 text-zinc-500 hover:text-zinc-400 ring-1 ring-zinc-700'
+                  "
                   @click.stop="showRawAttributes = !showRawAttributes"
                 >
                   Raw
                 </button>
               </div>
-              <div v-if="showRawAttributes" class="bg-zinc-900 rounded px-4 py-3">
-                <pre class="text-sm text-zinc-300 font-mono whitespace-pre-wrap break-all">{{ JSON.stringify(log.attributes, null, 2) }}</pre>
+              <div
+                v-if="showRawAttributes"
+                class="bg-zinc-900 rounded px-4 py-3"
+              >
+                <pre
+                  class="text-sm text-zinc-300 font-mono whitespace-pre-wrap break-all"
+                  >{{ JSON.stringify(log.attributes, null, 2) }}</pre>
               </div>
               <div v-else class="bg-zinc-900 rounded px-4 py-3 space-y-1.5">
                 <div
@@ -124,11 +133,14 @@
                   class="flex items-baseline gap-2 text-sm"
                 >
                   <span class="text-zinc-500 font-mono">{{ key }}:</span>
-                  <span class="text-zinc-300 font-mono break-all">{{ displayValue(value) }}</span>
+                  <span class="text-zinc-300 font-mono break-all">{{
+                    displayValue(value)
+                  }}</span>
                   <span
                     class="px-1.5 py-0.5 text-[10px] font-mono font-semibold rounded shrink-0"
                     :class="typeBadgeClass(value)"
-                  >{{ typeName(value) }}</span>
+                    >{{ typeName(value) }}</span
+                  >
                 </div>
               </div>
             </div>
@@ -143,7 +155,13 @@
 import { motion } from 'motion-v';
 import type { Log } from '@types';
 import { AnimatePresence } from 'motion-v';
-import { formatTimestamp, getSeverityLabel, stripAnsi, hasAnsi, ansiToHtml } from '~/utils/formatters';
+import {
+  formatTimestamp,
+  getSeverityLabel,
+  stripAnsi,
+  hasAnsi,
+  ansiToHtml,
+} from '~/utils/formatters';
 
 interface Props {
   log: Log;
@@ -186,14 +204,26 @@ const severityDotColor = computed(() => {
   return 'bg-zinc-400'; // UNSET
 });
 
-interface TypedAttr { value: unknown; type: string }
+interface TypedAttr {
+  value: unknown;
+  type: string;
+}
 
 function parseTypedAttr(value: unknown): TypedAttr | null {
   let obj = value;
   if (typeof obj === 'string') {
-    try { obj = JSON.parse(obj); } catch { return null; }
+    try {
+      obj = JSON.parse(obj);
+    } catch {
+      return null;
+    }
   }
-  if (typeof obj === 'object' && obj !== null && 'value' in obj && 'type' in obj) {
+  if (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'value' in obj &&
+    'type' in obj
+  ) {
     return obj as TypedAttr;
   }
   return null;
@@ -210,12 +240,20 @@ function typeName(value: unknown): string {
 function typeBadgeClass(value: unknown): string {
   const type = typeName(value);
   switch (type) {
-    case 'string': return 'bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/40';
-    case 'number': case 'integer': case 'double': return 'bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40';
-    case 'boolean': return 'bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/40';
-    case 'array': return 'bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/40';
-    case 'object': return 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40';
-    default: return 'bg-zinc-500/20 text-zinc-400 ring-1 ring-zinc-500/40';
+    case 'string':
+      return 'bg-sky-500/20 text-sky-400 ring-1 ring-sky-500/40';
+    case 'number':
+    case 'integer':
+    case 'double':
+      return 'bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40';
+    case 'boolean':
+      return 'bg-violet-500/20 text-violet-400 ring-1 ring-violet-500/40';
+    case 'array':
+      return 'bg-teal-500/20 text-teal-400 ring-1 ring-teal-500/40';
+    case 'object':
+      return 'bg-orange-500/20 text-orange-400 ring-1 ring-orange-500/40';
+    default:
+      return 'bg-zinc-500/20 text-zinc-400 ring-1 ring-zinc-500/40';
   }
 }
 

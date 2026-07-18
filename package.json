@@ -6,7 +6,15 @@
     "node": ">=24.0.0",
     "pnpm": ">=11"
   },
+  "scripts": {
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
+  },
   "devDependencies": {
-    "changelogithub": "^14.0.0"
+    "changelogithub": "^14.0.0",
+    "oxfmt": "^0.59.0",
+    "oxlint": "^1.74.0"
   }
 }

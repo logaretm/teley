@@ -1,8 +1,8 @@
 <template>
   <div class="space-y-6">
     <p class="text-sm text-zinc-400">
-      Send traces to this viewer using the endpoints below. Click on your session
-      ID in the header to see your unique endpoints.
+      Send traces to this viewer using the endpoints below. Click on your
+      session ID in the header to see your unique endpoints.
     </p>
 
     <!-- Sentry SDK -->

@@ -30,7 +30,10 @@ export function statusLabel(code: number): string {
 }
 
 // Log severity mapping (OTLP spec: severity numbers 1-24). Ported from the web app.
-export function severityLabel(severityNumber: number, severityText?: string | null): string {
+export function severityLabel(
+  severityNumber: number,
+  severityText?: string | null,
+): string {
   if (severityText) return severityText.toUpperCase();
   if (severityNumber >= 21) return 'FATAL';
   if (severityNumber >= 17) return 'ERROR';
@@ -74,7 +77,8 @@ export function wrapText(text: string, width: number): string[] {
           lines.push(line);
           line = '';
         }
-        for (let i = 0; i < word.length; i += width) lines.push(word.slice(i, i + width));
+        for (let i = 0; i < word.length; i += width)
+          lines.push(word.slice(i, i + width));
         continue;
       }
       if (!line) line = word;

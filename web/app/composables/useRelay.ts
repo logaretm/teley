@@ -32,7 +32,7 @@ export function useRelay() {
     try {
       _worker = new SharedWorker(
         new URL('../workers/relay-worker.ts', import.meta.url),
-        { type: 'module', name: 'otel-relay' }
+        { type: 'module', name: 'otel-relay' },
       );
       console.log('[Relay] SharedWorker created');
 
@@ -120,7 +120,11 @@ function handleWorkerMessage(msg: any, status: Ref<RelayStatus>) {
       break;
 
     case 'data':
-      console.log('[Relay] Data received, broadcasting to', dataCallbacks.size, 'callbacks');
+      console.log(
+        '[Relay] Data received, broadcasting to',
+        dataCallbacks.size,
+        'callbacks',
+      );
       console.log('[Relay] Data payload:', msg.payload);
       // Broadcast to all registered callbacks
       for (const callback of dataCallbacks) {

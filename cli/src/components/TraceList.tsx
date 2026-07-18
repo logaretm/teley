@@ -30,7 +30,10 @@ export function TraceList({ traces, selected, width, focused }: Props) {
         const isErr = t.trace.status_code === 2;
         const dur = formatDuration(t.trace.duration);
         const nameMax = innerWidth - dur.length - 3;
-        const name = truncate(t.trace.custom_name || t.trace.operation_name, nameMax);
+        const name = truncate(
+          t.trace.custom_name || t.trace.operation_name,
+          nameMax,
+        );
 
         return (
           <box
@@ -41,7 +44,10 @@ export function TraceList({ traces, selected, width, focused }: Props) {
             }}
           >
             <text fg={isSel ? UI.accent : UI.dim}>{isSel ? '▸ ' : '  '}</text>
-            <text fg={isErr ? ERROR_RED : UI.text} attributes={isSel ? BOLD : 0}>
+            <text
+              fg={isErr ? ERROR_RED : UI.text}
+              attributes={isSel ? BOLD : 0}
+            >
               {name}
             </text>
             <box style={{ flexGrow: 1 }} />

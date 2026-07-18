@@ -32,14 +32,20 @@
         </div>
 
         <!-- Content -->
-        <div class="text-zinc-300 px-6 pb-6" :class="size === 'large' ? 'max-w-2xl' : 'max-w-md'">
+        <div
+          class="text-zinc-300 px-6 pb-6"
+          :class="size === 'large' ? 'max-w-2xl' : 'max-w-md'"
+        >
           <slot name="content">
             <slot />
           </slot>
         </div>
 
         <!-- Actions/Footer -->
-        <div v-if="$slots.actions || $slots.footer" class="p-4 border-t border-zinc-800 flex justify-end gap-3">
+        <div
+          v-if="$slots.actions || $slots.footer"
+          class="p-4 border-t border-zinc-800 flex justify-end gap-3"
+        >
           <slot name="actions">
             <slot name="footer" :close="close" />
           </slot>
@@ -81,7 +87,7 @@ watch(
       dialogRef.value?.close();
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 function open() {

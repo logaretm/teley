@@ -186,11 +186,9 @@ export function useTraceComparison(
     }
   };
 
-  watch(
-    () => [toValue(traceIdA), toValue(traceIdB)],
-    fetchBoth,
-    { immediate: true },
-  );
+  watch(() => [toValue(traceIdA), toValue(traceIdB)], fetchBoth, {
+    immediate: true,
+  });
 
   return {
     traceA,

@@ -27,7 +27,9 @@ export function EmptyState({ status, error, what = 'traces' }: Props) {
           Connection rejected
         </text>
         <text fg={UI.text}>{error ?? 'The relay refused the connection.'}</text>
-        <text fg={UI.dim}>Another viewer may already own this room, or the token is stale.</text>
+        <text fg={UI.dim}>
+          Another viewer may already own this room, or the token is stale.
+        </text>
       </box>
     );
   }
@@ -47,7 +49,9 @@ export function EmptyState({ status, error, what = 'traces' }: Props) {
       }}
     >
       <text fg={UI.text} attributes={BOLD}>
-        {status === 'connected' ? `Waiting for ${what}…` : 'Connecting to relay…'}
+        {status === 'connected'
+          ? `Waiting for ${what}…`
+          : 'Connecting to relay…'}
       </text>
       <text fg={UI.dim}>Point your app's telemetry at the DSN above.</text>
       <text fg={UI.dim}>Press tab to select a link, then ↵ to copy it.</text>
