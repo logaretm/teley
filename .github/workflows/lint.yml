@@ -23,10 +23,15 @@ jobs:
           node-version: 24
           cache: pnpm
 
-      # oxlint/oxfmt ship prebuilt binaries and need no build step, so skip
-      # postinstall (nuxt prepare, native builds) to keep this fast.
+      # oxlint/oxfmt/tsgolint ship prebuilt binaries and need no build step, so
+      # skip postinstall (native builds) to keep this fast.
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+
+      # Type-aware lint needs Nuxt's generated types so auto-imports resolve;
+      # --ignore-scripts skipped the postinstall that normally does this.
+      - name: Generate Nuxt types
+        run: pnpm --filter teley exec nuxt prepare
 
       - name: Lint
         run: pnpm run lint

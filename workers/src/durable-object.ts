@@ -12,7 +12,7 @@ export class TelemetryRoom implements DurableObject {
     this.env = env;
 
     // Restore token from storage
-    this.state.blockConcurrencyWhile(async () => {
+    void this.state.blockConcurrencyWhile(async () => {
       this.receiveToken =
         (await this.state.storage.get<string>('receiveToken')) ?? null;
     });

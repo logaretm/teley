@@ -64,7 +64,7 @@ export function useLogs() {
     const unsubscribe = onLogUpdate(handleLogUpdate);
 
     // Load existing logs from IndexedDB
-    fetchLogs();
+    void fetchLogs();
 
     // Cleanup on unmount
     onUnmounted(() => {

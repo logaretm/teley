@@ -60,7 +60,7 @@ export function useMetrics() {
 
   onMounted(() => {
     const unsubscribe = onMetricUpdate(handleMetricUpdate);
-    fetchMetrics();
+    void fetchMetrics();
 
     onUnmounted(() => {
       unsubscribe();
