@@ -123,7 +123,33 @@ export const MOCK_TRACES: TraceEntry[] = [
       duration: 224,
       service: 'payment-service',
       status: 2,
-      attributes: { 'peer.service': 'stripe', error: true },
+      // Intentionally attribute-heavy so the span detail panel overflows and
+      // demonstrates scrolling (PageUp/PageDown or mouse wheel).
+      attributes: {
+        'peer.service': 'stripe',
+        error: true,
+        'http.method': 'POST',
+        'http.url': 'https://api.stripe.com/v1/charges',
+        'http.status_code': 402,
+        'http.request_content_length': 512,
+        'http.response_content_length': 1180,
+        'net.peer.name': 'api.stripe.com',
+        'net.peer.port': 443,
+        'net.transport': 'ip_tcp',
+        'stripe.request_id': 'req_9d8f7a6b5c4d3e2f',
+        'stripe.charge_id': 'ch_3Pqf2k2eZvKYlo2C1a2b3c4d',
+        'stripe.customer_id': 'cus_QabcDEFghiJKLm',
+        'stripe.amount': 4999,
+        'stripe.currency': 'usd',
+        'stripe.payment_method': 'pm_1Pqf2k2eZvKYlo2C',
+        'stripe.idempotency_key': 'ik_checkout_4821_7f3a',
+        'retry.count': 3,
+        'error.type': 'card_declined',
+        'error.code': 'insufficient_funds',
+        'error.message': 'Your card has insufficient funds.',
+        'exception.type': 'stripe.error.CardError',
+        'exception.message': 'connection reset by peer after 224ms',
+      },
     },
     {
       id: 'idem',
@@ -268,12 +294,32 @@ const LOG_SPECS: LogSpec[] = [
     ago: 18,
     severity: 17,
     service: 'payment-service',
-    body: 'stripe.charge failed: connection reset by peer',
+    // Long, wrapping body plus many attributes so the log detail panel overflows
+    // and demonstrates scrolling (PageUp/PageDown or mouse wheel).
+    body:
+      'stripe.charge failed: connection reset by peer after 224ms. ' +
+      'CardError: Your card has insufficient funds (code: insufficient_funds). ' +
+      'Traceback (most recent call last):\n' +
+      '  File "payment_service/gateway.py", line 142, in charge\n' +
+      '    response = stripe.Charge.create(amount=amount, currency=currency, source=token)\n' +
+      '  File "stripe/api_resources/charge.py", line 58, in create\n' +
+      '    return cls._static_request("post", url, params=params)\n' +
+      '  File "stripe/api_requestor.py", line 216, in request\n' +
+      '    raise error.CardError(msg, code, http_status=resp.status)\n' +
+      'stripe.error.CardError: Your card has insufficient funds.',
     trace_id: 'trace01',
     span_id: 'trace01-stripe',
     attributes: {
       'peer.service': 'stripe',
-      'http.status_code': 500,
+      'http.method': 'POST',
+      'http.url': 'https://api.stripe.com/v1/charges',
+      'http.status_code': 402,
+      'stripe.request_id': 'req_9d8f7a6b5c4d3e2f',
+      'stripe.charge_id': 'ch_3Pqf2k2eZvKYlo2C1a2b3c4d',
+      'stripe.customer_id': 'cus_QabcDEFghiJKLm',
+      'error.type': 'card_declined',
+      'error.code': 'insufficient_funds',
+      'retry.count': 3,
       error: true,
     },
   },

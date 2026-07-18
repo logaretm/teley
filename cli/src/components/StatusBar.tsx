@@ -15,7 +15,13 @@ function Sep() {
   return <text fg={UI.dim}>{'   '}</text>;
 }
 
-export function StatusBar({ focus }: { focus: Focus }) {
+export function StatusBar({
+  focus,
+  canScroll,
+}: {
+  focus: Focus;
+  canScroll: boolean;
+}) {
   return (
     <box style={{ flexDirection: 'row', paddingLeft: 1 }}>
       {focus === 'links' ? (
@@ -27,6 +33,13 @@ export function StatusBar({ focus }: { focus: Focus }) {
       ) : (
         <>
           <Key k="↑↓" label="navigate" />
+          {/* Only offered when the focused detail panel actually overflows. */}
+          {canScroll ? (
+            <>
+              <Sep />
+              <Key k="⇞⇟" label="scroll" />
+            </>
+          ) : null}
           <Sep />
           <Key k="c" label="clear" />
         </>

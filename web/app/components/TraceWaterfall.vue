@@ -162,7 +162,10 @@
           v-for="(spanRow, i) in spanTree"
           :key="spanRow.span.span_id"
           class="span-row grid grid-cols-[var(--name-col)_1fr] gap-4 items-center hover:bg-zinc-900/60 cursor-pointer py-1.5 px-2 rounded-lg"
-          :class="{ 'is-error': spanRow.span.status_code === 2, shown: entered }"
+          :class="{
+            'is-error': spanRow.span.status_code === 2,
+            shown: entered,
+          }"
           :style="{ '--enter-delay': enterDelay(i) }"
           @click="$emit('selectSpan', spanRow.span)"
         >

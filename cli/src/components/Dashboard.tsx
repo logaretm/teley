@@ -4,6 +4,7 @@ import {
   useRenderer,
   useTerminalDimensions,
 } from '@opentui/react';
+import type { ScrollBoxRenderable } from '@opentui/core';
 import { Header } from './Header';
 import { TraceList } from './TraceList';
 import { Waterfall } from './Waterfall';
@@ -37,6 +38,8 @@ const COPIED_MS = 1600;
 // Header occupies 5 rows (border + 3 content lines); StatusBar occupies 1.
 const HEADER_H = 5;
 const STATUS_H = 1;
+// Rows moved per PageUp/PageDown press in a focused detail panel.
+const SCROLL_STEP = 4;
 
 export function Dashboard({
   endpoints,
@@ -58,6 +61,12 @@ export function Dashboard({
   const [selectedLink, setSelectedLink] = useState(0); // 0 = DSN, 1 = OTLP
   const [copiedLink, setCopiedLink] = useState<number | null>(null);
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Points at whichever detail panel (span or log) is currently mounted, so the
+  // keyboard handler can scroll it without each panel owning key input.
+  const detailScrollRef = useRef<ScrollBoxRenderable | null>(null);
+  // The mounted detail panel reports whether its content overflows, so we only
+  // advertise (and act on) scrolling when there's something hidden.
+  const [detailScrollable, setDetailScrollable] = useState(false);
 
   // Keep the selection stable across live updates; default to the newest item.
   const selectedIndex = Math.max(
@@ -134,6 +143,19 @@ export function Dashboard({
     if (key.name === 'left' || key.name === 'right') {
       setView((v) => (v === 'traces' ? 'logs' : 'traces'));
       setFocus((f) => (f === 'links' ? f : 'list'));
+      return;
+    }
+
+    // Scroll the focused detail panel; up/down stay bound to item navigation.
+    if (
+      focus === 'detail' &&
+      detailScrollable &&
+      (key.name === 'pageup' || key.name === 'pagedown')
+    ) {
+      detailScrollRef.current?.scrollBy({
+        x: 0,
+        y: key.name === 'pagedown' ? SCROLL_STEP : -SCROLL_STEP,
+      });
       return;
     }
 
@@ -239,7 +261,10 @@ export function Dashboard({
               <LogDetail
                 log={currentLog}
                 width={width - logListWidth}
+                height={bodyHeight}
                 focused={focus === 'detail'}
+                scrollRef={detailScrollRef}
+                onScrollable={setDetailScrollable}
               />
             </>
           )
@@ -268,13 +293,18 @@ export function Dashboard({
                 width={spanDetailWidth}
                 height={bodyHeight}
                 focused={focus === 'detail'}
+                scrollRef={detailScrollRef}
+                onScrollable={setDetailScrollable}
               />
             ) : null}
           </>
         )}
       </box>
 
-      <StatusBar focus={focus} />
+      <StatusBar
+        focus={focus}
+        canScroll={focus === 'detail' && detailScrollable}
+      />
     </box>
   );
 }
