@@ -23,6 +23,7 @@ interface Props {
   traces: TraceEntry[];
   logs: Log[];
   onClear: () => void;
+  onQuit: () => void;
 }
 
 export type View = 'traces' | 'logs';
@@ -33,7 +34,7 @@ const COPIED_MS = 1600;
 const HEADER_H = 5;
 const STATUS_H = 1;
 
-export function Dashboard({ endpoints, status, error, viewers, traces, logs, onClear }: Props) {
+export function Dashboard({ endpoints, status, error, viewers, traces, logs, onClear, onQuit }: Props) {
   const { width, height } = useTerminalDimensions();
   const renderer = useRenderer();
   const [view, setView] = useState<View>('traces');
@@ -105,7 +106,8 @@ export function Dashboard({ endpoints, status, error, viewers, traces, logs, onC
 
   useKeyboard((key) => {
     if (key.name === 'q' || (key.ctrl && key.name === 'c')) {
-      process.exit(0);
+      onQuit();
+      return;
     }
     if (key.name === 'tab') {
       setFocus((f) => (f === 'list' ? 'detail' : f === 'detail' ? 'links' : 'list'));
