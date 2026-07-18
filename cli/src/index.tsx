@@ -62,6 +62,24 @@ if (args.help) {
 const session = loadOrCreateSession(args.fresh);
 const endpoints = resolveEndpoints(args.host, session);
 
-const renderer = await createCliRenderer();
+// Own Ctrl-C ourselves so quit always runs the same graceful teardown as `q`,
+// rather than the renderer's default which races our key handler.
+const renderer = await createCliRenderer({ exitOnCtrlC: false });
 const root = createRoot(renderer);
-root.render(args.demo ? <DemoApp endpoints={endpoints} /> : <LiveApp endpoints={endpoints} />);
+
+let shuttingDown = false;
+function shutdown() {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  root.unmount(); // runs effect cleanups, closing the relay WebSocket
+  renderer.destroy(); // restores the terminal (exits alt-screen, shows cursor)
+  process.exit(0);
+}
+
+root.render(
+  args.demo ? (
+    <DemoApp endpoints={endpoints} onQuit={shutdown} />
+  ) : (
+    <LiveApp endpoints={endpoints} onQuit={shutdown} />
+  ),
+);
