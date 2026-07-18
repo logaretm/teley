@@ -7,7 +7,7 @@ import ViteComponents from 'unplugin-vue-components/vite';
 import MotionResolver from 'motion-v/resolver';
 
 const cliVersion = JSON.parse(
-  readFileSync(path.resolve(__dirname, '../cli/package.json'), 'utf-8')
+  readFileSync(path.resolve(__dirname, '../cli/package.json'), 'utf-8'),
 ).version as string;
 
 export default defineNuxtConfig({

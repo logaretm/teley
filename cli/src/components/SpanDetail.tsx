@@ -1,6 +1,12 @@
 import type { Span } from '../types';
 import { UI, BOLD, ERROR_RED, OK_GREEN } from '../theme';
-import { formatDuration, spanKindLabel, statusLabel, truncate, stringifyValue } from '../format';
+import {
+  formatDuration,
+  spanKindLabel,
+  statusLabel,
+  truncate,
+  stringifyValue,
+} from '../format';
 
 interface Props {
   span: Span;
@@ -10,7 +16,11 @@ interface Props {
 }
 
 function Label({ text }: { text: string }) {
-  return <text fg={UI.dim} attributes={BOLD}>{text}</text>;
+  return (
+    <text fg={UI.dim} attributes={BOLD}>
+      {text}
+    </text>
+  );
 }
 
 export function SpanDetail({ span, width, height, focused }: Props) {
@@ -19,7 +29,10 @@ export function SpanDetail({ span, width, height, focused }: Props) {
   const attrs = Object.entries(span.attributes ?? {});
 
   // Budget the attribute rows to what's left after the fixed header lines.
-  const headerRows = 2 /* meta + span id */ + (isErr && span.status_message ? 1 : 0) + 1 /* attrs label */;
+  const headerRows =
+    2 /* meta + span id */ +
+    (isErr && span.status_message ? 1 : 0) +
+    1; /* attrs label */
   const attrBudget = Math.max(1, height - 2 - headerRows);
   const shownAttrs = attrs.slice(0, attrBudget);
   const hidden = attrs.length - shownAttrs.length;
@@ -43,13 +56,17 @@ export function SpanDetail({ span, width, height, focused }: Props) {
         <text fg={UI.dim}>{'  ·  '}</text>
         <text fg={UI.text}>{formatDuration(span.duration)}</text>
         <box style={{ flexGrow: 1 }} />
-        <text fg={isErr ? ERROR_RED : OK_GREEN} attributes={BOLD}>{statusLabel(span.status_code)}</text>
+        <text fg={isErr ? ERROR_RED : OK_GREEN} attributes={BOLD}>
+          {statusLabel(span.status_code)}
+        </text>
       </box>
 
       {/* Span id */}
       <box style={{ flexDirection: 'row' }}>
         <Label text="span " />
-        <text fg={UI.text}>{truncate(span.span_id, Math.max(4, inner - 5))}</text>
+        <text fg={UI.text}>
+          {truncate(span.span_id, Math.max(4, inner - 5))}
+        </text>
       </box>
 
       {/* Error message */}
@@ -68,7 +85,12 @@ export function SpanDetail({ span, width, height, focused }: Props) {
             return (
               <box key={key} style={{ flexDirection: 'row' }}>
                 <text fg={UI.dim}>{k}</text>
-                <text fg={UI.text}>{truncate(stringifyValue(value), Math.max(4, inner - k.length))}</text>
+                <text fg={UI.text}>
+                  {truncate(
+                    stringifyValue(value),
+                    Math.max(4, inner - k.length),
+                  )}
+                </text>
               </box>
             );
           })

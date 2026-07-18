@@ -7,7 +7,9 @@
 
     <!-- Node.js OTLP Logs -->
     <div class="space-y-2">
-      <h4 class="text-sm font-medium text-zinc-300">OTLP Log Exporter (Node.js)</h4>
+      <h4 class="text-sm font-medium text-zinc-300">
+        OTLP Log Exporter (Node.js)
+      </h4>
       <pre
         class="text-xs bg-zinc-900 rounded-lg p-4 overflow-x-auto text-zinc-300"
       ><code>import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
@@ -32,7 +34,9 @@ logger.emit({
 
     <!-- Python OTLP Logs -->
     <div class="space-y-2">
-      <h4 class="text-sm font-medium text-zinc-300">OTLP Log Exporter (Python)</h4>
+      <h4 class="text-sm font-medium text-zinc-300">
+        OTLP Log Exporter (Python)
+      </h4>
       <pre
         class="text-xs bg-zinc-900 rounded-lg p-4 overflow-x-auto text-zinc-300"
       ><code>from opentelemetry.sdk._logs import LoggerProvider
@@ -50,7 +54,9 @@ logger_provider.add_log_record_processor(
 
     <!-- Sentry SDK (logs via errors) -->
     <div class="space-y-2">
-      <h4 class="text-sm font-medium text-zinc-300">Sentry SDK (Errors as Logs)</h4>
+      <h4 class="text-sm font-medium text-zinc-300">
+        Sentry SDK (Errors as Logs)
+      </h4>
       <pre
         class="text-xs bg-zinc-900 rounded-lg p-4 overflow-x-auto text-zinc-300"
       ><code>import * as Sentry from "@sentry/browser";

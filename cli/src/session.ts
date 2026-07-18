@@ -19,7 +19,10 @@ export function loadOrCreateSession(fresh = false): Session {
   if (!fresh && existsSync(FILE)) {
     try {
       const parsed = JSON.parse(readFileSync(FILE, 'utf8'));
-      if (typeof parsed.roomId === 'string' && typeof parsed.receiveToken === 'string') {
+      if (
+        typeof parsed.roomId === 'string' &&
+        typeof parsed.receiveToken === 'string'
+      ) {
         return { roomId: parsed.roomId, receiveToken: parsed.receiveToken };
       }
     } catch {
@@ -44,7 +47,12 @@ export interface Endpoints {
 // localhost / loopback hosts use plain http/ws; everything else uses TLS.
 function isLocal(host: string): boolean {
   const name = host.replace(/:\d+$/, '');
-  return name === 'localhost' || name === '127.0.0.1' || name === '0.0.0.0' || name === '[::1]';
+  return (
+    name === 'localhost' ||
+    name === '127.0.0.1' ||
+    name === '0.0.0.0' ||
+    name === '[::1]'
+  );
 }
 
 export function resolveEndpoints(host: string, session: Session): Endpoints {

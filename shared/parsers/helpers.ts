@@ -103,7 +103,7 @@ export function generateSpanId(): string {
  */
 export function generateEventId(): string {
   return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/x/g, () =>
-    Math.floor(Math.random() * 16).toString(16)
+    Math.floor(Math.random() * 16).toString(16),
   );
 }
 

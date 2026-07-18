@@ -21,7 +21,6 @@
             Real-time log monitoring (showing last 500 logs)
           </p>
         </div>
-
       </div>
     </div>
 
@@ -90,7 +89,6 @@
     <ModalDialog ref="setupGuideDialog" title="Logs Setup Guide" size="large">
       <LogsSetupGuide />
     </ModalDialog>
-
   </div>
 </template>
 
@@ -100,7 +98,7 @@ const { selectedServices, hasMultipleServices } = useServiceFilter();
 
 const filteredLogs = computed(() => {
   if (!hasMultipleServices.value) return logs.value;
-  return logs.value.filter(l => selectedServices.value.has(l.service_name));
+  return logs.value.filter((l) => selectedServices.value.has(l.service_name));
 });
 
 const expandedLogs = ref<Set<string>>(new Set());

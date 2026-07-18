@@ -50,19 +50,29 @@ export function LogList({ logs, selected, width, height, focused }: Props) {
         const label = severityLabel(log.severity_number, log.severity_text);
         const color = severityColor(label);
         const time = formatLogTime(log.timestamp);
-        const service = truncate(log.service_name, SERVICE_COL).padEnd(SERVICE_COL);
+        const service = truncate(log.service_name, SERVICE_COL).padEnd(
+          SERVICE_COL,
+        );
         const body = truncate(stripAnsi(log.body), msgMax);
 
         return (
           <box
             key={log.log_id}
-            style={{ flexDirection: 'row', backgroundColor: isSel ? UI.panel : undefined }}
+            style={{
+              flexDirection: 'row',
+              backgroundColor: isSel ? UI.panel : undefined,
+            }}
           >
             <text fg={isSel ? UI.accent : UI.dim}>{isSel ? '▸ ' : '  '}</text>
-            <text fg={color} attributes={BOLD}>{'● '}</text>
+            <text fg={color} attributes={BOLD}>
+              {'● '}
+            </text>
             <text fg={UI.dim}>{`${time} `}</text>
             <text fg={UI.text}>{`${service} `}</text>
-            <text fg={isSel ? UI.textStrong : UI.text} attributes={isSel ? BOLD : 0}>
+            <text
+              fg={isSel ? UI.textStrong : UI.text}
+              attributes={isSel ? BOLD : 0}
+            >
               {body}
             </text>
           </box>

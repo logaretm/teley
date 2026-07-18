@@ -8,7 +8,11 @@ import { summarizeTrace } from '../../shared/parsers/trace-summary';
 
 // 'rejected' is terminal: the relay refused the handshake (room already claimed
 // or token mismatch) and we stop retrying.
-export type RelayStatus = 'connecting' | 'connected' | 'disconnected' | 'rejected';
+export type RelayStatus =
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'rejected';
 
 const HEARTBEAT_MS = 30_000;
 // Exponential backoff for reconnects: base doubles each attempt up to a cap,
@@ -140,7 +144,9 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
       // surface it instead of reconnecting forever.
       if (!opened && e.code === HANDSHAKE_REJECTED_CODE) {
         events.onStatus?.('rejected');
-        events.onReject?.('Relay rejected the connection: room already claimed or token mismatch.');
+        events.onReject?.(
+          'Relay rejected the connection: room already claimed or token mismatch.',
+        );
         return;
       }
 
@@ -201,7 +207,9 @@ abstract class BoundedStore<T> {
 
   // Items newest-first by orderOf.
   protected sorted(): T[] {
-    return [...this.items.values()].sort((a, b) => this.orderOf(b) - this.orderOf(a));
+    return [...this.items.values()].sort(
+      (a, b) => this.orderOf(b) - this.orderOf(a),
+    );
   }
 }
 

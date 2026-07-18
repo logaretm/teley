@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useKeyboard, useRenderer, useTerminalDimensions } from '@opentui/react';
+import {
+  useKeyboard,
+  useRenderer,
+  useTerminalDimensions,
+} from '@opentui/react';
 import { Header } from './Header';
 import { TraceList } from './TraceList';
 import { Waterfall } from './Waterfall';
@@ -34,7 +38,16 @@ const COPIED_MS = 1600;
 const HEADER_H = 5;
 const STATUS_H = 1;
 
-export function Dashboard({ endpoints, status, error, viewers, traces, logs, onClear, onQuit }: Props) {
+export function Dashboard({
+  endpoints,
+  status,
+  error,
+  viewers,
+  traces,
+  logs,
+  onClear,
+  onQuit,
+}: Props) {
   const { width, height } = useTerminalDimensions();
   const renderer = useRenderer();
   const [view, setView] = useState<View>('traces');
@@ -87,9 +100,12 @@ export function Dashboard({ endpoints, status, error, viewers, traces, logs, onC
     if (!stillThere) setSelectedSpanId(spanNodes[0]!.span.span_id);
   }, [spanNodes, selectedSpanId]);
 
-  useEffect(() => () => {
-    if (copiedTimer.current) clearTimeout(copiedTimer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    },
+    [],
+  );
 
   const copyLink = (idx: number) => {
     const text = idx === 0 ? endpoints.dsn : endpoints.otlp;
@@ -110,7 +126,9 @@ export function Dashboard({ endpoints, status, error, viewers, traces, logs, onC
       return;
     }
     if (key.name === 'tab') {
-      setFocus((f) => (f === 'list' ? 'detail' : f === 'detail' ? 'links' : 'list'));
+      setFocus((f) =>
+        f === 'list' ? 'detail' : f === 'detail' ? 'links' : 'list',
+      );
       return;
     }
     if (key.name === 'left' || key.name === 'right') {
@@ -139,7 +157,10 @@ export function Dashboard({ endpoints, status, error, viewers, traces, logs, onC
     if (view === 'logs') {
       if (logs.length === 0) return;
       if (up) setSelectedLogId(logs[Math.max(0, selectedLogIndex - 1)]!.log_id);
-      if (down) setSelectedLogId(logs[Math.min(logs.length - 1, selectedLogIndex + 1)]!.log_id);
+      if (down)
+        setSelectedLogId(
+          logs[Math.min(logs.length - 1, selectedLogIndex + 1)]!.log_id,
+        );
       return;
     }
 
@@ -149,28 +170,46 @@ export function Dashboard({ endpoints, status, error, viewers, traces, logs, onC
     // otherwise they move between traces in the list.
     if (focus === 'detail') {
       if (spanNodes.length === 0) return;
-      if (up) setSelectedSpanId(spanNodes[Math.max(0, selectedSpanIndex - 1)]!.span.span_id);
+      if (up)
+        setSelectedSpanId(
+          spanNodes[Math.max(0, selectedSpanIndex - 1)]!.span.span_id,
+        );
       if (down)
-        setSelectedSpanId(spanNodes[Math.min(spanNodes.length - 1, selectedSpanIndex + 1)]!.span.span_id);
+        setSelectedSpanId(
+          spanNodes[Math.min(spanNodes.length - 1, selectedSpanIndex + 1)]!.span
+            .span_id,
+        );
       return;
     }
 
-    if (up) setSelectedId(traces[Math.max(0, selectedIndex - 1)]!.trace.trace_id);
-    if (down) setSelectedId(traces[Math.min(traces.length - 1, selectedIndex + 1)]!.trace.trace_id);
+    if (up)
+      setSelectedId(traces[Math.max(0, selectedIndex - 1)]!.trace.trace_id);
+    if (down)
+      setSelectedId(
+        traces[Math.min(traces.length - 1, selectedIndex + 1)]!.trace.trace_id,
+      );
   });
 
   const bodyHeight = Math.max(1, height - HEADER_H - STATUS_H);
   const traceListWidth = Math.max(24, Math.min(38, Math.floor(width * 0.3)));
-  const logListWidth = Math.max(40, Math.min(width - 30, Math.floor(width * 0.58)));
+  const logListWidth = Math.max(
+    40,
+    Math.min(width - 30, Math.floor(width * 0.58)),
+  );
 
   // The span attribute panel only appears while the waterfall is focused; the
   // trace list collapses to give the waterfall + panel the full width.
-  const showSpanDetail = view === 'traces' && focus === 'detail' && !!currentSpan;
+  const showSpanDetail =
+    view === 'traces' && focus === 'detail' && !!currentSpan;
   const spanDetailWidth = Math.max(30, Math.min(46, Math.floor(width * 0.34)));
-  const waterfallWidth = showSpanDetail ? width - spanDetailWidth : width - traceListWidth;
+  const waterfallWidth = showSpanDetail
+    ? width - spanDetailWidth
+    : width - traceListWidth;
 
   return (
-    <box style={{ flexDirection: 'column', width, height, backgroundColor: UI.bg }}>
+    <box
+      style={{ flexDirection: 'column', width, height, backgroundColor: UI.bg }}
+    >
       <Header
         dsn={endpoints.dsn}
         otlp={endpoints.otlp}
@@ -197,7 +236,11 @@ export function Dashboard({ endpoints, status, error, viewers, traces, logs, onC
                 height={bodyHeight}
                 focused={focus === 'list'}
               />
-              <LogDetail log={currentLog} width={width - logListWidth} focused={focus === 'detail'} />
+              <LogDetail
+                log={currentLog}
+                width={width - logListWidth}
+                focused={focus === 'detail'}
+              />
             </>
           )
         ) : traces.length === 0 || !current ? (

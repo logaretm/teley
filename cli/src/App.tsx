@@ -5,8 +5,16 @@ import { MOCK_TRACES, buildMockLogs } from './mock-data';
 import type { Endpoints } from './session';
 
 // Live mode: connects to the relay WebSocket and streams real traces + logs.
-export function LiveApp({ endpoints, onQuit }: { endpoints: Endpoints; onQuit: () => void }) {
-  const { status, error, viewers, traces, logs, clear } = useLiveData(endpoints.wsUrl);
+export function LiveApp({
+  endpoints,
+  onQuit,
+}: {
+  endpoints: Endpoints;
+  onQuit: () => void;
+}) {
+  const { status, error, viewers, traces, logs, clear } = useLiveData(
+    endpoints.wsUrl,
+  );
   return (
     <Dashboard
       endpoints={endpoints}
@@ -22,7 +30,13 @@ export function LiveApp({ endpoints, onQuit }: { endpoints: Endpoints; onQuit: (
 }
 
 // Demo mode (--demo): renders the mock data with no network connection.
-export function DemoApp({ endpoints, onQuit }: { endpoints: Endpoints; onQuit: () => void }) {
+export function DemoApp({
+  endpoints,
+  onQuit,
+}: {
+  endpoints: Endpoints;
+  onQuit: () => void;
+}) {
   const [traces, setTraces] = useState(MOCK_TRACES);
   const [logs, setLogs] = useState(buildMockLogs);
   return (

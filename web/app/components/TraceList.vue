@@ -105,7 +105,11 @@
       class="border-t border-zinc-800 bg-zinc-900 p-3 flex items-center justify-between"
     >
       <span class="text-xs text-zinc-400">
-        {{ lockedTraceId && selectedForCompare.size === 1 ? 'Select a trace to compare with' : `${selectedForCompare.size} / 2 selected` }}
+        {{
+          lockedTraceId && selectedForCompare.size === 1
+            ? 'Select a trace to compare with'
+            : `${selectedForCompare.size} / 2 selected`
+        }}
       </span>
       <div class="flex items-center gap-2">
         <button

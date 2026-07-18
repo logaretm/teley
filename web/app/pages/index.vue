@@ -24,7 +24,11 @@
     />
 
     <!-- Main Content -->
-    <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" @compare="startCompare" />
+    <TraceDetail
+      v-if="selectedTraceId"
+      :trace-id="selectedTraceId"
+      @compare="startCompare"
+    />
 
     <div v-else class="flex-1 flex items-center justify-center bg-zinc-950">
       <div class="text-center space-y-6 max-w-md px-8">
@@ -58,7 +62,11 @@
 </template>
 
 <script setup lang="ts">
-const { width: tracesPanelWidth, dragging: tracesPanelDragging, onMouseDownLeft: onTracesPanelMouseDown } = useResizablePanel('traces-panel-width', 350);
+const {
+  width: tracesPanelWidth,
+  dragging: tracesPanelDragging,
+  onMouseDownLeft: onTracesPanelMouseDown,
+} = useResizablePanel('traces-panel-width', 350);
 const selectedTraceId = ref<string | null>(null);
 const compareWithTraceId = ref<string | null>(null);
 const setupDialog = useTemplateRef('setupGuideDialog');
@@ -67,27 +75,32 @@ const { traces, deleteTrace } = useTraces();
 const { selectedServices, hasMultipleServices } = useServiceFilter();
 
 const pendingDeleteId = ref<string | null>(null);
-const [DeleteTraceConfirmDialog, triggerDeleteConfirm] = useConfirmation(async () => {
-  const id = pendingDeleteId.value;
-  pendingDeleteId.value = null;
-  if (!id) return;
-  if (selectedTraceId.value === id) {
-    selectedTraceId.value = null;
-  }
-  if (compareWithTraceId.value === id) {
-    compareWithTraceId.value = null;
-  }
-  await deleteTrace(id);
-});
+const [DeleteTraceConfirmDialog, triggerDeleteConfirm] = useConfirmation(
+  async () => {
+    const id = pendingDeleteId.value;
+    pendingDeleteId.value = null;
+    if (!id) return;
+    if (selectedTraceId.value === id) {
+      selectedTraceId.value = null;
+    }
+    if (compareWithTraceId.value === id) {
+      compareWithTraceId.value = null;
+    }
+    await deleteTrace(id);
+  },
+);
 
 function confirmDelete(traceId: string) {
   pendingDeleteId.value = traceId;
-  triggerDeleteConfirm('Delete trace?', 'This trace and its spans will be permanently removed from your local browser storage.');
+  triggerDeleteConfirm(
+    'Delete trace?',
+    'This trace and its spans will be permanently removed from your local browser storage.',
+  );
 }
 
 const filteredTraces = computed(() => {
   if (!hasMultipleServices.value) return traces.value;
-  return traces.value.filter(t => selectedServices.value.has(t.service_name));
+  return traces.value.filter((t) => selectedServices.value.has(t.service_name));
 });
 
 function startCompare() {

@@ -1,13 +1,15 @@
 <template>
   <div class="space-y-6">
     <p class="text-sm text-zinc-400">
-      Send metrics to this viewer using OTLP exporters or Sentry SDK. Click on your session ID in
-      the header to see your unique endpoints.
+      Send metrics to this viewer using OTLP exporters or Sentry SDK. Click on
+      your session ID in the header to see your unique endpoints.
     </p>
 
     <!-- Node.js OTLP Metrics -->
     <div class="space-y-2">
-      <h4 class="text-sm font-medium text-zinc-300">OTLP Metric Exporter (Node.js)</h4>
+      <h4 class="text-sm font-medium text-zinc-300">
+        OTLP Metric Exporter (Node.js)
+      </h4>
       <pre
         class="text-xs bg-zinc-900 rounded-lg p-4 overflow-x-auto text-zinc-300"
       ><code>import { OTLPMetricExporter } from '@opentelemetry/exporter-metrics-otlp-http';
@@ -48,7 +50,9 @@ histogram.record(42, { method: 'GET', route: '/api/users' });</code></pre>
 
     <!-- Python OTLP Metrics -->
     <div class="space-y-2">
-      <h4 class="text-sm font-medium text-zinc-300">OTLP Metric Exporter (Python)</h4>
+      <h4 class="text-sm font-medium text-zinc-300">
+        OTLP Metric Exporter (Python)
+      </h4>
       <pre
         class="text-xs bg-zinc-900 rounded-lg p-4 overflow-x-auto text-zinc-300"
       ><code>from opentelemetry.sdk.metrics import MeterProvider

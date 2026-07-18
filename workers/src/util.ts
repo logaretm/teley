@@ -9,7 +9,8 @@ import type {
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, X-Sentry-Auth, sentry-trace, baggage',
+  'Access-Control-Allow-Headers':
+    'Content-Type, X-Sentry-Auth, sentry-trace, baggage',
 };
 
 export function handleCORS(): Response {
@@ -49,14 +50,20 @@ export function extractRoomIdFromSentryAuth(request: Request): string | null {
   return null;
 }
 
-export function isTraceRequest(body: Record<string, any>): body is IExportTraceServiceRequest {
+export function isTraceRequest(
+  body: Record<string, any>,
+): body is IExportTraceServiceRequest {
   return Array.isArray(body.resourceSpans);
 }
 
-export function isLogsRequest(body: Record<string, any>): body is IExportLogsServiceRequest {
+export function isLogsRequest(
+  body: Record<string, any>,
+): body is IExportLogsServiceRequest {
   return Array.isArray(body.resourceLogs);
 }
 
-export function isMetricsRequest(body: Record<string, any>): body is IExportMetricsServiceRequest {
+export function isMetricsRequest(
+  body: Record<string, any>,
+): body is IExportMetricsServiceRequest {
   return Array.isArray(body.resourceMetrics);
 }

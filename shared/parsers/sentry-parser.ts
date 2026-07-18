@@ -64,7 +64,7 @@ export function parseSentryEnvelope(raw: string): SentryEnvelope {
   let headers: SentryEnvelopeHeaders;
   try {
     headers = JSON.parse(lines[0]!);
-  } catch (error) {
+  } catch {
     throw new Error('Invalid envelope: failed to parse headers');
   }
 
@@ -115,7 +115,7 @@ export function parseSentryDSN(dsn: string) {
       host: url.host,
       projectId: url.pathname.replace(/^\//, ''),
     };
-  } catch (error) {
+  } catch {
     throw new Error(`Invalid Sentry DSN: ${dsn}`);
   }
 }

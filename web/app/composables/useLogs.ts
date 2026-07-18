@@ -33,7 +33,10 @@ export function useLogs() {
     try {
       const result = await dbGetLogs(500);
       logs.value = result;
-      addServiceNames(result.map(l => l.service_name), 'logs');
+      addServiceNames(
+        result.map((l) => l.service_name),
+        'logs',
+      );
       console.log('[Logs] Loaded', result.length, 'logs from IndexedDB');
     } catch (err: any) {
       console.error('[Logs] Error fetching logs:', err);

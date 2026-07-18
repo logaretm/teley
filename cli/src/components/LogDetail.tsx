@@ -1,6 +1,13 @@
 import type { Log } from '../types';
 import { UI, BOLD, severityColor } from '../theme';
-import { formatLogTime, severityLabel, stripAnsi, truncate, wrapText, stringifyValue } from '../format';
+import {
+  formatLogTime,
+  severityLabel,
+  stripAnsi,
+  truncate,
+  wrapText,
+  stringifyValue,
+} from '../format';
 
 interface Props {
   log: Log;
@@ -9,7 +16,11 @@ interface Props {
 }
 
 function Label({ text }: { text: string }) {
-  return <text fg={UI.dim} attributes={BOLD}>{text}</text>;
+  return (
+    <text fg={UI.dim} attributes={BOLD}>
+      {text}
+    </text>
+  );
 }
 
 export function LogDetail({ log, width, focused }: Props) {
@@ -33,12 +44,19 @@ export function LogDetail({ log, width, focused }: Props) {
     >
       {/* Meta: severity on one line, service + time below, so it never wraps oddly. */}
       <text fg={color} attributes={BOLD}>{`● ${label}`}</text>
-      <text fg={UI.dim}>{truncate(`${log.service_name}  ·  ${formatLogTime(log.timestamp)}`, inner)}</text>
+      <text fg={UI.dim}>
+        {truncate(
+          `${log.service_name}  ·  ${formatLogTime(log.timestamp)}`,
+          inner,
+        )}
+      </text>
 
       {/* Body */}
       <box style={{ flexDirection: 'column', marginTop: 1 }}>
         {wrapText(stripAnsi(log.body), inner).map((line, i) => (
-          <text key={i} fg={UI.text}>{line}</text>
+          <text key={i} fg={UI.text}>
+            {line}
+          </text>
         ))}
       </box>
 
@@ -69,7 +87,12 @@ export function LogDetail({ log, width, focused }: Props) {
             return (
               <box key={key} style={{ flexDirection: 'row' }}>
                 <text fg={UI.dim}>{k}</text>
-                <text fg={UI.text}>{truncate(stringifyValue(value), Math.max(4, inner - k.length))}</text>
+                <text fg={UI.text}>
+                  {truncate(
+                    stringifyValue(value),
+                    Math.max(4, inner - k.length),
+                  )}
+                </text>
               </box>
             );
           })}

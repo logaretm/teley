@@ -13,20 +13,37 @@
         <h1 class="text-lg font-semibold text-zinc-100">Trace Comparison</h1>
 
         <!-- Diff Summary Badges -->
-        <div v-if="!loading && diffSummary" class="flex items-center gap-2 ml-auto">
-          <span class="text-xs font-mono px-2 py-1 rounded bg-zinc-800 text-zinc-400">
+        <div
+          v-if="!loading && diffSummary"
+          class="flex items-center gap-2 ml-auto"
+        >
+          <span
+            class="text-xs font-mono px-2 py-1 rounded bg-zinc-800 text-zinc-400"
+          >
             {{ diffSummary.matched }} matched
           </span>
-          <span v-if="diffSummary.added" class="text-xs font-mono px-2 py-1 rounded bg-green-500/20 text-green-400">
+          <span
+            v-if="diffSummary.added"
+            class="text-xs font-mono px-2 py-1 rounded bg-green-500/20 text-green-400"
+          >
             +{{ diffSummary.added }} added
           </span>
-          <span v-if="diffSummary.removed" class="text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400">
+          <span
+            v-if="diffSummary.removed"
+            class="text-xs font-mono px-2 py-1 rounded bg-red-500/20 text-red-400"
+          >
             -{{ diffSummary.removed }} removed
           </span>
-          <span v-if="diffSummary.slower" class="text-xs font-mono px-2 py-1 rounded bg-red-500/10 text-red-400">
+          <span
+            v-if="diffSummary.slower"
+            class="text-xs font-mono px-2 py-1 rounded bg-red-500/10 text-red-400"
+          >
             {{ diffSummary.slower }} slower
           </span>
-          <span v-if="diffSummary.faster" class="text-xs font-mono px-2 py-1 rounded bg-green-500/10 text-green-400">
+          <span
+            v-if="diffSummary.faster"
+            class="text-xs font-mono px-2 py-1 rounded bg-green-500/10 text-green-400"
+          >
             {{ diffSummary.faster }} faster
           </span>
         </div>
@@ -36,17 +53,26 @@
       <div v-if="traceA && traceB" class="grid grid-cols-2 gap-4">
         <div class="bg-zinc-950 rounded-lg p-3">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300">A</span>
-            <span class="text-sm font-semibold text-zinc-200 truncate">{{ traceA.operation_name }}</span>
+            <span
+              class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300"
+              >A</span
+            >
+            <span class="text-sm font-semibold text-zinc-200 truncate">{{
+              traceA.operation_name
+            }}</span>
           </div>
           <div class="flex items-center gap-4 text-xs text-zinc-500">
             <span>{{ traceA.service_name }}</span>
-            <span class="font-mono text-zinc-300">{{ formatDuration(traceA.duration) }}</span>
+            <span class="font-mono text-zinc-300">{{
+              formatDuration(traceA.duration)
+            }}</span>
             <span
               class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
               :class="{
-                'bg-green-500/20 text-green-400': getStatusColor(traceA.status_code) === 'success',
-                'bg-red-500/20 text-red-400': getStatusColor(traceA.status_code) === 'error',
+                'bg-green-500/20 text-green-400':
+                  getStatusColor(traceA.status_code) === 'success',
+                'bg-red-500/20 text-red-400':
+                  getStatusColor(traceA.status_code) === 'error',
               }"
             >
               {{ traceA.status_code === 2 ? 'ERROR' : 'OK' }}
@@ -55,17 +81,26 @@
         </div>
         <div class="bg-zinc-950 rounded-lg p-3">
           <div class="flex items-center gap-2 mb-1">
-            <span class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300">B</span>
-            <span class="text-sm font-semibold text-zinc-200 truncate">{{ traceB.operation_name }}</span>
+            <span
+              class="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-zinc-700 text-zinc-300"
+              >B</span
+            >
+            <span class="text-sm font-semibold text-zinc-200 truncate">{{
+              traceB.operation_name
+            }}</span>
           </div>
           <div class="flex items-center gap-4 text-xs text-zinc-500">
             <span>{{ traceB.service_name }}</span>
-            <span class="font-mono text-zinc-300">{{ formatDuration(traceB.duration) }}</span>
+            <span class="font-mono text-zinc-300">{{
+              formatDuration(traceB.duration)
+            }}</span>
             <span
               class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase"
               :class="{
-                'bg-green-500/20 text-green-400': getStatusColor(traceB.status_code) === 'success',
-                'bg-red-500/20 text-red-400': getStatusColor(traceB.status_code) === 'error',
+                'bg-green-500/20 text-green-400':
+                  getStatusColor(traceB.status_code) === 'success',
+                'bg-red-500/20 text-red-400':
+                  getStatusColor(traceB.status_code) === 'error',
               }"
             >
               {{ traceB.status_code === 2 ? 'ERROR' : 'OK' }}
@@ -89,9 +124,14 @@
     </div>
 
     <!-- Missing traces -->
-    <div v-else-if="!traceA || !traceB" class="flex-1 flex items-center justify-center">
+    <div
+      v-else-if="!traceA || !traceB"
+      class="flex-1 flex items-center justify-center"
+    >
       <div class="text-center space-y-2">
-        <p class="text-sm text-zinc-400">One or both traces could not be found</p>
+        <p class="text-sm text-zinc-400">
+          One or both traces could not be found
+        </p>
         <button
           @click="navigateTo('/')"
           class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium rounded-lg transition-colors"

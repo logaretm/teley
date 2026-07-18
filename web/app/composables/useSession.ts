@@ -1,11 +1,18 @@
 // Composable for managing room session credentials
 
 import { nanoid } from 'nanoid';
-import { saveCredentials, getCredentials, clearCredentials } from '../database/operations';
+import {
+  saveCredentials,
+  getCredentials,
+  clearCredentials,
+} from '../database/operations';
 
 export function useSession() {
   const roomId = useState<string | null>('session-roomId', () => null);
-  const receiveToken = useState<string | null>('session-receiveToken', () => null);
+  const receiveToken = useState<string | null>(
+    'session-receiveToken',
+    () => null,
+  );
   const isNewSession = useState<boolean>('session-isNew', () => false);
   const initialized = useState<boolean>('session-initialized', () => false);
 

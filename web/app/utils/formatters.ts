@@ -11,10 +11,22 @@ export function stripAnsi(str: string): string {
 }
 
 const ANSI_COLORS: Record<number, string> = {
-  30: '#1e1e1e', 31: '#e06c75', 32: '#98c379', 33: '#e5c07b',
-  34: '#61afef', 35: '#c678dd', 36: '#56b6c2', 37: '#abb2bf',
-  90: '#5c6370', 91: '#e06c75', 92: '#98c379', 93: '#e5c07b',
-  94: '#61afef', 95: '#c678dd', 96: '#56b6c2', 97: '#ffffff',
+  30: '#1e1e1e',
+  31: '#e06c75',
+  32: '#98c379',
+  33: '#e5c07b',
+  34: '#61afef',
+  35: '#c678dd',
+  36: '#56b6c2',
+  37: '#abb2bf',
+  90: '#5c6370',
+  91: '#e06c75',
+  92: '#98c379',
+  93: '#e5c07b',
+  94: '#61afef',
+  95: '#c678dd',
+  96: '#56b6c2',
+  97: '#ffffff',
 };
 
 export function ansiToHtml(str: string): string {

@@ -18,7 +18,10 @@
         class="px-1.5 py-1.5 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-700 self-stretch border-l border-zinc-700 transition-colors"
         title="Clear options"
       >
-        <IconPhCaretDown class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': dropdownOpen }" />
+        <IconPhCaretDown
+          class="w-3.5 h-3.5 transition-transform"
+          :class="{ 'rotate-180': dropdownOpen }"
+        />
       </button>
     </div>
 
@@ -36,9 +39,11 @@
         @click="handleClearSelected"
         :disabled="!clearTraces && !clearLogsOption && !clearMetricsOption"
         class="w-full px-3 py-1.5 text-sm font-medium rounded transition-colors"
-        :class="clearTraces || clearLogsOption || clearMetricsOption
-          ? 'bg-red-600 hover:bg-red-500 text-white'
-          : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'"
+        :class="
+          clearTraces || clearLogsOption || clearMetricsOption
+            ? 'bg-red-600 hover:bg-red-500 text-white'
+            : 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+        "
       >
         Clear Selected
       </button>
@@ -99,7 +104,11 @@ function handleMainClear() {
   clearLogsOption.value = isLogsView.value;
   clearMetricsOption.value = isMetricsView.value;
 
-  const viewName = isMetricsView.value ? 'Metrics' : isLogsView.value ? 'Logs' : 'Traces';
+  const viewName = isMetricsView.value
+    ? 'Metrics'
+    : isLogsView.value
+      ? 'Logs'
+      : 'Traces';
   confirmClear(
     `Clear All ${viewName}`,
     `Are you sure you want to clear all ${viewName.toLowerCase()} data? This action cannot be undone.`,

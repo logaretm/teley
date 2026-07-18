@@ -7,7 +7,11 @@ import {
   setTraceCustomName as dbSetTraceCustomName,
   deleteTrace as dbDeleteTrace,
 } from '../database/operations';
-import { onTraceUpdate, addServiceNames, clearServiceNames } from './useDataSync';
+import {
+  onTraceUpdate,
+  addServiceNames,
+  clearServiceNames,
+} from './useDataSync';
 
 interface UseTracesReturn {
   traces: Ref<Trace[]>;
@@ -20,12 +24,12 @@ export function useTraces(): UseTracesReturn {
   const traces = useState<Trace[]>('traces', () => []);
 
   // Handle real-time trace updates
-  const handleTraceUpdate = (trace: Trace, spans: Span[]) => {
+  const handleTraceUpdate = (trace: Trace, _spans: Span[]) => {
     console.log('[Traces] Received trace update:', trace.trace_id);
 
     // Update local state
     const existingIndex = traces.value.findIndex(
-      (t) => t.trace_id === trace.trace_id
+      (t) => t.trace_id === trace.trace_id,
     );
 
     if (existingIndex >= 0) {
@@ -41,7 +45,10 @@ export function useTraces(): UseTracesReturn {
     try {
       const result = await dbGetTraces(100);
       traces.value = result;
-      addServiceNames(result.map(t => t.service_name), 'traces');
+      addServiceNames(
+        result.map((t) => t.service_name),
+        'traces',
+      );
       console.log('[Traces] Loaded', result.length, 'traces from IndexedDB');
       return result;
     } catch (error) {
@@ -77,12 +84,18 @@ export function useTraces(): UseTracesReturn {
     });
   });
 
-  const renameTrace = async (traceId: string, customName: string | null): Promise<void> => {
+  const renameTrace = async (
+    traceId: string,
+    customName: string | null,
+  ): Promise<void> => {
     const value = customName?.trim() || null;
     await dbSetTraceCustomName(traceId, value);
     const idx = traces.value.findIndex((t) => t.trace_id === traceId);
     if (idx >= 0) {
-      traces.value[idx] = { ...traces.value[idx]!, custom_name: value || undefined };
+      traces.value[idx] = {
+        ...traces.value[idx]!,
+        custom_name: value || undefined,
+      };
     }
   };
 

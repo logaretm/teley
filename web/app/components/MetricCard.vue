@@ -41,7 +41,11 @@
 
     <!-- Sparkline -->
     <div v-if="sparklinePoints.length > 1" class="mt-3 h-8">
-      <svg class="w-full h-full" preserveAspectRatio="none" :viewBox="`0 0 ${sparklinePoints.length - 1} 1`">
+      <svg
+        class="w-full h-full"
+        preserveAspectRatio="none"
+        :viewBox="`0 0 ${sparklinePoints.length - 1} 1`"
+      >
         <polyline
           :points="sparklinePath"
           fill="none"
@@ -92,7 +96,8 @@ const typeBadgeClass = computed(() => {
 const formattedValue = computed(() => {
   if (props.latestValue === null) return '-';
   if (props.type === 'histogram') return '-';
-  if (Number.isInteger(props.latestValue)) return props.latestValue.toLocaleString();
+  if (Number.isInteger(props.latestValue))
+    return props.latestValue.toLocaleString();
   return props.latestValue.toLocaleString(undefined, {
     maximumFractionDigits: 2,
   });
@@ -106,8 +111,6 @@ const sparklinePath = computed(() => {
   const max = Math.max(...points);
   const range = max - min || 1;
 
-  return points
-    .map((v, i) => `${i},${1 - (v - min) / range}`)
-    .join(' ');
+  return points.map((v, i) => `${i},${1 - (v - min) / range}`).join(' ');
 });
 </script>

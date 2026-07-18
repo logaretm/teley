@@ -1,7 +1,9 @@
 <template>
   <div class="flex-1 flex overflow-hidden">
     <!-- Live Session Banner -->
-    <div class="absolute top-0 left-0 right-0 z-10 bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-1.5 text-center text-xs text-emerald-400">
+    <div
+      class="absolute top-0 left-0 right-0 z-10 bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-1.5 text-center text-xs text-emerald-400"
+    >
       Viewing live session
     </div>
 
@@ -28,7 +30,10 @@
     <div class="flex-1 flex flex-col min-h-0">
       <TraceDetail v-if="selectedTraceId" :trace-id="selectedTraceId" />
 
-      <div v-else class="flex-1 flex items-center justify-center bg-zinc-950 h-full">
+      <div
+        v-else
+        class="flex-1 flex items-center justify-center bg-zinc-950 h-full"
+      >
         <div class="text-center space-y-6 max-w-md px-8">
           <div
             class="w-32 h-32 mx-auto bg-zinc-900 rounded-3xl flex items-center justify-center relative overflow-hidden"
@@ -41,9 +46,12 @@
             />
           </div>
           <div class="space-y-3">
-            <h3 class="text-xl font-semibold text-zinc-300">Waiting for traces</h3>
+            <h3 class="text-xl font-semibold text-zinc-300">
+              Waiting for traces
+            </h3>
             <p class="text-sm text-zinc-500 leading-relaxed">
-              You're connected to a live session. Traces will appear here as they come in.
+              You're connected to a live session. Traces will appear here as
+              they come in.
             </p>
           </div>
         </div>
@@ -69,7 +77,11 @@ sessionRoomId.value = roomId;
 sessionReceiveToken.value = token;
 sessionInitialized.value = true;
 
-const { width: tracesPanelWidth, dragging: tracesPanelDragging, onMouseDownLeft: onTracesPanelMouseDown } = useResizablePanel('traces-panel-width', 350);
+const {
+  width: tracesPanelWidth,
+  dragging: tracesPanelDragging,
+  onMouseDownLeft: onTracesPanelMouseDown,
+} = useResizablePanel('traces-panel-width', 350);
 const selectedTraceId = ref<string | null>(null);
 const { traces } = useTraces();
 
