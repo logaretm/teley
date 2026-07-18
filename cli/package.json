@@ -35,8 +35,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@opentui/core": "^0.1.24",
-    "@opentui/react": "^0.1.24",
+    "@opentui/core": "^0.4.0",
+    "@opentui/react": "^0.4.0",
     "nanoid": "^5.1.14",
     "react": "^19.2.0"
   },
