@@ -129,6 +129,26 @@ class TraceStore {
     // (Sentry v2) spans arriving across messages build a stable trace summary.
     const merged = { ...existing, ...trace };
     this.traces.set(trace.trace_id, summarizeTrace(merged, [...bucket.values()]));
+
+    this.evict();
+  }
+
+  // Drop the oldest traces (and their span buckets) once over the cap, so a
+  // long-running session doesn't accumulate traces and spans indefinitely.
+  private evict() {
+    while (this.traces.size > MAX_TRACES) {
+      let oldestId: string | null = null;
+      let oldestStart = Infinity;
+      for (const trace of this.traces.values()) {
+        if (trace.start_time < oldestStart) {
+          oldestStart = trace.start_time;
+          oldestId = trace.trace_id;
+        }
+      }
+      if (oldestId === null) break;
+      this.traces.delete(oldestId);
+      this.spans.delete(oldestId);
+    }
   }
 
   clear() {
@@ -139,7 +159,6 @@ class TraceStore {
   list(): TraceEntry[] {
     return [...this.traces.values()]
       .sort((a, b) => b.start_time - a.start_time)
-      .slice(0, MAX_TRACES)
       .map((trace) => ({
         trace,
         spans: [...(this.spans.get(trace.trace_id)?.values() ?? [])],
@@ -153,6 +172,20 @@ class LogStore {
 
   upsert(log: Log) {
     this.logs.set(log.log_id, log);
+
+    // Drop the oldest logs once over the cap so memory stays bounded.
+    while (this.logs.size > MAX_LOGS) {
+      let oldestId: string | null = null;
+      let oldestTs = Infinity;
+      for (const l of this.logs.values()) {
+        if (l.timestamp < oldestTs) {
+          oldestTs = l.timestamp;
+          oldestId = l.log_id;
+        }
+      }
+      if (oldestId === null) break;
+      this.logs.delete(oldestId);
+    }
   }
 
   clear() {
@@ -160,9 +193,7 @@ class LogStore {
   }
 
   list(): Log[] {
-    return [...this.logs.values()]
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, MAX_LOGS);
+    return [...this.logs.values()].sort((a, b) => b.timestamp - a.timestamp);
   }
 }
 
