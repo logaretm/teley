@@ -52,6 +52,8 @@ jobs:
         with:
           bun-version: latest
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -145,3 +147,15 @@ jobs:
           git tag "cli-v${{ steps.bump.outputs.version }}"
           git push origin "HEAD:${{ github.ref_name }}"
           git push origin "cli-v${{ steps.bump.outputs.version }}"
+
+      # Turn the commits since the previous cli-v tag into a nice GitHub
+      # release. Runs here rather than in an on:push:tags workflow because the
+      # tag above is pushed with GITHUB_TOKEN, and GitHub does not fire new
+      # workflows for those pushes.
+      - name: Generate GitHub release
+        if: steps.decide.outputs.publish == 'true'
+        run: |
+          pnpm install --frozen-lockfile --filter=teley-monorepo --ignore-scripts
+          pnpm changelogithub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
