@@ -37,8 +37,9 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
   let heartbeat: ReturnType<typeof setInterval> | null = null;
   let closed = false;
   let reconnectAttempts = 0;
-  // Set once the socket reaches OPEN; lets onclose tell a handshake rejection
-  // (never opened) apart from an established connection dropping.
+  // Whether the current attempt's socket reached OPEN; reset at the start of
+  // each connect(). Lets onclose tell a handshake rejection (never opened this
+  // attempt) apart from an established connection dropping.
   let opened = false;
   // True while a ping is outstanding. If the next heartbeat tick fires before a
   // pong clears it, the socket is half-open (dead) and we force a reconnect.
@@ -67,6 +68,9 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
   };
 
   function connect() {
+    // Reset per-attempt so a rejection on a later reconnect (never opened this
+    // attempt) is still recognized, even after an earlier connection succeeded.
+    opened = false;
     events.onStatus?.('connecting');
     try {
       ws = new WebSocket(wsUrl);
