@@ -6,11 +6,12 @@ import type { Endpoints } from './session';
 
 // Live mode: connects to the relay WebSocket and streams real traces + logs.
 export function LiveApp({ endpoints, onQuit }: { endpoints: Endpoints; onQuit: () => void }) {
-  const { status, viewers, traces, logs, clear } = useLiveData(endpoints.wsUrl);
+  const { status, error, viewers, traces, logs, clear } = useLiveData(endpoints.wsUrl);
   return (
     <Dashboard
       endpoints={endpoints}
       status={status}
+      error={error}
       viewers={viewers}
       traces={traces}
       logs={logs}

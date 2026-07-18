@@ -1,4 +1,4 @@
-import { UI, OK_GREEN, BOLD } from '../theme';
+import { UI, OK_GREEN, ERROR_RED, BOLD } from '../theme';
 import type { RelayStatus } from '../relay';
 import type { View } from './Dashboard';
 
@@ -19,6 +19,7 @@ const STATUS_META: Record<RelayStatus, { dot: string; label: string; color: stri
   connected: { dot: '●', label: 'live', color: OK_GREEN },
   connecting: { dot: '○', label: 'connecting', color: '#f59e0b' },
   disconnected: { dot: '○', label: 'offline', color: UI.dim },
+  rejected: { dot: '●', label: 'rejected', color: ERROR_RED },
 };
 
 function LinkRow({

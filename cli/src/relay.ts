@@ -1,20 +1,30 @@
 // WebSocket relay client + trace store + React hook.
 // Mirrors the browser SharedWorker (app/workers/relay-worker.ts): one WebSocket
-// to the room, heartbeat ping/pong, auto-reconnect with 3s backoff.
+// to the room, heartbeat ping/pong, auto-reconnect with exponential backoff.
 
 import { useEffect, useRef, useState } from 'react';
 import type { Trace, Span, Log, TraceEntry, WebSocketMessage } from './types';
 import { summarizeTrace } from '../../shared/parsers/trace-summary';
 
-export type RelayStatus = 'connecting' | 'connected' | 'disconnected';
+// 'rejected' is terminal: the relay refused the handshake (room already claimed
+// or token mismatch) and we stop retrying.
+export type RelayStatus = 'connecting' | 'connected' | 'disconnected' | 'rejected';
 
 const HEARTBEAT_MS = 30_000;
-const RECONNECT_MS = 3_000;
+// Exponential backoff for reconnects: base doubles each attempt up to a cap,
+// with jitter to avoid a thundering herd against a recovering relay.
+const RECONNECT_BASE_MS = 1_000;
+const RECONNECT_MAX_MS = 30_000;
 const MAX_TRACES = 200;
 const MAX_LOGS = 500;
 
+// Bun reports a non-101 handshake response (e.g. the relay's 401/400) as a
+// close with code 1002, distinct from an established socket dropping (1006).
+const HANDSHAKE_REJECTED_CODE = 1002;
+
 interface RelayEvents {
   onStatus?: (status: RelayStatus) => void;
+  onReject?: (reason: string) => void;
   onTrace?: (trace: Trace, spans: Span[]) => void;
   onLog?: (log: Log) => void;
   onViewerCount?: (count: number) => void;
@@ -26,6 +36,14 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   let heartbeat: ReturnType<typeof setInterval> | null = null;
   let closed = false;
+  let reconnectAttempts = 0;
+  // Whether the current attempt's socket reached OPEN; reset at the start of
+  // each connect(). Lets onclose tell a handshake rejection (never opened this
+  // attempt) apart from an established connection dropping.
+  let opened = false;
+  // True while a ping is outstanding. If the next heartbeat tick fires before a
+  // pong clears it, the socket is half-open (dead) and we force a reconnect.
+  let awaitingPong = false;
 
   const stopHeartbeat = () => {
     if (heartbeat) {
@@ -36,13 +54,23 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
 
   const scheduleReconnect = () => {
     if (closed || reconnectTimer) return;
+    const backoff = Math.min(
+      RECONNECT_BASE_MS * 2 ** reconnectAttempts,
+      RECONNECT_MAX_MS,
+    );
+    // Full jitter: a random point in [0, backoff].
+    const delay = Math.random() * backoff;
+    reconnectAttempts++;
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
       connect();
-    }, RECONNECT_MS);
+    }, delay);
   };
 
   function connect() {
+    // Reset per-attempt so a rejection on a later reconnect (never opened this
+    // attempt) is still recognized, even after an earlier connection succeeded.
+    opened = false;
     events.onStatus?.('connecting');
     try {
       ws = new WebSocket(wsUrl);
@@ -52,15 +80,29 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
     }
 
     ws.onopen = () => {
+      opened = true;
+      reconnectAttempts = 0;
+      awaitingPong = false;
       events.onStatus?.('connected');
       heartbeat = setInterval(() => {
-        if (ws && ws.readyState === WebSocket.OPEN) ws.send('ping');
+        if (!ws || ws.readyState !== WebSocket.OPEN) return;
+        if (awaitingPong) {
+          // No pong since the last ping: the socket is half-open. Close it so
+          // onclose runs and schedules a reconnect.
+          ws.close();
+          return;
+        }
+        awaitingPong = true;
+        ws.send('ping');
       }, HEARTBEAT_MS);
     };
 
     ws.onmessage = (e) => {
       const raw = typeof e.data === 'string' ? e.data : String(e.data);
-      if (raw === 'pong') return;
+      if (raw === 'pong') {
+        awaitingPong = false;
+        return;
+      }
 
       let msg: WebSocketMessage;
       try {
@@ -87,10 +129,23 @@ export function createRelay(wsUrl: string, events: RelayEvents) {
       }
     };
 
-    ws.onclose = () => {
+    ws.onclose = (e) => {
       stopHeartbeat();
+      awaitingPong = false;
+      if (closed) return;
+
+      // A close before the socket ever opened, with the non-101 handshake code,
+      // means the relay refused us: the room is already claimed by another
+      // token, or the token mismatches. Retrying can never succeed, so stop and
+      // surface it instead of reconnecting forever.
+      if (!opened && e.code === HANDSHAKE_REJECTED_CODE) {
+        events.onStatus?.('rejected');
+        events.onReject?.('Relay rejected the connection: room already claimed or token mismatch.');
+        return;
+      }
+
       events.onStatus?.('disconnected');
-      if (!closed) scheduleReconnect();
+      scheduleReconnect();
     };
 
     // onerror is followed by onclose, which handles reconnect.
@@ -217,6 +272,7 @@ class LogStore extends BoundedStore<Log> {
 
 export interface LiveData {
   status: RelayStatus;
+  error: string | null;
   viewers: number;
   traces: TraceEntry[];
   logs: Log[];
@@ -225,15 +281,18 @@ export interface LiveData {
 
 export function useLiveData(wsUrl: string): LiveData {
   const [status, setStatus] = useState<RelayStatus>('connecting');
+  const [error, setError] = useState<string | null>(null);
   const [viewers, setViewers] = useState(0);
   const [, bump] = useState(0);
   const traceStore = useRef<TraceStore>(new TraceStore());
   const logStore = useRef<LogStore>(new LogStore());
 
   useEffect(() => {
+    setError(null);
     const rerender = () => bump((n) => n + 1);
     const relay = createRelay(wsUrl, {
       onStatus: setStatus,
+      onReject: setError,
       onViewerCount: setViewers,
       onTrace: (trace, spans) => {
         traceStore.current.upsert(trace, spans);
@@ -254,6 +313,7 @@ export function useLiveData(wsUrl: string): LiveData {
 
   return {
     status,
+    error,
     viewers,
     traces: traceStore.current.list(),
     logs: logStore.current.list(),

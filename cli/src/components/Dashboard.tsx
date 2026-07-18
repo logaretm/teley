@@ -18,6 +18,7 @@ import type { Endpoints } from '../session';
 interface Props {
   endpoints: Endpoints;
   status: RelayStatus;
+  error?: string | null;
   viewers: number;
   traces: TraceEntry[];
   logs: Log[];
@@ -33,7 +34,7 @@ const COPIED_MS = 1600;
 const HEADER_H = 5;
 const STATUS_H = 1;
 
-export function Dashboard({ endpoints, status, viewers, traces, logs, onClear, onQuit }: Props) {
+export function Dashboard({ endpoints, status, error, viewers, traces, logs, onClear, onQuit }: Props) {
   const { width, height } = useTerminalDimensions();
   const renderer = useRenderer();
   const [view, setView] = useState<View>('traces');
@@ -186,7 +187,7 @@ export function Dashboard({ endpoints, status, viewers, traces, logs, onClear, o
       <box style={{ flexDirection: 'row', flexGrow: 1 }}>
         {view === 'logs' ? (
           logs.length === 0 || !currentLog ? (
-            <EmptyState status={status} what="logs" />
+            <EmptyState status={status} error={error} what="logs" />
           ) : (
             <>
               <LogList
@@ -200,7 +201,7 @@ export function Dashboard({ endpoints, status, viewers, traces, logs, onClear, o
             </>
           )
         ) : traces.length === 0 || !current ? (
-          <EmptyState status={status} what="traces" />
+          <EmptyState status={status} error={error} what="traces" />
         ) : (
           <>
             {showSpanDetail ? null : (
