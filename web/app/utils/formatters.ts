@@ -97,7 +97,7 @@ export function formatDurationCompact(ms: number): string {
     const val = ms * 1000;
     return `${parseFloat(val.toFixed(1))}µs`;
   } else if (ms < 1000) {
-    return `${parseFloat(ms.toFixed(1))}ms`;
+    return `${Math.round(ms)}ms`;
   } else {
     return `${parseFloat((ms / 1000).toFixed(1))}s`;
   }

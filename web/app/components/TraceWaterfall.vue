@@ -157,23 +157,32 @@
       </div>
 
       <!-- Spans -->
-      <div class="space-y-1">
+      <div class="space-y-0.5" :class="{ 'wf-anim': animate }">
         <div
-          v-for="spanRow in spanTree"
+          v-for="(spanRow, i) in spanTree"
           :key="spanRow.span.span_id"
-          class="grid grid-cols-[var(--name-col)_1fr] gap-4 hover:bg-zinc-900 cursor-pointer transition-colors py-2 px-2 rounded"
+          class="span-row grid grid-cols-[var(--name-col)_1fr] gap-4 items-center hover:bg-zinc-900/60 cursor-pointer py-1.5 px-2 rounded-lg"
+          :class="{ 'is-error': spanRow.span.status_code === 2, shown: entered }"
+          :style="{ '--enter-delay': enterDelay(i) }"
           @click="$emit('selectSpan', spanRow.span)"
         >
           <!-- Span Name -->
           <div
             class="flex items-center gap-2 min-w-0"
-            :style="{ paddingLeft: `${spanRow.depth * 20}px` }"
+            :style="{ paddingLeft: `${spanRow.depth * 14}px` }"
           >
-            <span v-if="spanRow.depth > 0" class="text-zinc-600 text-xs">
-              └─
-            </span>
             <span
-              class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0"
+              v-if="spanRow.depth > 0"
+              class="span-guide shrink-0"
+              aria-hidden="true"
+            />
+            <span
+              v-if="spanRow.span.status_code === 2"
+              class="err-dot shrink-0"
+              title="error"
+            />
+            <span
+              class="text-[10px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0 tracking-wide"
               :class="
                 getDepthColorClassForLabel(
                   spanRow.depth,
@@ -186,9 +195,6 @@
             <span class="text-sm text-zinc-300 truncate">
               {{ spanRow.span.name }}
             </span>
-            <span class="text-xs text-zinc-500 font-mono shrink-0 ml-auto">
-              {{ formatDuration(spanRow.span.duration) }}
-            </span>
           </div>
 
           <!-- Timeline -->
@@ -196,15 +202,26 @@
             class="relative h-6 flex items-center"
             :class="zoomedOut ? 'overflow-hidden' : ''"
           >
+            <!-- Bar -->
             <div
-              class="absolute h-4 rounded transition-all"
-              :class="
-                getDepthColorClass(spanRow.depth, spanRow.span.status_code)
-              "
+              class="span-bar absolute h-[18px] rounded-md flex items-center justify-end overflow-hidden"
               :style="getBarStyle(spanRow)"
             >
-              <div class="h-full w-full rounded opacity-80"></div>
+              <span
+                v-if="durationPlacement(spanRow) === 'inside'"
+                class="text-[10px] leading-none text-white/85 font-mono px-1.5 pointer-events-none"
+              >
+                {{ formatDuration(spanRow.span.duration) }}
+              </span>
             </div>
+            <!-- Duration spilled outside a too-thin bar -->
+            <span
+              v-if="durationPlacement(spanRow) !== 'inside'"
+              class="absolute top-1/2 -translate-y-1/2 text-[10px] leading-none text-zinc-500 font-mono whitespace-nowrap pointer-events-none"
+              :style="durationOutsideStyle(spanRow)"
+            >
+              {{ formatDuration(spanRow.span.duration) }}
+            </span>
           </div>
         </div>
       </div>
@@ -229,9 +246,10 @@ interface Props {
   trace: Trace;
   spans: Span[];
   readonly?: boolean;
+  animate?: boolean;
 }
 
-const props = defineProps<Props>();
+const props = withDefaults(defineProps<Props>(), { animate: true });
 const emit = defineEmits<{
   selectSpan: [span: Span];
   compare: [];
@@ -272,22 +290,99 @@ const zoomedOut = ref(true);
 
 const spanTree = computed(() => buildSpanTree(props.spans, props.trace));
 
-function getBarStyle(spanRow: { offsetPercent: number; widthPercent: number }) {
+// Lighter -> darker gradient pairs, one per tree depth (cycled). Mirrors the
+// solid depth palette below but gives bars the dimensional look of Spanshot.
+const DEPTH_GRADIENTS: [string, string][] = [
+  ['#60a5fa', '#3b82f6'], // blue
+  ['#c084fc', '#a855f7'], // purple
+  ['#34d399', '#10b981'], // emerald
+  ['#fbbf24', '#f59e0b'], // amber
+  ['#22d3ee', '#06b6d4'], // cyan
+  ['#f472b6', '#ec4899'], // pink
+  ['#a3e635', '#84cc16'], // lime
+  ['#818cf8', '#6366f1'], // indigo
+];
+const ERROR_GRADIENT: [string, string] = ['#f87171', '#dc2626'];
+
+function getBarGradient(depth: number, statusCode: number): string {
+  const [from, to] =
+    statusCode === 2
+      ? ERROR_GRADIENT
+      : DEPTH_GRADIENTS[depth % DEPTH_GRADIENTS.length]!;
+  return `linear-gradient(90deg, ${from}, ${to})`;
+}
+
+type BarRow = {
+  offsetPercent: number;
+  widthPercent: number;
+  depth: number;
+  span: Span;
+};
+
+// Bar geometry (percent) after the fit-mode clamp, shared by the bar itself and
+// the duration-label placement so they always agree.
+function barMetrics(spanRow: BarRow): { left: number; width: number } {
   if (!zoomedOut.value) {
-    return {
-      left: `${spanRow.offsetPercent}%`,
-      width: `${spanRow.widthPercent}%`,
-    };
+    return { left: spanRow.offsetPercent, width: spanRow.widthPercent };
   }
+  const left = Math.min(spanRow.offsetPercent, 100);
+  return { left, width: Math.min(spanRow.widthPercent, 100 - left) };
+}
 
-  const offset = Math.min(spanRow.offsetPercent, 100);
-  const width = Math.min(spanRow.widthPercent, 100 - offset);
-
+function getBarStyle(spanRow: BarRow) {
+  const { left, width } = barMetrics(spanRow);
   return {
-    left: `${offset}%`,
+    background: getBarGradient(spanRow.depth, spanRow.span.status_code),
+    left: `${left}%`,
     width: `${width}%`,
-    minWidth: '1px',
+    minWidth: '2px',
   };
+}
+
+// Rough pixel budget the duration label needs vs. the bar's rendered width.
+// When the bar is too thin (e.g. sub-millisecond spans), spill the label out to
+// the side that has room instead of clipping it to an unreadable sliver.
+function durationText(span: Span): string {
+  return formatDuration(span.duration);
+}
+
+function durationPlacement(spanRow: BarRow): 'inside' | 'right' | 'left' {
+  const { left, width } = barMetrics(spanRow);
+  const barPx = (width / 100) * (containerWidth.value || 0);
+  const labelPx = durationText(spanRow.span).length * 6.2 + 12;
+  if (barPx >= labelPx + 6) return 'inside';
+  return left + width > 80 ? 'left' : 'right';
+}
+
+function durationOutsideStyle(spanRow: BarRow) {
+  const { left, width } = barMetrics(spanRow);
+  return left + width > 80
+    ? { right: `${100 - left}%`, paddingRight: '5px' }
+    : { left: `${left + width}%`, paddingLeft: '5px' };
+}
+
+// Staggered entrance: rows fade/rise and bars wipe in the first time the
+// waterfall renders, replayed whenever the trace changes.
+const entered = ref(false);
+const prefersReducedMotion =
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+function reveal() {
+  if (!props.animate || prefersReducedMotion) {
+    entered.value = true;
+    return;
+  }
+  entered.value = false;
+  nextTick(() => requestAnimationFrame(() => (entered.value = true)));
+}
+
+onMounted(reveal);
+watch(() => props.trace.trace_id, reveal);
+
+// Cap the cumulative stagger so long traces still finish revealing quickly.
+function enterDelay(i: number): string {
+  return `${Math.min(i * 20, 500)}ms`;
 }
 
 // Adaptive time scale labels
@@ -342,28 +437,6 @@ function getSpanKindClass(kind: SpanKind): string {
   return classes[kind] || 'internal';
 }
 
-function getDepthColorClass(depth: number, statusCode: SpanStatusCode): string {
-  // If error, always show red
-  if (statusCode === 2) {
-    return 'bg-red-500';
-  }
-
-  // Color palette for different depth levels
-  const depthColors = [
-    'bg-blue-500', // Level 0 (root)
-    'bg-purple-500', // Level 1
-    'bg-emerald-500', // Level 2
-    'bg-amber-500', // Level 3
-    'bg-cyan-500', // Level 4
-    'bg-pink-500', // Level 5
-    'bg-lime-500', // Level 6
-    'bg-indigo-500', // Level 7
-  ];
-
-  // Cycle through colors for deeper levels
-  return depthColors[depth % depthColors.length] || 'bg-blue-500';
-}
-
 function getDepthColorClassForLabel(
   depth: number,
   statusCode: SpanStatusCode,
@@ -394,6 +467,69 @@ function getDepthColorClassForLabel(
 
 <style scoped>
 @reference '../../app/assets/css/main.css';
+
+/* Nested-span connector: a short guide tick before indented rows. */
+.span-guide {
+  width: 8px;
+  height: 1px;
+  background: #3f3f46;
+}
+
+/* Glowing error marker in the name column. */
+.err-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.7);
+}
+
+/* Depth-tinted bars get a soft drop shadow for a lifted, glossy feel. Kept
+   tight so it hugs the bar rather than haloing across the row. */
+.span-bar {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.span-row.is-error .span-bar {
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.4),
+    0 1px 4px rgba(220, 38, 38, 0.3);
+}
+
+.span-row {
+  transition: background-color 120ms ease;
+}
+
+/* Staggered entrance: rows fade/rise, bars wipe left-to-right. `--enter-delay`
+   is set inline per row and inherits down to the bar. */
+.wf-anim .span-row {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity 320ms ease var(--enter-delay, 0ms),
+    transform 320ms ease var(--enter-delay, 0ms),
+    background-color 120ms ease 0ms;
+}
+.wf-anim .span-bar {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 420ms cubic-bezier(0.22, 1, 0.36, 1)
+    var(--enter-delay, 0ms);
+}
+.wf-anim .span-row.shown {
+  opacity: 1;
+  transform: none;
+}
+.wf-anim .span-row.shown .span-bar {
+  clip-path: inset(0 0 0 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wf-anim .span-row,
+  .wf-anim .span-bar {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    transition: none;
+  }
+}
 
 .kind-server {
   @apply bg-blue-500/20 text-blue-400;
