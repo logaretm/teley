@@ -27,8 +27,8 @@ importers:
         specifier: ^0.4.0
         version: 0.4.4(react-devtools-core@7.0.1)(react@19.2.7)(typescript@7.0.2)(web-tree-sitter@0.25.10)(ws@8.21.0)
       nanoid:
-        specifier: ^5.1.14
-        version: 5.1.14
+        specifier: ^6.0.0
+        version: 6.0.0
       react:
         specifier: ^19.2.0
         version: 19.2.7
@@ -70,8 +70,8 @@ importers:
         specifier: ^1.10.2
         version: 1.10.2(@vueuse/core@14.3.0(vue@3.5.40(typescript@7.0.2)))(react@19.2.7)(vue@3.5.40(typescript@7.0.2))
       nanoid:
-        specifier: ^5.1.14
-        version: 5.1.14
+        specifier: ^6.0.0
+        version: 6.0.0
       nuxt:
         specifier: ^4.4.8
         version: 4.4.8(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7))(@parcel/watcher@2.5.6)(@types/node@24.10.1)(@vue/compiler-sfc@3.5.38)(cac@6.7.14)(db0@0.3.4)(ioredis@5.11.1)(lightningcss@1.32.0)(magicast@0.5.3)(oxlint@1.74.0)(rollup-plugin-visualizer@7.0.1(rollup@4.62.0))(rollup@4.62.0)(srvx@0.11.16)(terser@5.48.0)(tsx@4.23.1)(typescript@7.0.2)(vite@7.3.5(@types/node@24.10.1)(jiti@2.7.0)(lightningcss@1.32.0)(terser@5.48.0)(tsx@4.23.1)(yaml@2.9.0))(yaml@2.9.0)
@@ -4107,9 +4107,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.14:
-    resolution: {integrity: sha512-5c8l8kVzqpnDPaicbEop/fV0Q1w16FmbWtVhMqugTozAwYdlIQojWH5a/M7UfziFmGdQRrUdV+EPzc9Xng3VAQ==}
-    engines: {node: ^18 || >=20}
+  nanoid@6.0.0:
+    resolution: {integrity: sha512-mkUH+rPkwU2qPadJ0oJZOjeZ5Mxn8Q1UhevwkTRWNuUZzyia3h4rhzK39hxaHTk0o2OxB8W2SQ6A8k23ZDi1pQ==}
+    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   nanotar@0.3.0:
@@ -9260,7 +9260,7 @@ snapshots:
 
   nanoid@3.3.13: {}
 
-  nanoid@5.1.14: {}
+  nanoid@6.0.0: {}
 
   nanotar@0.3.0: {}
 

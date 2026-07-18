@@ -37,7 +37,7 @@
   "dependencies": {
     "@opentui/core": "^0.4.0",
     "@opentui/react": "^0.4.0",
-    "nanoid": "^5.1.14",
+    "nanoid": "^6.0.0",
     "react": "^19.2.0"
   },
   "devDependencies": {
