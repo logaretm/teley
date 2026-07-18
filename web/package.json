@@ -28,7 +28,6 @@
     "motion-v": "^1.10.2",
     "nanoid": "^6.0.0",
     "nuxt": "^4.4.8",
-    "shiki": "^3.22.0",
     "vue": "^3.5.40"
   },
   "devDependencies": {
